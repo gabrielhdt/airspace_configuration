@@ -18,3 +18,12 @@ _build/
 # oasis generated files
 setup.data
 setup.log
+
+# latex files
+article/*.toc
+article/*.log
+article/*.aux
+
+# vim files
+*.un~
+*.swp
