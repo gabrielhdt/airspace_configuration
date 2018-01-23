@@ -1,8 +1,8 @@
 # See https://github.com/ocaml/ocamlbuild/blob/master/examples/
-DOCDIR = doc/docdir
+DOCDIR = doc/ac.docdir
 .PHONY: all clean byte native profile debug
 
-OCB = ocamlbuild $(OCB_FLAGS)
+OCB = ocamlbuild
 
 all: native byte
 
@@ -25,16 +25,16 @@ doc_html:
 	$(OCB) $(DOCDIR)/index.html
 
 doc_man:
-	$(OCB) $(DOCDIR)/man
+	$(OCB) $(DOCDIR)/ac.man
 
 doc_tex:
-	$(OCB) $(DOCDIR)/tex
+	$(OCB) $(DOCDIR)/ac.tex
 
 doc_texinfo:
-	$(OCB) $(DOCDIR)/texi
+	$(OCB) $(DOCDIR)/ac.texi
 
 doc_dot:
-	$(OCB) $(DOCDIR)/dot
+	$(OCB) $(DOCDIR)/ac.dot
 
 tags:
 	ctags src/*.ml src/*.mli Makefile
