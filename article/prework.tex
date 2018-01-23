@@ -3,6 +3,8 @@
 \usepackage{polyglossia}
 \usepackage{cite}
 \usepackage{hyperref}
+\usepackage{unicode-math}
+\usepackage{amsmath,amsthm,stmaryrd}
 
 \title{Airspace configuration with Monte Carlo tree search}
 \author{Us}
@@ -12,6 +14,36 @@
 \begin{document}
 \maketitle
 
+\section{Preliminaries}
+\subsection{Base theory: the environment and notations}
+Notations based on Markov Decision Problem's theory (taken
+from~\cite{browne2012survey})
+\begin{itemize}
+  \item \(S\) a set of states,
+  \item \(\mathcal{A}\) a set of actions,
+  \item \(T(s, a, s')\) a transition model that determines the probability of
+      reaching state \(s'\) if action \(a\) is applied to state \(s\),
+  \item \(R(s)\) a reward function
+\end{itemize}
+
+\subsection{Monte carlo methods~\cite{browne2012survey}}
+We denote by \(Q(s, a)\) the expected reward of an action. Let
+\begin{itemize}
+  \item \(N(s, a)\) be
+    the number of times action \(a\) has been selected from state \(s\),
+  \item \(N(s)\) the number of times the game has been played from state \(s\),
+  \item \(\mathbb{I}_i(s, a)\) is 1 if action \(a\) was selected from state
+    \(s\) on the \(i\)th playout from state \(s\) else 0 and
+  \item \(z_i\) is the result of the \(i\)th simulation played.
+\end{itemize}
+In Monte Carlo methods, we have
+\begin{equation}
+  Q(s, a) = \frac{1}{N(s, a)}\sum_{i = 1}^{N(s)}\mathbb{I}_i(s, a)z_i
+\end{equation}
+
+\subsection{Monte Carlo tree search}
+In the MCTS, the action \(a\) is the path that leads from the root the the best
+node computed so far
 
 \bibliography{article}
 \bibliographystyle{plain}
