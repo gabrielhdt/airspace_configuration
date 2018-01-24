@@ -5,6 +5,7 @@
 \usepackage{hyperref}
 \usepackage{unicode-math}
 \usepackage{amsmath,amsthm,stmaryrd}
+\usepackage{algorithm,algpseudocode}
 
 \title{Airspace configuration with Monte Carlo tree search}
 \author{Us}
@@ -19,12 +20,15 @@
 Notations based on Markov Decision Problem's theory (taken
 from~\cite{browne2012survey})
 \begin{itemize}
-  \item \(S\) a set of states,
+  \item \(\mathcal{S}\) a set of states,
   \item \(\mathcal{A}\) a set of actions,
   \item \(T(s, a, s')\) a transition model that determines the probability of
       reaching state \(s'\) if action \(a\) is applied to state \(s\),
   \item \(R(s)\) a reward function
 \end{itemize}
+
+A policy is a mapping \(\pi \colon \mathcal{S} \to \mathcal{A}\). The aim is to
+output, from a state \(s\), the action that gives the highest reward.
 
 \subsection{Monte carlo methods~\cite{browne2012survey}}
 We denote by \(Q(s, a)\) the expected reward of an action. Let
@@ -41,10 +45,31 @@ In Monte Carlo methods, we have
   Q(s, a) = \frac{1}{N(s, a)}\sum_{i = 1}^{N(s)}\mathbb{I}_i(s, a)z_i
 \end{equation}
 
+\subsection{Bandits methods}
+
 \subsection{Monte Carlo tree search}
-In the MCTS, the action \(a\) is the path that leads from the root the the best
-node computed so far
+In the MCTS, the action \(a\) is the path that leads from the root to the best
+node computed so far. To each node should correspond a state \(s\). This way, an
+action \(a\) from a node with state \(s\) gives an other node with an other
+state \(s'\).
 
 \bibliography{article}
 \bibliographystyle{plain}
+
+\section{Algorithms}
+\subsection{Monte carlo}
+\begin{algorithm}
+  \caption{General MCTS approach~\cite{browne2012survey}}
+  \begin{algorithmic}
+    \Function{MctsSearch}{$s_0$}
+    \State{}create root node \(v_0\) with state \(s_0\)
+    \While{within computational budget}
+    \State{} \(v_l \gets\) \Call{TreePolicy}{$v_0$}
+    \State{} \(\Delta \gets\) \Call{DefaultPolicy}{$s(v_l)$}
+    \State{} \Call{Backup}{$v_l$, $\Delta$}
+    \EndWhile{}
+    \Return{\(a(\)\Call{BestChild}{$v_0$}\()\)}
+    \EndFunction{}
+  \end{algorithmic}
+\end{algorithm}
 \end{document}
