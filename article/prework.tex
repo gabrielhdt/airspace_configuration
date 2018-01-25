@@ -45,16 +45,13 @@ In Monte Carlo methods, we have
   Q(s, a) = \frac{1}{N(s, a)}\sum_{i = 1}^{N(s)}\mathbb{I}_i(s, a)z_i
 \end{equation}
 
-\subsection{Bandits methods}
+\subsection{Bandits methods~\cite{browne2012survey},~\cite{kocsis2006bandit}}
 
 \subsection{Monte Carlo tree search}
 In the MCTS, the action \(a\) is the path that leads from the root to the best
 node computed so far. To each node should correspond a state \(s\). This way, an
 action \(a\) from a node with state \(s\) gives an other node with an other
 state \(s'\).
-
-\bibliography{article}
-\bibliographystyle{plain}
 
 \section{Algorithms}
 \subsection{Monte carlo}
@@ -72,4 +69,49 @@ state \(s'\).
     \EndFunction{}
   \end{algorithmic}
 \end{algorithm}
+
+\section{Per article review}
+\paragraph{Branch and price~\cite{treimuth2016branch}}
+The most important in this article is the model used. The rest depends heavily
+on the algorithm used, which is the branch and price, a variant of the branch
+and bound.
+
+Three things to minimise:
+\begin{itemize}
+  \item atc workload \(a\),
+  \item workload difference between atc \(b\),
+  \item changes between consecutive configurations \(c\).
+\end{itemize}
+The objective function is therefore a linear combination \(\alpha a + \beta b +
+\gamma c\).
+
+The airspace is modelled by a weighted graph (with \(T\) the discretised time)
+\(G = (V, E, W_t, t\in T)\), with
+\begin{itemize}
+  \item \(V\), the set of vertex, elementary sectors of the airspace weighted by
+    its overload,
+  \item \(E\), the set of edges, they connect two contiguous elementary sectors,
+    they are weighted by the coordination workload for the planes crossing the
+    border if the two sectors belong to two different controllers,
+  \item \(W_t\) the weights at time \(t\in T\).
+\end{itemize}
+
+
+Three sets of binary decisions are introduced, controlling
+\begin{itemize}
+  \item for each feasible configuration, whether it is applied,
+  \item for each edge, whether it is a frontier,
+  \item for each edge, whether its frontier status has changed (shifts from
+    frontier to not frontier and vice versa).
+\end{itemize}
+In each set, there is, per time period, one variable per feasible configuration
+for the first one and one variable per edge for the second and third ones.
+
+The way to generate feasible configurations isn't explained though\dots
+
+
+
+
+\bibliography{article}
+\bibliographystyle{plain}
 \end{document}
