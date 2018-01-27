@@ -70,6 +70,23 @@ state \(s'\).
   \end{algorithmic}
 \end{algorithm}
 
+\subsubsection{Tree policy}
+The tree policy includes the selection and the expansion.
+\begin{algorithm}
+  \caption{Tree policy}
+  \begin{algorithmic}
+    \Function{TreePolicy}{$v$}
+    \While{$v$ is nonterminal}
+    \If{$v$ is expandable}
+    \Return{\Call{Expand}{$v$}}
+    \Else{}{$v \gets$ \Call{BestChild}{$v, C_p$}}
+    \EndIf{}
+    \EndWhile{}
+    \Return{$v$}
+    \EndFunction{}
+  \end{algorithmic}
+\end{algorithm}
+
 \section{Per article review}
 \paragraph{Branch and price~\cite{treimuth2016branch}}
 The most important in this article is the model used. The rest depends heavily
