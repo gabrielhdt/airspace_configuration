@@ -23,16 +23,26 @@ let random_elt lst =
   let i = Random.int (List.length lst) in
   List.nth lst i
 
+(* TODO The two functions below could be grouped in one which would expand the
+ * node or raise an exception *)
 let rec expandable t =
-  match t.children with
-  | [] -> false
-  | hd :: tl -> 
-      let rec loop = function
-        | [] -> false
-        | hd :: tl ->
-            if hd.n = 0 then true else loop tl
-      in
-      loop hd.children
+  if Airconf.terminal t then false else
+    (* Parses the children to see if one has not been visited *)
+    let rec loop = function
+      | [] -> false
+      | hd :: tl -> if hd.n = 0 then true else loop tl
+    in
+    loop t.children
+
+(** [expand t] returns node which must be visited among children of [t] *)
+let expand t =
+  let rec loop = function
+      [] -> failwith "no nodes to expand"
+    | hd :: tl ->
+        if Airconf.terminal hd || hd.n = 0 then loop tl
+        else hd
+  in
+  loop t.children
 
 let ucb beta father child =
   child.q /. float child.n +.
@@ -50,6 +60,7 @@ let best_child t =
   List.fold_left aux (List.hd t.children) t.children
 
 (** [select t a] builds a path toward most urgent node to expand *)
+    (* TODO see above comment considering expand *)
 let rec select tree ancestors =
   if expandable tree then ancestors
   else
@@ -57,16 +68,6 @@ let rec select tree ancestors =
     | (hd :: tl) -> let favourite = best_child tree in
         select favourite (tree :: ancestors)
     | [] -> ancestors
-
-(** [expand t] returns node which must be visited among children of [t] *)
-let expand t =
-  let rec loop = function
-      [] -> failwith "no nodes to expand"
-    | hd :: tl ->
-        if Airconf.terminal hd || hd.n = 0 then loop tl
-        else hd
-  in
-  loop t.children
 
 let treepolicy root =
   let path = select root [ root ] in
@@ -101,6 +102,7 @@ let rec backpropagate (ancestors : 'a tree list) reward =
         backpropagate tl (List.tl reward)
       end
 
+(** [mcts r] updates tree of root [t] with monte carlo *)
 let mcts root =
   for i = 1 to 4 do
     let path = treepolicy root in
@@ -108,4 +110,3 @@ let mcts root =
     let bppg_aux win = backpropagate path win in
     List.iter bppg_aux wins
   done ;
-  best_child root 
