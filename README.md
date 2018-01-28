@@ -1,2 +1,2 @@
-# ansec_mcts
-Repartitioning of aircrafts navigation sectors among positions using Monte Carlo tree search
+# Airsapce configuration ussing Monte Carlo Tree Search
+
