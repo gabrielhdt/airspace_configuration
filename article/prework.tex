@@ -128,6 +128,35 @@ The way to generate feasible configurations isn't explained though\dots
 
 
 
+\paragraph{Dynamic airspace configuration by genetic
+  algorithm\cite{sergeeva2017dynamic}}
+The cost function uses five criteria,
+\begin{itemize}
+  \item imbalance between the workload of the controlled sectors,
+  \item the coordination workload,
+  \item the number of flight re-entry events,
+  \item the number of short transits flight through sectors,
+  \item the number of controlled sectors in each airpsace configuration.
+\end{itemize}
+Only the first one is relevant here, as the neural network gives the workload of
+each module.
+
+The airspace is modelled as a graph, the problem boils down to a graph
+partitioning problem.
+
+The imbalance is calculated as follow, with \(K_i\) the number of controlled
+sectors at time \(t_i\), \(W_{c_{jk}}\) the total workload of all airspace
+blocks composing the sector \(k\) at time \(t_i\) and \(c\) the targeted
+workload of the sector,
+\[
+  U_t = \sqrt{%
+    \frac{%
+      \sum_{k=1}^{K_i} {\left( \frac{|W_{c_{jk}} - c|}{c} \right)}^2
+    }{k_i}
+  }
+\]
+
+
 
 \bibliography{article}
 \bibliographystyle{plain}
