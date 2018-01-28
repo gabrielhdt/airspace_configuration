@@ -1,121 +1,111 @@
-type 'a node = {
-  tag : int ;
-  mutable profit : int ;
-  mutable explored : int ;
-  children : 'a list
+type 'a tree = {
+  state : 'a ;
+  mutable q : float ;
+  mutable n : int ;
+  children : 'a tree list
 }
 
-type tree =
-    Leaf of bool
-  | Node of tree node
+let nsim = 100
 
-let dummynode = { tag = 0 ; profit = 0 ; explored = 0 ;
-                  children = ([] : tree list) }
+(* Temporary considering functor approach *)
+let dummystate = Airconf.dummy
 
-let dummytree = Node dummynode
+let dummytree = {
+  state = dummystate ;
+  q = 0. ;
+  n = 0 ;
+  children = []
+}
 
 let beta = 1.
-
-(* Allows one to compare two node *)
-let nodecmp (na : tree) (nb : tree) =
-  let da = match na with
-      Leaf x -> 0
-    | Node { profit = p ; explored = e ; children = _ } -> p * e
-  in
-  let db = match nb with
-      Leaf x -> 0
-    | Node { profit = p ; explored = e ; children = _ } -> p * e
-  in
-  compare da db
-
-let ucb beta father na nb =
-  let aux n = float na.profit /. float na.explored +.
-              beta *. sqrt (
-                2. *. log (float father.explored) /. (float na.explored))
-  in
-  let qa = aux na
-  and qb = aux nb in
-  if qa >= qb then na else nb
-
-let treepolicy (node : tree node) =
-  let rec loop rem acc = match rem with
-    | [] -> acc
-    | hd :: tl ->
-        match hd with
-        | Leaf _ -> failwith "Too far for treepolicy"
-        | Node hdn ->
-            if hdn.explored = 0 then hdn
-            else ucb beta node hdn acc
-  in
-  loop node.children dummynode
-
-let argnodecmp nodea nodeb =
-  let ncmp = nodecmp nodea nodeb in
-  if ncmp >= 0 then nodea
-  else nodeb
 
 let random_elt lst =
   let i = Random.int (List.length lst) in
   List.nth lst i
 
-let select (children : tree list) =
-  List.fold_left argnodecmp dummytree children
+let rec expandable t =
+  match t.children with
+  | [] -> false
+  | hd :: tl -> 
+      let rec loop = function
+        | [] -> false
+        | hd :: tl ->
+            if hd.n = 0 then true else loop tl
+      in
+      loop hd.children
 
-let rec treewalk tree ancestors =
-  match tree with
-  | Node n ->
-      if n.explored = 0 then ancestors
-      else let favourite = select n.children in
-        treewalk favourite (n :: ancestors)
-  | Leaf _ -> ancestors
+let ucb beta father child =
+  child.q /. float child.n +.
+  beta *. sqrt (2. *. log (float father.n) /. (float child.n))
 
-let rec simulate = function
-  | Leaf k -> k
-  | Node { profit = _ ; explored = _ ; children = c } ->
-      let randchild = random_elt c in
-      simulate randchild
+(* Could be speeded up, avoid recomputing ucb of best node if it hasn't
+ * changed *)
+let best_child t =
+  let aux ta tb = 
+    let va = ucb beta t ta 
+    and vb = ucb beta t tb
+    in
+    if va >= vb then ta else tb
+  in
+  List.fold_left aux (List.hd t.children) t.children
 
-(* TODO One propagation for all plays *)
-let rec backpropagate ancestors win = match ancestors with
+(** [select t a] builds a path toward most urgent node to expand *)
+let rec select tree ancestors =
+  if expandable tree then ancestors
+  else
+    match tree.children with
+    | (hd :: tl) -> let favourite = best_child tree in
+        select favourite (tree :: ancestors)
+    | [] -> ancestors
+
+(** [expand t] returns node which must be visited among children of [t] *)
+let expand t =
+  let rec loop = function
+      [] -> failwith "no nodes to expand"
+    | hd :: tl ->
+        if Airconf.terminal hd || hd.n = 0 then loop tl
+        else hd
+  in
+  loop t.children
+
+let treepolicy root =
+  let path = select root [ root ] in
+  let exnode = expand (List.hd path) in
+  exnode :: path
+
+(** [simulate t] parses the tree [t] randomly until a terminal state is found,
+    and returnsan evaluation of the path *)
+let rec simulate t = 
+  if Airconf.terminal t then Airconf.confcost t
+  else
+    let children = Airconf.produce t in
+    let randchild = random_elt children in
+    simulate randchild
+
+(** [defaultpolicy n] gives a list of the result of [nsim] simulations *)
+let defaultpolicy tree =
+  let rec loop cnt acc =
+    if cnt >= nsim then acc
+    else loop (succ cnt) (simulate tree :: acc)
+  in
+  loop 0 []
+
+(** [backpropagate a w] updates ancestors [a] with the result win [w] *)
+let rec backpropagate (ancestors : 'a tree list) reward =
+  match ancestors with
   | [] -> ()
-  | hd :: tl -> begin
-      hd.explored <- succ hd.explored ;
-      if win then hd.profit <- succ hd.profit ;
-      backpropagate tl win
-    end
+  | hd :: tl ->
+      begin
+        hd.q <- List.hd reward ;
+        hd.n <- succ hd.n ;
+        backpropagate tl (List.tl reward)
+      end
 
-let disp_children_stat node =
-  List.iter (fun n ->
-      match n with Node hd ->
-        Printf.printf "Child %d: Q=%d, n=%d\n" hd.tag hd.profit
-          hd.explored) node.children
-
-let () =
-  Random.self_init () ;
-  let t1 = Leaf true
-  and t2 = Leaf false
-  and t3 = Leaf false
-  and t4 = Leaf true
-  and t5 = Leaf true
-  and t6 = Leaf false in
-  let t7 = Node { dummynode with tag = 7 ; children = [ t1 ; t2 ; t3 ] }
-  and t8 = Node { dummynode with tag = 8 ; children = [ t4 ; t5 ] }
-  and t9 = Node { dummynode with tag = 9 ; children = [ t6 ] } in
-  let root = Node { tag = 1 ; profit = 0 ; explored = 0 ;
-                    children = [ t7 ; t8 ; t9 ] }
-  in
-  let rnode = match root with Node n -> n in
-  let nodes  = treewalk root [ rnode ] in
-  let nsim = 100 in
-  let plays = ref [] in
-  for i = 1 to nsim do
-    plays := simulate (Node (List.hd nodes)) :: !plays
+let mcts root =
+  for i = 1 to 4 do
+    let path = treepolicy root in
+    let wins = defaultpolicy (List.hd path) in
+    let bppg_aux win = backpropagate path win in
+    List.iter bppg_aux wins
   done ;
-  let rec loopprop results = match results with
-      [] -> ()
-    | hd :: tl -> backpropagate nodes hd ;
-        loopprop tl
-  in
-  loopprop !plays ;
-  Printf.printf "Q: %d ; n : %d\n" rnode.profit rnode.explored ;
-  disp_children_stat rnode
+  best_child root 
