@@ -62,25 +62,38 @@
 \maketitle
 
 \section{Introduction}
-The airspace is divided into sectors, themselves divided into elementary modules.
+The airspace is divided into sectors, themselves divided into elementary
+modules. Each sector is managed by a controller working position composed of two
+controllers.
+During the day, sectors are split and merged to be able to
+manage the varying traffic. Splitting creates smaller sectors and is therefore
+used when traffic gets too dense. On the opposite, merging sectors allows fewer
+controllers to manage the same airspace, and is therefore used when traffic
+becomes sparse.
+
 Currently, configuration is mainly decided on the fly by chief officer (TODO).
 This decision is based on the actual workload on each position. This intuitive
 approach does not take into account future traffic. This papers aims at
 providing a method offering a smoother workload during the day.
 
 Several methods have been considered to solve the dynamic airspace configuration
-problem, for instance via genetic algorithms in~\cite{sergeeve2017dynamic},
+problem, for instance via genetic algorithms in~\cite{sergeeva2017dynamic},
 constraint local search in~\cite{jagare2013constraint}, integer linear
 programming in~\cite{treimuth2016branch} or dynamic programming
 in~\cite{bloem2010dynamic}.
 
-To achieve that, as seen in~\cite{treimuth2016branch}
+As seen in~\cite{treimuth2016branch}
 or~\cite{sergeeva2017dynamic}, a temporal sequence of configurations will be
 provided. Two costs will be considered to create the sequence, namely the cost
 associated to each configuration and transition. The former is based on the
 workload estimated for one sector given a neural network
 (see~\cite{gianazza2010forecasting}).
 
+The sequence of configurations will be represented as a tree. The resulting
+sequence will therefore be a path from the root to a leaf of this tree. This
+problem is highly combinatorial (partitioning of the airspace). Knowing that a
+sochastic tree search algorithm has been honing from a good Go
+player~\cite{gelly2012go} to the best one with AlphaGo.
 
 
 \bibliography{article}
