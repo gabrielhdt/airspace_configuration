@@ -51,8 +51,8 @@ let ucb beta father child =
 (* Could be speeded up, avoid recomputing ucb of best node if it hasn't
  * changed *)
 let best_child t =
-  let aux ta tb = 
-    let va = ucb beta t ta 
+  let aux ta tb =
+    let va = ucb beta t ta
     and vb = ucb beta t tb
     in
     if va >= vb then ta else tb
@@ -76,7 +76,7 @@ let treepolicy root =
 
 (** [simulate t] parses the tree [t] randomly until a terminal state is found,
     and returnsan evaluation of the path *)
-let rec simulate t = 
+let rec simulate t =
   if Airconf.terminal t then Airconf.confcost t
   else
     let children = Airconf.produce t in
