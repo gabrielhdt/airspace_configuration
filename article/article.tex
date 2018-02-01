@@ -122,7 +122,7 @@ done in~\cite{sergeeva2017dynamic} or~\cite{treimuth2016branch} the airspace
 is modelled via a graph. In those graphs, vertices represent elementary modules
 and an edge links two adjacent modules. In~\cite{treimuth2016branch}, to be
 able to produce a sequence of configurations, the graph is time dependent.
-An other way to do the modelization, is to use a constrainted set of
+An other way to model the problem is to use a constrained set of
 configurations as in~\cite{gianazza2010forecasting} and~\cite{bloem2010dynamic}.
 This way any configuration will match specified requirements, which can be
 qualified hard constraints.
@@ -136,15 +136,15 @@ involving many more inputs are also available, such as a neural network
 forecasting the workload~\cite{gianazza2010forecasting}. This is the method we
 are going to use in this paper.
 
-Other soft constraints appear to be relevant to have a better modelisation of
+Other soft constraints appear to be relevant to have a better model of
 the problem. For instance in~\cite{sergeeva2017dynamic} and~\cite{bedouet2016} a
-coordination cost is defined. It represent the surplus of work added by the
-number of flights travelling from a sector to an other. The shape of the
+coordination cost is defined. It represents the surplus of work added by
+flights travelling from one sector to an other. The shape of the
 resulting sector is considered, as the simpler is
-the shape, the easier it is to manage, therefore complex shapes are avoided,
-by introducing compactness in~\cite{jagare2013constraint} and balconies
+the shape, the easier it is to manage. Complex shapes are therefore avoided,
+thanks to the notion of compactness in~\cite{jagare2013constraint} and balconies
 in~\cite{sergeeva2017dynamic}. To smooth the transition between two
-configurations, the work associated with the realocation of one or more modules
+configurations, the work associated with the reallocation of one or more modules
 is evaluated. This can be used in a cost function aimed to be minimized
 (in~\cite{bedouet2016}).
 
