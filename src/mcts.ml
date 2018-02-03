@@ -2,7 +2,7 @@ type 'a tree = {
   state : 'a ;
   mutable q : float ;
   mutable n : int ;
-  children : 'a tree list
+  mutable children : 'a tree list
 }
 
 let nsim = 100
@@ -23,24 +23,28 @@ let random_elt lst =
   let i = Random.int (List.length lst) in
   List.nth lst i
 
+(** [force_deploy t] tries to add children from a production rule *)
+let force_deploy t =
+  match t.children with
+  | [] -> t.children <- Airconf.produce t
+  | _ :: _ -> ()
+
 (* TODO The two functions below could be grouped in one which would expand the
  * node or raise an exception *)
-let rec expandable t =
-  if Airconf.terminal t then false else
-    (* Parses the children to see if one has not been visited *)
-    let rec loop = function
-      | [] -> false
-      | hd :: tl -> if hd.n = 0 then true else loop tl
-    in
-    loop t.children
+let expandable t =
+  (* Parses the children to see if one has not been visited *)
+  let rec loop = function
+    | [] -> false
+    | hd :: tl -> if hd.n = 0 then true else loop tl
+  in
+  if Airconf.terminal t then false else loop t.children
 
 (** [expand t] returns node which must be visited among children of [t] *)
 let expand t =
   let rec loop = function
-      [] -> failwith "no nodes to expand"
+    | [] -> failwith "no nodes to expand"
     | hd :: tl ->
-        if Airconf.terminal hd || hd.n = 0 then loop tl
-        else hd
+        if hd.n = 0 then hd else loop tl
   in
   loop t.children
 
@@ -62,7 +66,8 @@ let best_child t =
 (** [select t a] builds a path toward most urgent node to expand *)
     (* TODO see above comment considering expand *)
 let rec select tree ancestors =
-  if expandable tree then ancestors
+  force_deploy tree ;
+  if expandable tree then tree :: ancestors
   else
     match tree.children with
     | (hd :: tl) -> let favourite = best_child tree in
@@ -70,24 +75,28 @@ let rec select tree ancestors =
     | [] -> ancestors
 
 let treepolicy root =
-  let path = select root [ root ] in
+  let path = select root [] in
   let exnode = expand (List.hd path) in
   exnode :: path
 
 (** [simulate t] parses the tree [t] randomly until a terminal state is found,
     and returnsan evaluation of the path *)
-let rec simulate t =
-  if Airconf.terminal t then Airconf.confcost t
-  else
-    let children = Airconf.produce t in
-    let randchild = random_elt children in
-    simulate randchild
+let simulate t =
+  let rec loop lt acc =
+    let cost = confcost lt in
+    if Airconf.terminal lt then cost +. acc
+    else
+      let children = produce lt in
+      let randchild = random_elt children in
+      loop randchild (acc +. cost)
+  in
+  loop t 0.
 
 (** [defaultpolicy n] gives a list of the result of [nsim] simulations *)
 let defaultpolicy tree =
   let rec loop cnt acc =
-    if cnt >= nsim then acc
-    else loop (succ cnt) (simulate tree :: acc)
+    if cnt > nsim then acc
+    else loop (cnt + 1) (simulate tree :: acc)
   in
   loop 0 []
 
@@ -97,9 +106,9 @@ let rec backpropagate (ancestors : 'a tree list) reward =
   | [] -> ()
   | hd :: tl ->
       begin
-        hd.q <- List.hd reward ;
+        hd.q <- hd.q +. reward ;
         hd.n <- succ hd.n ;
-        backpropagate tl (List.tl reward)
+        backpropagate tl reward
       end
 
 (** [mcts r] updates tree of root [t] with monte carlo *)
@@ -109,4 +118,4 @@ let mcts root =
     let wins = defaultpolicy (List.hd path) in
     let bppg_aux win = backpropagate path win in
     List.iter bppg_aux wins
-  done ;
+  done
