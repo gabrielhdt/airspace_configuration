@@ -10,13 +10,6 @@ let nsim = 100
 (* Temporary considering functor approach *)
 let dummystate = Airconf.dummy
 
-let dummytree = {
-  state = dummystate ;
-  q = 0. ;
-  n = 0 ;
-  children = []
-}
-
 let beta = 1.
 
 let random_elt lst =
@@ -86,7 +79,7 @@ let simulate t =
     let cost = confcost lt in
     if Airconf.terminal lt then cost +. acc
     else
-      let children = produce lt in
+      let children = Airconf.produce lt in
       let randchild = random_elt children in
       loop randchild (acc +. cost)
   in
