@@ -16,10 +16,15 @@ let random_elt lst =
   let i = Random.int (List.length lst) in
   List.nth lst i
 
+(* [produce t] creates the list of reachable nodes from [t] *)
+let produce t =
+  let states = Airconf.produce t.state in
+  List.map (fun s -> { state = s ; q = 0. ; n = 0 ; children = [] }) states
+
 (** [force_deploy t] tries to add children from a production rule *)
 let force_deploy t =
   match t.children with
-  | [] -> t.children <- Airconf.produce t
+  | [] -> t.children <- produce t
   | _ :: _ -> ()
 
 (* TODO The two functions below could be grouped in one which would expand the
@@ -30,7 +35,7 @@ let expandable t =
     | [] -> false
     | hd :: tl -> if hd.n = 0 then true else loop tl
   in
-  if Airconf.terminal t then false else loop t.children
+  if Airconf.terminal t.state then false else loop t.children
 
 (** [expand t] returns node which must be visited among children of [t] *)
 let expand t =
@@ -76,10 +81,10 @@ let treepolicy root =
     and returnsan evaluation of the path *)
 let simulate t =
   let rec loop lt acc =
-    let cost = confcost lt in
-    if Airconf.terminal lt then cost +. acc
+    let cost = Airconf.confcost lt.state in
+    if Airconf.terminal lt.state then cost +. acc
     else
-      let children = Airconf.produce lt in
+      let children = produce lt in
       let randchild = random_elt children in
       loop randchild (acc +. cost)
   in
