@@ -12,3 +12,7 @@ val confcost : t -> float
 
 (** [produce t] returns all feasible configurations from configuration [t] *)
 val produce : t -> t list
+
+(** [terminal t] asserts whether a configuration [t] is the last to be
+    considered *)
+val terminal : t -> bool
