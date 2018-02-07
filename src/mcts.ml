@@ -92,13 +92,10 @@ let ucb beta father child =
 (* Could be speeded up, avoid recomputing ucb of best node if it hasn't
  * changed *)
 let best_child t =
-  let aux ta tb =
-    let va = ucb beta t ta
-    and vb = ucb beta t tb
-    in
-    if va >= vb then ta else tb
+  let cmp_ucb ta tb =
+    if ucb beta t ta >= ucb beta t tb then ta else tb
   in
-  List.fold_left aux (List.hd t.children) t.children
+  Auxfct.argmax cmp_ucb t.children
 
 (** [select t a] builds a path toward most urgent node to expand *)
     (* TODO see above comment considering expand *)
