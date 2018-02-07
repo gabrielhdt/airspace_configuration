@@ -27,8 +27,7 @@ module Win_pol = struct
   if n1.n < n2.n then n2 else n1
 
   let cmp_secure n1 n2 =
-    let lcb1 = lcb n1 and lcb2 = lcb n2 in
-    if lcb1 < lcb2 then n2 else n1
+    if lcb n1 < lcb n2 then n2 else n1
 
   (*********)
 
@@ -62,10 +61,8 @@ end
 (* Temporary considering functor approach *)
 let dummystate = Airconf.dummy
 
-
 let random_elt lst =
-  let i = Random.int (List.length lst) in
-  List.nth lst i
+  List.nth lst (Random.int (List.length lst))
 
 (* [produce t] creates the list of reachable nodes from [t] *)
     (* Functor should create the produce rule *)
