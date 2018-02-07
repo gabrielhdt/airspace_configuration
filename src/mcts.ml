@@ -1,3 +1,6 @@
+let _beta = 1.
+
+
 type 'a tree = {
   state : 'a ;
   mutable q : float ;
@@ -6,7 +9,7 @@ type 'a tree = {
 }
 
 (* Contains ways to select final best path *)
-module Win_select = struct
+module Win_pol = struct
 
   (* arbitrary cste given by chaslot *)
   let _a = 4.
@@ -40,15 +43,25 @@ module Win_select = struct
   (* Select the child which maximises a lower confidence bound *)
   let secure children =
     Auxfct.argmax cmp_secure children
-
 end
 
-let nsim = 100
+(* Selection policy *)
+module Sel_pol = struct
+  (* TODO: add single player mcts 3rd term *)
+  let ucb beta father child =
+    child.q /. float child.n +.
+    beta *. sqrt (2. *. log (float father.n) /. (float child.n))
+
+  let best_child t =
+    let cmp_ucb ta tb =
+      if ucb _beta t ta >= ucb _beta t tb then ta else tb
+    in
+    Auxfct.argmax cmp_ucb t.children
+end
 
 (* Temporary considering functor approach *)
 let dummystate = Airconf.dummy
 
-let beta = 1.
 
 let random_elt lst =
   let i = Random.int (List.length lst) in
@@ -85,18 +98,6 @@ let expand t =
   in
   loop t.children
 
-let ucb beta father child =
-  child.q /. float child.n +.
-  beta *. sqrt (2. *. log (float father.n) /. (float child.n))
-
-(* Could be speeded up, avoid recomputing ucb of best node if it hasn't
- * changed *)
-let best_child t =
-  let cmp_ucb ta tb =
-    if ucb beta t ta >= ucb beta t tb then ta else tb
-  in
-  Auxfct.argmax cmp_ucb t.children
-
 (** [select t a] builds a path toward most urgent node to expand *)
     (* TODO see above comment considering expand *)
 let rec select tree ancestors =
@@ -104,7 +105,7 @@ let rec select tree ancestors =
   if expandable tree then tree :: ancestors
   else
     match tree.children with
-    | (hd :: tl) -> let favourite = best_child tree in
+    | (hd :: tl) -> let favourite = Sel_pol.best_child tree in
         select favourite (tree :: ancestors)
     | [] -> ancestors
 
@@ -126,8 +127,8 @@ let simulate t =
   in
   loop t 0.
 
-(** [defaultpolicy n] gives a list of the result of [nsim] simulations *)
-let defaultpolicy tree =
+(** [defaultpolicy n] gives a list of the result of [_nsim] simulations *)
+let defaultpolicy tree nsim =
   let rec loop cnt acc =
     if cnt > nsim then acc
     else loop (cnt + 1) (simulate tree :: acc)
@@ -146,10 +147,10 @@ let rec backpropagate (ancestors : 'a tree list) reward =
       end
 
 (** [mcts r] updates tree of root [t] with monte carlo *)
-let mcts (root : 'a tree) =
+let mcts root nsim =
   for i = 1 to 4 do
     let path = treepolicy root in
-    let wins = defaultpolicy (List.hd path) in
+    let wins = defaultpolicy (List.hd path) nsim in
     let bppg_aux win = backpropagate path win in
     List.iter bppg_aux wins
   done
@@ -162,3 +163,15 @@ let best_path root criterion =
       (aux best_ch (best_ch::accu) )
   in
   aux root [root]
+
+let best_path_max root nsim =
+  mcts root nsim;
+  best_path root Win_pol.max
+
+let best_path_secure root nsim =
+  mcts root nsim;
+  best_path root Win_pol.secure
+
+let best_path_robust root nsim =
+  mcts root nsim;
+  best_path root Win_pol.robust
