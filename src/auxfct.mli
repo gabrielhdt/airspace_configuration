@@ -1,3 +1,1 @@
-
-(** return *)
-val argmax : ('a -> 'a -> int) -> 'a list -> 'a -> 'a
+val argmax : ('a -> 'a -> 'a) -> 'a list -> 'a

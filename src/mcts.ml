@@ -18,14 +18,14 @@ module Win_select = struct
   (* some functions that define how to select the final path
     (best q, best n of best lcb)*)
   let cmp_max n1 n2 =
-    if n1.q < n2.q then -1 else if n2.n = n2.n then 0 else 1
+    if n1.q < n2.q then n2 else n1
 
   let cmp_robust n1 n2 =
-  if n1.n < n2.n then -1 else if n2.n = n2.n then 0 else 1
+  if n1.n < n2.n then n2 else n1
 
   let cmp_secure n1 n2 =
     let lcb1 = lcb n1 and lcb2 = lcb n2 in
-    if lcb1 < lcb2 then -1 else if lcb1 = lcb2 then 0 else 1
+    if lcb1 < lcb2 then n2 else n1
 
   (*********)
 
