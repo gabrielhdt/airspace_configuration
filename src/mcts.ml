@@ -29,25 +29,17 @@ module Win_select = struct
 
   (*********)
 
-  let argmax cmp xs =
-    let rec loop rxs marg = match rxs with
-      | [] -> marg
-      | hd :: tl ->
-        loop tl (if cmp hd marg >= 0 then hd else marg)
-    in
-    loop xs
-
   (* Select the child with highest reward *)
   let max children =
-    argmax cmp_max children
+    Auxfct.argmax cmp_max children
 
   (* Select the most visited child *)
   let robust children =
-    argmax cmp_robust children
+    Auxfct.argmax cmp_robust children
 
   (* Select the child which maximises a lower confidence bound *)
   let secure children =
-    argmax cmp_secure children
+    Auxfct.argmax cmp_secure children
 
 end
 
