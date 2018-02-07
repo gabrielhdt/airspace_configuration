@@ -163,3 +163,13 @@ let mcts root =
     let bppg_aux win = backpropagate path win in
     List.iter bppg_aux wins
   done
+
+
+let best_path root criterion =
+  let rec aux current_node accu =
+    if current_node.children <> [] then accu
+    else
+      let best_ch = criterion current_node.children in
+      (aux best_ch (best_ch::accu) )
+  in
+  aux root [root]
