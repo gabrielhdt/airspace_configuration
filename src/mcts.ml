@@ -6,6 +6,10 @@ type 'a tree = {
 }
 
 module Win_select = struct
+
+  (* arbitrary cste given by chaslot *)
+  let _a = 4.
+
   (* Select the child with highest reward *)
   let max children =
     let init_rew = (List.hd children).q in
@@ -16,7 +20,24 @@ module Win_select = struct
     List.fold_left (fun acc elt -> Pervasives.max acc elt.n) init children
 
   (* Select the child which maximises a lower confidence bound *)
-  let secure t = t
+  (* let secure t = *)
+
+  (* define le low confidence bound *)
+  let lcb node =
+    node.q +. _a /. sqrt (float node.n)
+
+  (* some function that defines how to select the final path
+    (best q, best n of best lcb)*)
+  let cmpr_max n1 n2 =
+    if n1.q < n2.q then -1 else if n2.n = n2.n then 0 else 1
+
+  let cmpr_robust n1 n2 =
+  if n1.n < n2.n then -1 else if n2.n = n2.n then 0 else 1
+
+  let cmpr_secure n1 n2 =
+    let lcb1 = lcb n1 and lcb2 = lcb n2 in
+    if lcb1 < lcb2 then -1 else if lcb1 = lcb2 then 0 else 1
+
 end
 
 let nsim = 100
