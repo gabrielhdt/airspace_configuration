@@ -55,6 +55,7 @@ let random_elt lst =
   List.nth lst i
 
 (* [produce t] creates the list of reachable nodes from [t] *)
+    (* Functor should create the produce rule *)
 let produce t =
   let states = Airconf.produce t.state in
   List.map (fun s -> { state = s ; q = 0. ; n = 0 ; children = [] }) states
@@ -148,14 +149,13 @@ let rec backpropagate (ancestors : 'a tree list) reward =
       end
 
 (** [mcts r] updates tree of root [t] with monte carlo *)
-let mcts root =
+let mcts (root : 'a tree) =
   for i = 1 to 4 do
     let path = treepolicy root in
     let wins = defaultpolicy (List.hd path) in
     let bppg_aux win = backpropagate path win in
     List.iter bppg_aux wins
   done
-
 
 let best_path root criterion =
   let rec aux current_node accu =
