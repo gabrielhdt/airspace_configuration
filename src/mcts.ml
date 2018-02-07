@@ -5,9 +5,20 @@ type 'a tree = {
   mutable children : 'a tree list
 }
 
+(* Contains ways to select final best path *)
 module Win_select = struct
+  let argmax cmp xs =
+    let rec loop rxs marg = match rxs with
+      | [] -> marg
+      | hd :: tl ->
+        loop tl (if cmp hd marg >= 0 then hd else marg)
+    in
+    loop xs
+
   (* Select the child with highest reward *)
   let max children =
+    let rec loop rxs
+    | [] ->
     let init_rew = (List.hd children).q in
     List.fold_left (fun acc elt -> max acc elt.q) init_rew children
 
@@ -131,12 +142,3 @@ let mcts root =
     let bppg_aux win = backpropagate path win in
     List.iter bppg_aux wins
   done
-
-let best_path root criterion =
-  let rec aux current_node accu =
-    if current_node.children <> [] then accu
-    else
-      let best_ch = criterion current_node.children in
-      (aux best_ch (best_ch::accu) )
-  in
-  aux root [root]
