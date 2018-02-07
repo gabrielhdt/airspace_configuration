@@ -5,6 +5,20 @@ type 'a tree = {
   mutable children : 'a tree list
 }
 
+module Win_select = struct
+  (* Select the child with highest reward *)
+  let max children =
+    let init_rew = (List.hd children).q in
+    List.fold_left (fun acc elt -> max acc elt.q) init_rew children
+
+  (* Select the most visited child *)
+  let robust children = let init = (List.hd children).n in
+    List.fold_left (fun acc elt -> Pervasives.max acc elt.n) init children
+
+  (* Select the child which maximises a lower confidence bound *)
+  let secure t = t
+end
+
 let nsim = 100
 
 (* Temporary considering functor approach *)
