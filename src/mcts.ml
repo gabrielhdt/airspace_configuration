@@ -5,38 +5,49 @@ type 'a tree = {
   mutable children : 'a tree list
 }
 
+(* Contains ways to select final best path *)
 module Win_select = struct
 
   (* arbitrary cste given by chaslot *)
   let _a = 4.
 
-  (* Select the child with highest reward *)
-  let max children =
-    let init_rew = (List.hd children).q in
-    List.fold_left (fun acc elt -> max acc elt.q) init_rew children
-
-  (* Select the most visited child *)
-  let robust children = let init = (List.hd children).n in
-    List.fold_left (fun acc elt -> Pervasives.max acc elt.n) init children
-
-  (* Select the child which maximises a lower confidence bound *)
-  (* let secure t = *)
-
   (* define le low confidence bound *)
   let lcb node =
     node.q +. _a /. sqrt (float node.n)
 
-  (* some function that defines how to select the final path
+  (* some functions that define how to select the final path
     (best q, best n of best lcb)*)
-  let cmpr_max n1 n2 =
+  let cmp_max n1 n2 =
     if n1.q < n2.q then -1 else if n2.n = n2.n then 0 else 1
 
-  let cmpr_robust n1 n2 =
+  let cmp_robust n1 n2 =
   if n1.n < n2.n then -1 else if n2.n = n2.n then 0 else 1
 
-  let cmpr_secure n1 n2 =
+  let cmp_secure n1 n2 =
     let lcb1 = lcb n1 and lcb2 = lcb n2 in
     if lcb1 < lcb2 then -1 else if lcb1 = lcb2 then 0 else 1
+
+  (*********)
+
+  let argmax cmp xs =
+    let rec loop rxs marg = match rxs with
+      | [] -> marg
+      | hd :: tl ->
+        loop tl (if cmp hd marg >= 0 then hd else marg)
+    in
+    loop xs
+
+  (* Select the child with highest reward *)
+  let max children =
+    argmax cmp_max children
+
+  (* Select the most visited child *)
+  let robust children =
+    argmax cmp_robust children
+
+  (* Select the child which maximises a lower confidence bound *)
+  let secure children =
+    argmax cmp_secure children
 
 end
 
@@ -152,12 +163,3 @@ let mcts root =
     let bppg_aux win = backpropagate path win in
     List.iter bppg_aux wins
   done
-
-let best_path root criterion =
-  let rec aux current_node accu =
-    if current_node.children <> [] then accu
-    else
-      let best_ch = criterion current_node.children in
-      (aux best_ch (best_ch::accu) )
-  in
-  aux root [root]
