@@ -7,7 +7,7 @@ S src
 B _build/**
 
 # PKG to use a findlib package, followed by one or more packages
-#PKG lwt lwt.unix
+PKG yojson
 
 # FLG to use flags like when calling merlin directly
 # (see ocamlmerlin -help)
