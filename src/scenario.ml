@@ -20,4 +20,4 @@ let load path =
 
 let f t time sec =
   let data = List.assoc sec t in
-  List.nth time data
+  List.nth data time
