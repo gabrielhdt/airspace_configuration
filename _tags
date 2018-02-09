@@ -1,4 +1,4 @@
 true: bin_annot
 
 <src>: include
-src/scenario.ml: package(yojson)
+<src/scenario.ml>: package(yojson)
