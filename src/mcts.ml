@@ -115,7 +115,7 @@ let treepolicy root =
     and returnsan evaluation of the path *)
 let simulate t =
   let rec loop lt acc =
-    let cost = Airconf.confcost lt.state in
+    let cost = Airconf.conf_cost lt.state in
     if Airconf.terminal lt.state then cost +. acc
     else
       let children = produce lt in

@@ -1,14 +1,8 @@
-let f t s =
-  let l = [("1", [5; 4; 3]); ("2", [2; 2; 4])
-          ; ("3", [1; 1; 2]); ("4", [3; 4; 5]);
-           ("5", [4; 5; 5]) ] in
-  List.nth (List.assoc s l) t
-
 let () =
-  (* let scpath = Sys.argv.(1) in
+  let scpath = Sys.argv.(1) in
   let sc = Scenario.load scpath in
 
-  let f = Scenario.f sc in *)
+  let f = Scenario.f sc in
 
   let s01 = Util.Sset.add "3" (Util.Sset.add "2"
       (Util.Sset.add "1" Util.Sset.empty)) in
