@@ -1,6 +1,16 @@
+let usage = "Usage: " ^ Sys.argv.(0) ^ " " ^
+            "[-scenario string]"
+
+let scpath = ref ""
+
+let speclist = [
+  ("-scenario", Arg.Set_string scpath,
+   "scenario to load and play") ;
+]
 let () =
-  let scpath = Sys.argv.(1) in
-  let sc = Scenario.load scpath in
+  Arg.parse speclist
+    (fun x -> raise (Arg.Bad ("Bad argument: " ^ x))) usage ;
+  let sc = Scenario.load !scpath in
 
   let f = Scenario.f sc in
 
