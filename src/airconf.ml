@@ -17,45 +17,48 @@ let l =
 
 let _cxt= Partitions.make_context l
 
+let _nmax = 15
+
+let sc = Scenario.load "data/scen1.json"
+
+let f = Scenario.f sc
+
 type t = {
   time : int ; (* Used to determine whether the node is terminal *)
-  partition : (Util.Sset.t * Util.Smap.key list) list
+  partition : (Util.Sset.t * Util.Smap.key list) list;
+  transition_cost : float;
+  configuration_cost : float
 }
 
-let conf_cost conf f =
-  let time = conf.time in
+let partition_cost time partition f =
   List.fold_left (fun accu elt ->
     let subset = Util.Sset.elements (fst elt) in
     let current_cost = List.fold_left (fun ac m ->
         ac +. float (f time m)
       ) 0. subset in
     accu +. current_cost /. _threshold
-  ) 0. conf.partition
+  ) 0. partition
 
-let trans_cost child father =
-  if child.partition = father.partition then 0. else 1.
+let trans_cost p_father p_child =
+  if p_father = p_child then 0. else 1.
 
 let produce config =
   let reachable_partitions = Partitions.recombine _cxt config.partition in
   List.map (fun p ->
-      {time = (config.time + 1); partition = p}
+      let cc = partition_cost (config.time + 1) p f in
+      let tc = trans_cost config.partition p in
+      {time = (config.time + 1);
+       partition = p;
+       transition_cost = cc;
+      configuration_cost = tc}
     ) reachable_partitions
 
+let conf_cost conf =
+  conf.transition_cost +. conf.configuration_cost
 
-let terminal t = true
+let terminal conf = conf.time > _nmax
 
-(**********************
-let path_cost f path c_cost t_cost =
-  let rec partial_cost current_path accu =
-    match current_path with
-    | [] -> accu
-    | [hd] -> accu +. c_cost hd f
-    | hd::tl -> partial_cost tl
-                  ( accu +.
-                    (c_cost hd f) +.
-                    (t_cost hd ( List.hd tl )))
-  in
-  -. (partial_cost path 0.)
-*********************************)
-let make_conf t l =
-  {time = t; partition = l}
+let make_root p0 =
+  let partition_cost = partition_cost 0 p0 f in
+  {time = 0; partition = p0; transition_cost =0.;
+   configuration_cost = partition_cost }

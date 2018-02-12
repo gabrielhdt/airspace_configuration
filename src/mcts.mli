@@ -10,3 +10,5 @@ val best_path_secure : Airconf.t tree -> int -> Airconf.t tree list
 
 (** Selects nodes which minimise a lower confidence bound *)
 val best_path_robust : Airconf.t tree -> int -> Airconf.t tree list
+
+val make_node : 'a -> 'a tree

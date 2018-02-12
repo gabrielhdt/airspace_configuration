@@ -1,11 +1,18 @@
 let _beta = 1.
 
-
 type 'a tree = {
   state : 'a ;
   mutable q : float ;
   mutable n : int ;
   mutable children : 'a tree list
+}
+
+let make_node state =
+  {
+  state = state ;
+  q = 0. ;
+  n = 0 ;
+  children = []
 }
 
 (* Contains ways to select final best path *)
@@ -59,7 +66,7 @@ module Sel_pol = struct
 end
 
 (* Temporary considering functor approach *)
-let dummystate = Airconf.dummy
+(* let dummystate = Airconf.dummy *)
 
 let random_elt lst =
   List.nth lst (Random.int (List.length lst))
