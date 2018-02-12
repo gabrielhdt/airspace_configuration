@@ -14,6 +14,7 @@ let secjs2telt = function
     n, tlst
 
 let load path =
+  if not (Sys.file_exists path) then failwith "not valid scenario file" ;
   let scjson = Yojson.Basic.from_file path in
   let seclist = Yojson.Basic.Util.to_assoc scjson in
   (List.map secjs2telt seclist : t)
