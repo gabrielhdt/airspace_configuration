@@ -125,16 +125,18 @@ let treepolicy root =
 
 (** [simulate t] parses the tree [t] randomly until a terminal state is found,
     and returnsan evaluation of the path *)
-let simulate t =
-  let rec loop lt acc =
-    let cost = Airconf.conf_cost lt.state in
-    if Airconf.terminal lt.state then cost +. acc
+let simulate node =
+  let rec loop next_node accu =
+    let cost = Airconf.conf_cost next_node.state in
+    if Airconf.terminal next_node.state then cost +. accu
     else
-      let children = produce lt in
-      let randchild = random_elt children in
-      loop randchild (acc +. cost)
+      begin
+        force_deploy next_node;
+        let randchild = random_elt next_node.children in
+        loop randchild (accu +. cost)
+      end
   in
-  loop t 0.
+  loop node 0.
 
 (** [defaultpolicy n] gives a list of the result of [_nsim] simulations *)
 let defaultpolicy tree nsim =
@@ -167,7 +169,7 @@ let mcts root nsim =
     flag := Airconf.terminal (get_state (List.hd path));
     Printf.printf "%02d %d\n" (Airconf.get_time (get_state (List.hd path)))
       (List.length (List.hd path).children)
-  done
+  done;
 
 let best_path root criterion =
   let rec aux current_node accu =
