@@ -15,6 +15,11 @@ let make_node state =
   children = []
 }
 
+let get_state node = node.state
+
+let print_node n =
+  Printf.printf "%d\n" (List.length n.children)
+
 (* Contains ways to select final best path *)
 module Win_pol = struct
 
@@ -23,7 +28,7 @@ module Win_pol = struct
 
   (* define le low confidence bound *)
   let lcb node =
-    node.q +. _a /. sqrt (float node.n)
+    node.q +. _a /. sqrt (float node.n +. 1.)
 
   (* some functions that define how to select the final path
     (best q, best n of best lcb)*)
@@ -152,18 +157,23 @@ let rec backpropagate (ancestors : 'a tree list) reward =
 
 (** [mcts r] updates tree of root [t] with monte carlo *)
 let mcts root nsim =
-  for i = 1 to 4 do
+  let flag = ref false in
+  while not !flag do
+  (* for i = 1 to 15 do *)
     let path = treepolicy root in
     let wins = defaultpolicy (List.hd path) nsim in
     let bppg_aux win = backpropagate path win in
-    List.iter bppg_aux wins
+    List.iter bppg_aux wins;
+    flag := Airconf.terminal (get_state (List.hd path));
+    Printf.printf "%02d %d\n" (Airconf.get_time (get_state (List.hd path)))
+      (List.length (List.hd path).children)
   done
 
 let best_path root criterion =
   let rec aux current_node accu =
-    if current_node.children <> [] then accu
-    else
-      let best_ch = criterion current_node.children in
+    match current_node.children with
+    | [] -> accu
+    | _ -> let best_ch = criterion current_node.children in
       (aux best_ch (best_ch::accu) )
   in
   aux root [root]

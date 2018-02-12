@@ -54,7 +54,7 @@ let produce config =
     ) reachable_partitions
 
 let conf_cost conf =
-  conf.transition_cost +. conf.configuration_cost
+  -. conf.transition_cost -. conf.configuration_cost
 
 let terminal conf = conf.time > _nmax
 
@@ -62,3 +62,6 @@ let make_root p0 =
   let partition_cost = partition_cost 0 p0 f in
   {time = 0; partition = p0; transition_cost =0.;
    configuration_cost = partition_cost }
+
+let get_partitions conf = conf.partition
+let get_time conf = conf.time

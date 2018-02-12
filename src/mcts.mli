@@ -12,3 +12,7 @@ val best_path_secure : Airconf.t tree -> int -> Airconf.t tree list
 val best_path_robust : Airconf.t tree -> int -> Airconf.t tree list
 
 val make_node : 'a -> 'a tree
+
+val get_state : Airconf.t tree -> Airconf.t
+
+val print_node : Airconf.t tree -> unit

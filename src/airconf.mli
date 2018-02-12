@@ -19,3 +19,7 @@ val terminal : t -> bool
     configuration for a given timestep [t] and partition
     [(Util.Sset.t * Util.Smap.key list) list]*)
 val make_root : (Util.Sset.t * Util.Smap.key list) list -> t
+
+
+val get_partitions : t -> (Util.Sset.t * Util.Smap.key list) list
+val get_time : t -> int
