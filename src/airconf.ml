@@ -40,7 +40,7 @@ let partition_cost time partition f =
   ) 0. partition
 
 let trans_cost p_father p_child =
-  if p_father = p_child then 0. else 1.
+  if p_father = p_child then 0. else 10.
 
 let produce config =
   let reachable_partitions = Partitions.recombine _cxt config.partition in
@@ -54,7 +54,7 @@ let produce config =
     ) reachable_partitions
 
 let conf_cost conf =
-  -. conf.transition_cost -. conf.configuration_cost
+  -. (conf.transition_cost +. conf.configuration_cost)
 
 let terminal conf = conf.time > _nmax
 
@@ -63,5 +63,9 @@ let make_root p0 =
   {time = 0; partition = p0; transition_cost =0.;
    configuration_cost = partition_cost }
 
+(****************************************************************)
+(* Only for debug *)
+(****************************************************************)
 let get_partitions conf = conf.partition
 let get_time conf = conf.time
+(****************************************************************)

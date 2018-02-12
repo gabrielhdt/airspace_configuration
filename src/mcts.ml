@@ -14,11 +14,14 @@ let make_node state =
   n = 0 ;
   children = []
 }
-
+(****************************************************************)
+(* Only for debug *)
+(****************************************************************)
 let get_state node = node.state
 
 let print_node n =
-  Printf.printf "%d\n" (List.length n.children)
+   Printf.printf "%d\n" (List.length n.children)
+(****************************************************************)
 
 (* Contains ways to select final best path *)
 module Win_pol = struct
@@ -70,12 +73,6 @@ module Sel_pol = struct
     Auxfct.argmax cmp_ucb t.children
 end
 
-(* Temporary considering functor approach *)
-(* let dummystate = Airconf.dummy *)
-
-let random_elt lst =
-  List.nth lst (Random.int (List.length lst))
-
 (* [produce t] creates the list of reachable nodes from [t] *)
     (* Functor should create the produce rule *)
 let produce t =
@@ -83,39 +80,38 @@ let produce t =
   List.map (fun s -> { state = s ; q = 0. ; n = 0 ; children = [] }) states
 
 (** [force_deploy t] tries to add children from a production rule *)
-let force_deploy t =
-  match t.children with
-  | [] -> t.children <- produce t
+let force_deploy node =
+  match node.children with
+  | [] -> node.children <- produce node
   | _ :: _ -> ()
 
 (* TODO The two functions below could be grouped in one which would expand the
  * node or raise an exception *)
-let expandable t =
+let expandable node =
   (* Parses the children to see if one has not been visited *)
   let rec loop = function
     | [] -> false
     | hd :: tl -> if hd.n = 0 then true else loop tl
   in
-  if Airconf.terminal t.state then false else loop t.children
+  if Airconf.terminal node.state then false else loop node.children
 
 (** [expand t] returns node which must be visited among children of [t] *)
-let expand t =
+let expand node =
   let rec loop = function
     | [] -> failwith "no nodes to expand"
-    | hd :: tl ->
-        if hd.n = 0 then hd else loop tl
+    | hd :: tl -> if hd.n = 0 then hd else loop tl
   in
-  loop t.children
+  loop node.children
 
 (** [select t a] builds a path toward most urgent node to expand *)
     (* TODO see above comment considering expand *)
-let rec select tree ancestors =
-  force_deploy tree ;
-  if expandable tree then tree :: ancestors
+let rec select node ancestors =
+  force_deploy node ;
+  if expandable node then node :: ancestors
   else
-    match tree.children with
-    | (hd :: tl) -> let favourite = Sel_pol.best_child tree in
-        select favourite (tree :: ancestors)
+    match node.children with
+    | (hd :: tl) -> let favourite = Sel_pol.best_child node in
+      select favourite (node :: ancestors)
     | [] -> ancestors
 
 let treepolicy root =
@@ -123,37 +119,38 @@ let treepolicy root =
   let exnode = expand (List.hd path) in
   exnode :: path
 
-(** [simulate t] parses the tree [t] randomly until a terminal state is found,
-    and returnsan evaluation of the path *)
-let simulate node =
+(** [simulate_once t] parses the tree [t] randomly until a terminal state is found,
+    and returns an evaluation of the path *)
+let simulate_once node =
   let rec loop next_node accu =
     let cost = Airconf.conf_cost next_node.state in
     if Airconf.terminal next_node.state then cost +. accu
     else
       begin
         force_deploy next_node;
-        let randchild = random_elt next_node.children in
+        let randchild = Auxfct.random_elt next_node.children in
         loop randchild (accu +. cost)
       end
   in
   loop node 0.
 
-(** [defaultpolicy n] gives a list of the result of [_nsim] simulations *)
-let defaultpolicy tree nsim =
+(** [simulate n ns] starting from node [n] gives the results of [ns]
+    simulations *)
+let simulate node nsim =
   let rec loop cnt acc =
     if cnt > nsim then acc
-    else loop (cnt + 1) (simulate tree :: acc)
+    else loop (cnt + 1) (simulate_once node :: acc)
   in
   loop 0 []
 
 (** [backpropagate a w] updates ancestors [a] with the result win [w] *)
-let rec backpropagate (ancestors : 'a tree list) reward =
+let rec backpropagate ancestors reward =
   match ancestors with
   | [] -> ()
   | hd :: tl ->
       begin
         hd.q <- hd.q +. reward ;
-        hd.n <- succ hd.n ;
+        hd.n <- hd.n + 1 ;
         backpropagate tl reward
       end
 
@@ -161,15 +158,14 @@ let rec backpropagate (ancestors : 'a tree list) reward =
 let mcts root nsim =
   let flag = ref false in
   while not !flag do
-  (* for i = 1 to 15 do *)
     let path = treepolicy root in
-    let wins = defaultpolicy (List.hd path) nsim in
+    let wins = simulate (List.hd path) nsim in
     let bppg_aux win = backpropagate path win in
     List.iter bppg_aux wins;
     flag := Airconf.terminal (get_state (List.hd path));
     Printf.printf "%02d %d\n" (Airconf.get_time (get_state (List.hd path)))
-      (List.length (List.hd path).children)
-  done;
+      (List.length path)
+  done
 
 let best_path root criterion =
   let rec aux current_node accu =

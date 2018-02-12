@@ -20,6 +20,9 @@ val terminal : t -> bool
     [(Util.Sset.t * Util.Smap.key list) list]*)
 val make_root : (Util.Sset.t * Util.Smap.key list) list -> t
 
-
+(****************************************************************)
+(* Only for debug *)
+(****************************************************************)
 val get_partitions : t -> (Util.Sset.t * Util.Smap.key list) list
 val get_time : t -> int
+(****************************************************************)
