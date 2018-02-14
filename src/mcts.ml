@@ -7,6 +7,12 @@ type 'a tree = {
   mutable children : 'a tree list
 }
 
+(* state of the node regarding expansion *)
+type expandability =
+  | True
+  | Term
+  | All_visited
+
 let make_node state =
   {
   state = state ;
@@ -34,13 +40,13 @@ module Win_pol = struct
   (* some functions that define how to select the final path
     (best q, best n of best lcb)*)
   let cmp_max n1 n2 =
-    if n1.q < n2.q then n2 else n1
+    if n1.q > n2.q then n1 else n2
 
   let cmp_robust n1 n2 =
-  if n1.n < n2.n then n2 else n1
+  if n1.n > n2.n then n1 else n2
 
   let cmp_secure n1 n2 =
-    if lcb n1 < lcb n2 then n2 else n1
+    if lcb n1 > lcb n2 then n1 else n2
 
   (*********)
 
@@ -94,10 +100,10 @@ let force_deploy node =
 let expandable node =
   (* Parses the children to see if one has not been visited *)
   let rec loop = function
-    | [] -> false
-    | hd :: tl -> if hd.n = 0 then true else loop tl
+    | [] -> All_visited
+    | hd :: tl -> if hd.n = 0 then True else loop tl
   in
-  if Airconf.terminal node.state then false else loop node.children
+  if Airconf.terminal node.state then Term else loop node.children
 
 (** [expand t] returns node which must be visited among children of [t] *)
 let expand node =
@@ -110,9 +116,10 @@ let expand node =
 (** [select t a] builds a path toward most urgent node to expand *)
     (* TODO see above comment considering expand *)
 let rec select node ancestors =
-  force_deploy node ;
-  if expandable node then node :: ancestors
-  else
+  force_deploy node;
+  match expandable node with
+  | True | Term -> node :: ancestors
+  | All_visited ->
     match node.children with
     | (hd :: tl) -> let favourite = Sel_pol.best_child node in
       select favourite (node :: ancestors)
@@ -120,8 +127,9 @@ let rec select node ancestors =
 
 let treepolicy root =
   let path = select root [] in
-  let exnode = expand (List.hd path) in
-  exnode :: path
+  if expandable (List.hd path) = True then
+    let exnode = expand (List.hd path) in exnode :: path
+  else path
 
 (** [simulate_once t] parses the tree [t] randomly until a terminal state is found,
     and returns an evaluation of the path *)
@@ -149,14 +157,7 @@ let simulate node nsim =
 
 (** [backpropagate a w] updates ancestors [a] with the result win [w] *)
 let rec backpropagate ancestors reward n =
-  match ancestors with
-  | [] -> ()
-  | hd :: tl ->
-      begin
-        hd.q <- hd.q +. reward;
-        hd.n <- hd.n + n ;
-        backpropagate tl reward n
-      end
+  List.iter ( fun e -> e.q <- e.q +. reward; e.n <- e.n + n; ) ancestors
 
 (** [mcts r] updates tree of root [t] with monte carlo *)
 let mcts root nsim =
@@ -176,14 +177,14 @@ let mcts root nsim =
 let best_path root criterion =
   let rec aux current_node accu =
     match current_node.children with
-    | [] -> accu
-    | cnc ->
+    | [] -> current_node::accu
+    | children ->
       Printf.printf "------New selection--------\n" ;
-      List.iter print_node cnc ;
-      let best_ch = criterion cnc in
-      (aux best_ch (best_ch::accu) )
+      List.iter print_node children ;
+      let best_ch = criterion children in
+      aux best_ch (best_ch::accu)
   in
-  aux root [root]
+  aux root []
 
 let best_path_max root nsim =
   mcts root nsim;
