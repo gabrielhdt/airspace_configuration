@@ -17,7 +17,7 @@ let l =
 
 let _cxt= Partitions.make_context l
 
-let _nmax = 15
+let _nmax = 2
 
 let sc = Scenario.load "data/scen1.json"
 

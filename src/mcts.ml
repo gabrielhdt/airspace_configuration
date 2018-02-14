@@ -149,24 +149,26 @@ let simulate node nsim =
   loop 0 []
 
 (** [backpropagate a w] updates ancestors [a] with the result win [w] *)
-let rec backpropagate ancestors reward =
+let rec backpropagate ancestors reward n =
   match ancestors with
   | [] -> ()
   | hd :: tl ->
       begin
-        hd.q <- hd.q +. reward ;
-        hd.n <- hd.n + 1 ;
-        backpropagate tl reward
+        hd.q <- hd.q +. reward;
+        hd.n <- hd.n + n ;
+        backpropagate tl reward n
       end
 
 (** [mcts r] updates tree of root [t] with monte carlo *)
 let mcts root nsim =
   let flag = ref false in
-  while not !flag do
+  (* while not !flag do *)
+  for i = 0 to 5 do
     let path = treepolicy root in
     let wins = simulate (List.hd path) nsim in
-    let bppg_aux win = backpropagate path win in
-    List.iter bppg_aux wins;
+    let reward = List.fold_left (fun accu e -> accu +. e) 0. wins in
+    let n = List.length wins in (* should be nsim *)
+    backpropagate path reward n;
     flag := Airconf.terminal (get_state (List.hd path));
     Printf.printf "%02d %d\n" (Airconf.get_time (get_state (List.hd path)))
       (List.length path)
