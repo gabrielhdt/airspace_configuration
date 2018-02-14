@@ -19,8 +19,6 @@ let make_node state =
 (****************************************************************)
 let get_state node = node.state
 
-let print_node n =
-   Printf.printf "%d\n" (List.length n.children)
 (****************************************************************)
 
 (* Contains ways to select final best path *)
@@ -58,6 +56,13 @@ module Win_pol = struct
   let secure children =
     Auxfct.argmax cmp_secure children
 end
+
+(************************ DEBUG UTIL *******************************)
+let print_node node =
+  Printf.printf "max/robust/secure scores: " ;
+  let lcb = Win_pol.lcb node in
+  Printf.printf "%f/%d/%f\n" node.q node.n lcb
+(*******************************************************************)
 
 (* Selection policy *)
 module Sel_pol = struct
@@ -171,7 +176,10 @@ let best_path root criterion =
   let rec aux current_node accu =
     match current_node.children with
     | [] -> accu
-    | _ -> let best_ch = criterion current_node.children in
+    | cnc ->
+      Printf.printf "------New selection--------\n" ;
+      List.iter print_node cnc ;
+      let best_ch = criterion cnc in
       (aux best_ch (best_ch::accu) )
   in
   aux root [root]
