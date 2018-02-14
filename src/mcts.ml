@@ -71,18 +71,17 @@ module Sel_pol = struct
     child.q /. float child.n +.
     beta *. sqrt (2. *. log (float father.n) /. (float child.n))
 
-  let best_child t =
-    let cmp_ucb ta tb =
-      if ucb _beta t ta >= ucb _beta t tb then ta else tb
-    in
-    Auxfct.argmax cmp_ucb t.children
+  let best_child father =
+    Auxfct.argmax (fun ch1 ch2 ->
+        if ucb _beta father ch1 >= ucb _beta father ch2 then ch1 else ch2
+      ) father.children
 end
 
 (* [produce t] creates the list of reachable nodes from [t] *)
     (* Functor should create the produce rule *)
-let produce t =
-  let states = Airconf.produce t.state in
-  List.map (fun s -> { state = s ; q = 0. ; n = 0 ; children = [] }) states
+let produce node =
+  let next_states = Airconf.produce node.state in
+  List.map (fun s -> { state = s ; q = 0. ; n = 0 ; children = [] }) next_states
 
 (** [force_deploy t] tries to add children from a production rule *)
 let force_deploy node =
@@ -162,8 +161,8 @@ let rec backpropagate ancestors reward n =
 (** [mcts r] updates tree of root [t] with monte carlo *)
 let mcts root nsim =
   let flag = ref false in
-  (* while not !flag do *)
-  for i = 0 to 5 do
+  while not !flag do
+  (* for i = 0 to 5 do *)
     let path = treepolicy root in
     let wins = simulate (List.hd path) nsim in
     let reward = List.fold_left (fun accu e -> accu +. e) 0. wins in
