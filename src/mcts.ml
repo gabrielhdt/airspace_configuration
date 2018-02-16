@@ -136,11 +136,12 @@ let treepolicy root =
 let simulate_once node =
   let rec loop next_node accu =
     let cost = Airconf.conf_cost next_node.state in
+    (* TODO shouldn't be inverted here *)
     if Airconf.terminal next_node.state then 1. /. (cost +. accu)
     else
       begin
-        force_deploy next_node;
-        let randchild = Auxfct.random_elt next_node.children in
+        let children = produce next_node in
+        let randchild = Auxfct.random_elt children in
         loop randchild (accu +. cost)
       end
   in

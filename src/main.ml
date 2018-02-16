@@ -18,7 +18,7 @@ let () =
                            (s04, ["s4"]); (s05, ["s5"])] in
   let root = Mcts.make_node (Airconf.make_root initial_partition) in
 
-  let b_path = (Mcts.best_path_max root 100) in
+  let b_path = (Mcts.best_path_max root 10) in
   Printf.printf "%d\n" (List.length b_path);
 
   Partitions.print_partitions

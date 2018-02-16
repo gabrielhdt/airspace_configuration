@@ -37,7 +37,7 @@ let partition_cost time partition f =
         ac +. float (f time m)
       ) 0. subset in
     accu +. (if current_cost -. _threshold < 0. then 0. else current_cost -. _threshold)
-  ) 0. partition
+  ) 0. partition +. float (List.length partition)
 
 let trans_cost p_father p_child =
   if p_father = p_child then 0. else 10.
