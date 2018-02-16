@@ -177,14 +177,14 @@ let mcts root nsim =
 let best_path root criterion =
   let rec aux current_node accu =
     match current_node.children with
-    | [] -> current_node::accu
+    | [] -> accu
     | children ->
       Printf.printf "------New selection--------\n" ;
       List.iter print_node children ;
       let best_ch = criterion children in
       aux best_ch (best_ch::accu)
   in
-  aux root []
+  aux root [root]
 
 let best_path_max root nsim =
   mcts root nsim;

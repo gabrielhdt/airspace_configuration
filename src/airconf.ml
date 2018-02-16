@@ -36,14 +36,14 @@ let partition_cost time partition f =
     let current_cost = List.fold_left (fun ac m ->
         ac +. float (f time m)
       ) 0. subset in
-    accu +. current_cost /. _threshold
+    accu +. (if current_cost -. _threshold < 0. then 0. else current_cost -. _threshold)
   ) 0. partition
 
 let trans_cost p_father p_child =
   if p_father = p_child then 0. else 10.
 
 let produce config =
-  let reachable_partitions = Partitions.recombine _cxt config.partition in
+  let reachable_partitions = config.partition::(Partitions.recombine _cxt config.partition) in
   List.map (fun p ->
       let cc = partition_cost (config.time + 1) p f in
       let tc = trans_cost config.partition p in
