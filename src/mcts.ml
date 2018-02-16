@@ -75,7 +75,7 @@ module Sel_pol = struct
   (* TODO: add single player mcts 3rd term *)
   let ucb beta father child =
     child.q /. float child.n +.
-    beta *. sqrt (2. *. log (float father.n) /. (float child.n))
+    beta *. sqrt (2. *. log (float father.n) /. ((float child.n) +. 1.))
 
   let best_child father =
     Auxfct.argmax (fun ch1 ch2 ->
@@ -136,7 +136,7 @@ let treepolicy root =
 let simulate_once node =
   let rec loop next_node accu =
     let cost = Airconf.conf_cost next_node.state in
-    if Airconf.terminal next_node.state then cost +. accu
+    if Airconf.terminal next_node.state then 1. /. (cost +. accu)
     else
       begin
         force_deploy next_node;

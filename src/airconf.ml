@@ -17,7 +17,7 @@ let l =
 
 let _cxt= Partitions.make_context l
 
-let _nmax = 2
+let _nmax = 15
 
 let sc = Scenario.load "data/scen1.json"
 
@@ -54,7 +54,7 @@ let produce config =
     ) reachable_partitions
 
 let conf_cost conf =
-  -. (conf.transition_cost +. conf.configuration_cost)
+  (conf.transition_cost +. conf.configuration_cost)
 
 let terminal conf = conf.time > _nmax
 
