@@ -17,7 +17,7 @@ let l =
 
 let _cxt= Partitions.make_context l
 
-let _nmax = 15
+let _nmax = 10
 
 let sc = Scenario.load "data/scen1.json"
 
@@ -30,27 +30,34 @@ type t = {
   configuration_cost : float
 }
 
+let print s = Printf.printf "time/length/trc/cc: " ;
+  Printf.printf "%d/%d/%f/%f" s.time (List.length s.partition) s.transition_cost
+    s.configuration_cost ;
+  print_newline ()
+
 let partition_cost time partition f =
   List.fold_left (fun accu elt ->
-    let subset = Util.Sset.elements (fst elt) in
-    let current_cost = List.fold_left (fun ac m ->
-        ac +. float (f time m)
-      ) 0. subset in
-    accu +. (if current_cost -. _threshold < 0. then 0. else current_cost -. _threshold)
-  ) 0. partition +. float (List.length partition)
+      let subset = Util.Sset.elements (fst elt) in
+      let current_cost = (* Accumulation of the cost of each control sector *)
+        List.fold_left (fun acc m -> acc +. float (f time m)) 0. subset in
+      accu +. (if current_cost -. _threshold < 0. then 0.
+               else current_cost -. _threshold)
+    )
+    0. partition +. float (List.length partition)
 
 let trans_cost p_father p_child =
   if p_father = p_child then 0. else 10.
 
 let produce config =
-  let reachable_partitions = config.partition::(Partitions.recombine _cxt config.partition) in
+  let reachable_partitions = config.partition ::
+                             (Partitions.recombine _cxt config.partition) in
   List.map (fun p ->
       let cc = partition_cost (config.time + 1) p f in
       let tc = trans_cost config.partition p in
       {time = (config.time + 1);
        partition = p;
        transition_cost = cc;
-      configuration_cost = tc}
+       configuration_cost = tc}
     ) reachable_partitions
 
 let conf_cost conf =

@@ -67,7 +67,8 @@ end
 let print_node node =
   Printf.printf "max/robust/secure scores: " ;
   let lcb = Win_pol.lcb node in
-  Printf.printf "%f/%d/%f\n" node.q node.n lcb
+  Printf.printf "%f/%d/%f" node.q node.n lcb ;
+  print_newline ()
 (*******************************************************************)
 
 (* Selection policy *)
@@ -170,9 +171,7 @@ let mcts root nsim =
     let reward = List.fold_left (fun accu e -> accu +. e) 0. wins in
     let n = List.length wins in (* should be nsim *)
     backpropagate path reward n;
-    flag := Airconf.terminal (get_state (List.hd path));
-    Printf.printf "%02d %d\n" (Airconf.get_time (get_state (List.hd path)))
-      (List.length path)
+    flag := Airconf.terminal (List.hd path).state
   done
 
 let best_path root criterion =
@@ -182,6 +181,7 @@ let best_path root criterion =
     | children ->
       Printf.printf "------New selection--------\n" ;
       List.iter print_node children ;
+      List.iter (fun n -> Airconf.print n.state) children ;
       let best_ch = criterion children in
       aux best_ch (best_ch::accu)
   in
