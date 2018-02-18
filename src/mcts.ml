@@ -43,8 +43,9 @@ module Win_pol = struct
   let cmp_max n1 n2 =
     if n1.q > n2.q then n1 else n2
 
+  (* Compares visit count. Compares [q] in case of equality *)
   let cmp_robust n1 n2 =
-  if n1.n > n2.n then n1 else n2
+  if n1.n > n2.n then n1 else if n1.n < n2.n then n2 else cmp_max n1 n2
 
   let cmp_secure n1 n2 =
     if lcb n1 > lcb n2 then n1 else n2
