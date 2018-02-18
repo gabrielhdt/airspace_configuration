@@ -1,3 +1,4 @@
+(* UCT mcts algo *)
 let _beta = 1.
 
 type 'a tree = {
@@ -148,14 +149,14 @@ let treepolicy root =
     and returns an evaluation of the path *)
 let simulate_once node =
   let rec loop next_node accu =
-    let cost = Airconf.conf_cost next_node.state in
+    let reward = Airconf.conf_reward next_node.state in
     (* TODO shouldn't be inverted here *)
-    if Airconf.terminal next_node.state then 1. /. (cost +. accu)
+    if Airconf.terminal next_node.state then reward +. accu
     else
       begin
         let children = produce next_node in
         let randchild = Auxfct.random_elt children in
-        loop randchild (accu +. cost)
+        loop randchild (accu +. reward)
       end
   in
   loop node 0.

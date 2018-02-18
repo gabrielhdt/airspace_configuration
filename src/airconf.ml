@@ -30,7 +30,7 @@ type t = {
   configuration_cost : float
 }
 
-let print s = Printf.printf "time/length/trc/cc: " ;
+let print s = Printf.printf "time/length/trc/sc: " ;
   Printf.printf "%d/%d/%f/%f" s.time (List.length s.partition) s.transition_cost
     s.configuration_cost ;
   print_newline ()
@@ -43,7 +43,7 @@ let partition_cost time partition f =
       accu +. (if current_cost -. _threshold < 0. then 0.
                else current_cost -. _threshold)
     )
-    0. partition +. float (List.length partition)
+    0. partition +. 10. *. float (List.length partition)
 
 let trans_cost p_father p_child =
   if p_father = p_child then 0. else 10.
@@ -56,12 +56,11 @@ let produce config =
       let tc = trans_cost config.partition p in
       {time = (config.time + 1);
        partition = p;
-       transition_cost = cc;
-       configuration_cost = tc}
+       transition_cost = tc;
+       configuration_cost = cc}
     ) reachable_partitions
 
-let conf_cost conf =
-  (conf.transition_cost +. conf.configuration_cost)
+let conf_reward conf = 1. /. (conf.transition_cost +. conf.configuration_cost)
 
 let terminal conf = conf.time > _nmax
 

@@ -6,10 +6,9 @@ type t
 (** Prints specs of a partitioning *)
 val print : t -> unit
 
-(** [confcost t] gives the actual cost of config [t],
-    according to all the flights in the sector. allows one to
-    compare configurations *)
-val conf_cost : t -> float
+(** [confcost c] gives the reward associated to config [c], based on
+    miscellaneous parameters such as number of flights *)
+val conf_reward : t -> float
 
 (** [produce t] returns all feasible configurations from configuration [t] *)
 val produce : t -> t list
