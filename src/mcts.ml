@@ -84,6 +84,18 @@ module Sel_pol = struct
       ) father.children
 end
 
+(* [stop p] returns whether the mcts should stop on this path. Returns true
+ * iff node is terminal for the support and all its brothers are terminal and
+ * visited *)
+let stop path =
+  let last = List.hd path in if not (Airconf.terminal last.state) then false
+  else let father = List.hd (List.tl path) in
+    let all_visited = List.fold_left (fun acc elt -> acc && elt.n > 0) true
+        father.children
+    in
+    all_visited
+
+
 (* [produce t] creates the list of reachable nodes from [t] *)
     (* Functor should create the produce rule *)
 let produce node =
@@ -170,8 +182,9 @@ let mcts root nsim =
     let wins = simulate (List.hd path) nsim in
     let reward = List.fold_left (fun accu e -> accu +. e) 0. wins in
     let n = List.length wins in (* should be nsim *)
-    backpropagate path reward n;
-    flag := Airconf.terminal (List.hd path).state
+    backpropagate path reward n ;
+    flag := stop path
+    (* flag := Airconf.terminal (List.hd path).state *)
   done
 
 let best_path root criterion =
@@ -183,7 +196,7 @@ let best_path root criterion =
       List.iter print_node children ;
       List.iter (fun n -> Airconf.print n.state) children ;
       let best_ch = criterion children in
-      aux best_ch (best_ch::accu)
+      aux best_ch (best_ch :: accu)
   in
   aux root [root]
 
