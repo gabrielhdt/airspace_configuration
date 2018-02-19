@@ -1,30 +1,32 @@
-(** Utilities to manipulate the airspace configuration *)
+(** Functorial interface to manipulate airspace configuration. Takes as input
+    a traffic forecasting module *)
 
-(** Specification of a configuration *)
-type t
+(** Type of the traffic forecasting module *)
+module type WLS = sig
 
-(** Prints specs of a partitioning *)
-val print : t -> unit
+  (** [f t m] returns a forecasted load for sector [m] at time [t] *)
+  val f : int -> string -> int
+end
 
-(** [confcost c] gives the reward associated to config [c], based on
-    miscellaneous parameters such as number of flights *)
-val conf_reward : t -> float
+(** Output signature f the functor *)
+module type S = sig
+  (** Specification of a configuration *)
+  type t
 
-(** [produce t] returns all feasible configurations from configuration [t] *)
-val produce : t -> t list
+  (** Prints specs of a partitioning *)
+  val print : t -> unit
 
-(** [terminal t] asserts whether a configuration [t] is the last to be
-    considered *)
-val terminal : t -> bool
+  (** [reward c] gives the reward associated to config [c], based on
+      miscellaneous parameters such as number of flights *)
+  val reward : t -> float
 
-(** [make_conf int (Util.Sset.t * Util.Smap.key list) list] create a new
-    configuration for a given timestep [t] and partition
-    [(Util.Sset.t * Util.Smap.key list) list]*)
-val make_root : (Util.Sset.t * Util.Smap.key list) list -> t
+  (** [produce t] returns all feasible configurations from configuration [t] *)
+  val produce : t -> t list
 
-(****************************************************************)
-(* Only for debug *)
-(****************************************************************)
-val get_partitions : t -> (Util.Sset.t * Util.Smap.key list) list
-val get_time : t -> int
-(****************************************************************)
+  (** [terminal t] asserts whether a configuration [t] is the last to be
+      considered *)
+  val terminal : t -> bool
+
+  (** [make_root c] creates a new configuration for a given partition [c] *)
+  val make_root : (Util.Sset.t * Util.Smap.key list) list -> t
+end
