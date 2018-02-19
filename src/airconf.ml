@@ -28,6 +28,8 @@ end
 module type S = sig
   type t
 
+  val print : t -> unit
+
   val reward : t -> float
 
   val produce : t -> t list
