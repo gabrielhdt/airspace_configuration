@@ -19,7 +19,7 @@ let _cxt= Partitions.make_context l
 
 let _st_balance = (10., 0.)
 
-let _nmax = 5
+let _nmax = 9
 
 module type WLS = sig
   val f : int -> string -> int
