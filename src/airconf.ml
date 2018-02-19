@@ -19,7 +19,7 @@ let _cxt= Partitions.make_context l
 
 let _st_balance = (10., 0.)
 
-let _nmax = 10
+let _nmax = 5
 
 let sc = Scenario.load "data/scen1.json"
 
