@@ -17,6 +17,8 @@ let l =
 
 let _cxt= Partitions.make_context l
 
+let _st_balance = (10., 0.)
+
 let _nmax = 10
 
 let sc = Scenario.load "data/scen1.json"
@@ -35,7 +37,7 @@ let print s = Printf.printf "time/length/trc/sc: " ;
     s.configuration_cost ;
   print_newline ()
 
-let partition_cost time partition f =
+let partition_cost time partition f = let stat_cost =
   List.fold_left (fun accu elt ->
       let subset = Util.Sset.elements (fst elt) in
       let current_cost = (* Accumulation of the cost of each control sector *)
@@ -43,10 +45,11 @@ let partition_cost time partition f =
       accu +. (if current_cost -. _threshold < 0. then 0.
                else current_cost -. _threshold)
     )
-    0. partition +. 10. *. float (List.length partition)
+    0. partition
+  in stat_cost +. 0.1 *. (1. +. stat_cost) *. float (List.length partition)
 
 let trans_cost p_father p_child =
-  if p_father = p_child then 0. else 10.
+  if p_father = p_child then 0. else 1.
 
 let produce config =
   let reachable_partitions = config.partition ::
@@ -60,7 +63,11 @@ let produce config =
        configuration_cost = cc}
     ) reachable_partitions
 
-let conf_reward conf = 1. /. (conf.transition_cost +. conf.configuration_cost)
+let conf_reward conf = 1. /. (
+    1. +.
+    (fst _st_balance *. conf.configuration_cost +.
+     snd _st_balance *. conf.transition_cost)
+  )
 
 let terminal conf = conf.time > _nmax
 
