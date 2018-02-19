@@ -1,6 +1,6 @@
 # See https://github.com/ocaml/ocamlbuild/blob/master/examples/
 DOCDIR = doc/ac.docdir
-.PHONY: all clean byte native profile debug
+.PHONY: all clean byte native profile debug tags
 
 OCB_FLAGS = -use-ocamlfind
 OCB = ocamlbuild
