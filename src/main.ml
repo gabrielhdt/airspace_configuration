@@ -28,10 +28,8 @@ let () =
   let b_path = (Airmcts.best_path_robust root 7) in
   Printf.printf "%d\n" (List.length b_path);
 
-  (*
   Partitions.print_partitions
     (List.map (fun s -> Support.get_partitions s)
        (List.map (fun tree -> Airmcts.get_state tree) b_path
        )
     )
-     *)

@@ -40,6 +40,9 @@ module type S = sig
 
   (** create a new root *)
   val make_node : state -> tree
+
+  (********************************* DEBUG ***********************************)
+  val get_state : tree -> state
 end
 
 module Make : functor (Support : SuppS) -> S with type state = Support.t

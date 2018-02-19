@@ -37,6 +37,10 @@ module type S = sig
   val terminal : t -> bool
 
   val make_root : (Util.Sset.t * Util.Smap.key list) list -> t
+
+  (****************************** DEBUG **************************************)
+  val get_partitions : t -> (Util.Sset.t * Util.Smap.key list) list
+  val get_time : t -> int
 end
 
 module Make (Workload : WLS) = struct
@@ -92,4 +96,8 @@ module Make (Workload : WLS) = struct
     let partition_cost = partition_cost 0 p0 Workload.f in
     {time = 0; partition = p0; transition_cost =0.;
      configuration_cost = partition_cost }
+
+  (*********************** DEBUG *********************************************)
+  let get_partitions conf = conf.partition
+  let get_time conf = conf.time
 end

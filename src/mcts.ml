@@ -10,6 +10,9 @@ module type S = sig
   val best_path_robust : tree -> int -> tree list
 
   val make_node : state -> tree
+
+  (********************************* DEBUG ***********************************)
+  val get_state : tree -> state
 end
 
 module type SuppS = sig
@@ -96,6 +99,8 @@ module Make (Support : SuppS) = struct
     let lcb = Win_pol.lcb node in
     Printf.printf "%f/%d/%f" node.q node.n lcb ;
     print_newline ()
+
+  let get_state n = n.state
   (*******************************************************************)
 
   (* Selection policy *)
