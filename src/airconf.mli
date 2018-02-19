@@ -30,3 +30,5 @@ module type S = sig
   (** [make_root c] creates a new configuration for a given partition [c] *)
   val make_root : (Util.Sset.t * Util.Smap.key list) list -> t
 end
+
+module Make : functor (Workload : WLS) -> S
