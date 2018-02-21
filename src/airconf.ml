@@ -19,9 +19,8 @@ let _cxt= Partitions.make_context l
 
 let _st_balance = (10., 0.)
 
-let _nmax = 9
-
 module type WLS = sig
+  val tmax : int
   val f : int -> string -> int
 end
 
@@ -90,7 +89,7 @@ module Make (Workload : WLS) = struct
        snd _st_balance *. conf.transition_cost)
     )
 
-  let terminal conf = conf.time > _nmax
+  let terminal conf = conf.time > Workload.tmax
 
   let make_root p0 =
     let partition_cost = partition_cost 0 p0 Workload.f in
