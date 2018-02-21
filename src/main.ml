@@ -17,6 +17,7 @@ let () =
   Arg.parse speclist (fun x -> raise (Arg.Bad ("bad argument: " ^ x))) usage ;
   let sc = Scenario.load !scpath in
   let module Wl = struct
+    let tmax = !tmax
     let f = Scenario.f sc
   end
   in

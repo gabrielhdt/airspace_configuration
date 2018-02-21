@@ -28,9 +28,17 @@ List.iter (fun p ->
     Hashtbl.add _reachable_partitions p (p::(Partitions.recombine _ctx p))
   ) _lp;;
 
-Printf.printf "length : %d\n" (Hashtbl.length _reachable_partitions);;
+let sort_partitions_list l =
+  List.sort (fun p1 p2 ->
+      let (_, label1) = p1 in
+      let (_, label2) = p2 in
+      compare (List.hd label1) (List.hd label2)
+    ) l
+
+(* Printf.printf "length : %d\n" (Hashtbl.length _reachable_partitions);; *)
 
 module type WLS = sig
+  val tmax : int
   val f : int -> string -> int
 end
 
@@ -84,7 +92,13 @@ module Make (Workload : WLS) = struct
   let produce config =
     (* let reachable_partitions = config.partition ::
                                (Partitions.recombine _ctx config.partition) in *)
-    let reachable_partitions = Hashtbl.find _reachable_partitions config.partition in
+    if not (Hashtbl.mem _reachable_partitions (sort_partitions_list config.partition))
+    then (Hashtbl.add _reachable_partitions (sort_partitions_list config.partition)
+            (config.partition::(Partitions.recombine _ctx config.partition))
+         );
+    let reachable_partitions = Hashtbl.find _reachable_partitions
+        (sort_partitions_list config.partition) in
+    (* let reachable_partitions = Hashtbl.find _reachable_partitions config.partition in *)
     List.map (fun p ->
         let cc = partition_cost (config.time + 1) p Workload.f in
         let tc = trans_cost config.partition p in
@@ -100,7 +114,7 @@ module Make (Workload : WLS) = struct
        snd _st_balance *. conf.transition_cost)
     )
 
-  let terminal conf = conf.time > _nmax
+  let terminal conf = conf.time > Workload.tmax
 
   let make_root p0 =
     let partition_cost = partition_cost 0 p0 Workload.f in
