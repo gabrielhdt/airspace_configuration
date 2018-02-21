@@ -17,16 +17,13 @@ let l =
 
 let _st_balance = (10., 0.)
 
-let _nmax = 8
+let _nmax = 6
 
 let _ctx = Partitions.make_context l
 
 let _le = ["1";"2";"3";"4";"5"];;
 let _lp = Partitions.partitions _ctx (fun _-> true) _le;;
 let _reachable_partitions = Hashtbl.create 100;;
-List.iter (fun p ->
-    Hashtbl.add _reachable_partitions p (p::(Partitions.recombine _ctx p))
-  ) _lp;;
 
 let sort_partitions_list l =
   List.sort (fun p1 p2 ->
@@ -92,12 +89,14 @@ module Make (Workload : WLS) = struct
   let produce config =
     (* let reachable_partitions = config.partition ::
                                (Partitions.recombine _ctx config.partition) in *)
-    if not (Hashtbl.mem _reachable_partitions (sort_partitions_list config.partition))
-    then (Hashtbl.add _reachable_partitions (sort_partitions_list config.partition)
-            (config.partition::(Partitions.recombine _ctx config.partition))
-         );
-    let reachable_partitions = Hashtbl.find _reachable_partitions
-        (sort_partitions_list config.partition) in
+    let sorted_part = sort_partitions_list config.partition in
+    let reachable_partitions =
+      if not (Hashtbl.mem _reachable_partitions sorted_part)
+      then
+        let children = sorted_part::(Partitions.recombine _ctx sorted_part) in
+        (Hashtbl.add _reachable_partitions sorted_part children );
+        children
+      else Hashtbl.find _reachable_partitions sorted_part in
     (* let reachable_partitions = Hashtbl.find _reachable_partitions config.partition in *)
     List.map (fun p ->
         let cc = partition_cost (config.time + 1) p Workload.f in
