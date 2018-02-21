@@ -71,15 +71,15 @@ module Make (Workload : WLS) = struct
 
   let partition_cost time partition f =
     let stat_cost =
-      List.fold_left (fun accu elt ->
+      List.fold_left ( fun accu elt ->
           let subset = Util.Sset.elements (fst elt) in
           let current_cost = (* Accumulation of the cost of each control sector *)
-            List.fold_left (fun acc m -> acc +. float (f time m)) 0. subset in
-          accu +. (if current_cost -. _threshold < 0. then 0.
-                   else current_cost -. _threshold)
+            List.fold_left (fun acc m -> acc +. float ( f time m) ) 0. subset in
+          accu +. ( if current_cost -. _threshold < 0. then 0.
+                   else current_cost -. _threshold )
         )
         0. partition
-    in stat_cost +. 0.1 *. (1. +. stat_cost) *. float (List.length partition)
+    in stat_cost +. 0.1 *. ( 1. +. stat_cost ) *. float (List.length partition)
 
   let trans_cost p_father p_child =
     if p_father = p_child then 0. else 1.
@@ -87,20 +87,21 @@ module Make (Workload : WLS) = struct
   let produce config =
     let sorted_part = Mem.sort_partitions_list config.partition in
     let reachable_partitions =
-      if not (Hashtbl.mem Mem.reachable_partitions sorted_part)
+      if not ( Hashtbl.mem Mem.reachable_partitions sorted_part )
       then
-        let children = sorted_part::(Partitions.recombine _ctx sorted_part) in
-        (Hashtbl.add Mem.reachable_partitions sorted_part children );
+        let children = sorted_part::( Partitions.recombine _ctx sorted_part ) in
+        ( Hashtbl.add Mem.reachable_partitions sorted_part children );
         children
-      else Hashtbl.find Mem.reachable_partitions sorted_part in
+      else
+        Hashtbl.find Mem.reachable_partitions sorted_part in
 
-    List.map (fun p ->
-        let cc = partition_cost (config.time + 1) p Workload.f in
+    List.map ( fun p ->
+        let cc = partition_cost ( config.time + 1 ) p Workload.f in
         let tc = trans_cost config.partition p in
-        {time = (config.time + 1);
+        { time = (config.time + 1);
          partition = p;
          transition_cost = tc;
-         configuration_cost = cc}
+         configuration_cost = cc }
       ) reachable_partitions
 
   let reward conf = 1. /. (
