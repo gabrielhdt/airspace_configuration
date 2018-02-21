@@ -15,9 +15,24 @@ let l =
       ("f",["1";"2";"3";"4";"5"]);
       ("g",["1";"2"])  ]
 
-let _cxt= Partitions.make_context l
-
 let _st_balance = (10., 0.)
+
+let _nmax = 6
+
+let _ctx = Partitions.make_context l
+
+let _le = ["1";"2";"3";"4";"5"];;
+let _lp = Partitions.partitions _ctx (fun _-> true) _le;;
+let _reachable_partitions = Hashtbl.create 100;;
+
+let sort_partitions_list l =
+  List.sort (fun p1 p2 ->
+      let (_, label1) = p1 in
+      let (_, label2) = p2 in
+      compare (List.hd label1) (List.hd label2)
+    ) l
+
+(* Printf.printf "length : %d\n" (Hashtbl.length _reachable_partitions);; *)
 
 module type WLS = sig
   val tmax : int
@@ -72,8 +87,17 @@ module Make (Workload : WLS) = struct
     if p_father = p_child then 0. else 1.
 
   let produce config =
-    let reachable_partitions = config.partition ::
-                               (Partitions.recombine _cxt config.partition) in
+    (* let reachable_partitions = config.partition ::
+                               (Partitions.recombine _ctx config.partition) in *)
+    let sorted_part = sort_partitions_list config.partition in
+    let reachable_partitions =
+      if not (Hashtbl.mem _reachable_partitions sorted_part)
+      then
+        let children = sorted_part::(Partitions.recombine _ctx sorted_part) in
+        (Hashtbl.add _reachable_partitions sorted_part children );
+        children
+      else Hashtbl.find _reachable_partitions sorted_part in
+    (* let reachable_partitions = Hashtbl.find _reachable_partitions config.partition in *)
     List.map (fun p ->
         let cc = partition_cost (config.time + 1) p Workload.f in
         let tc = trans_cost config.partition p in
