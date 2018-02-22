@@ -5,7 +5,7 @@ DOCDIR = doc/ac.docdir
 OCB_FLAGS = -use-ocamlfind
 OCB = ocamlbuild
 
-all: native byte
+all: native byte profile debug
 
 clean:
 	$(OCB) -clean
@@ -17,10 +17,10 @@ byte:
 	$(OCB) $(OCB_FLAGS) main.byte
 
 profile:
-	$(OCB) $(OCB_FLAGS) -tag profile main.native
+	$(OCB) $(OCB_FLAGS) main.p.native
 
 debug:
-	$(OCB) $(OCB_FLAGS) -tag debug main.byte
+	$(OCB) $(OCB_FLAGS) main.d.byte
 
 doc_html:
 	$(OCB) $(OCB_FLAGS) $(DOCDIR)/index.html
