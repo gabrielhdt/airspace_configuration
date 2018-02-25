@@ -1,3 +1,4 @@
+type partition = (Util.Sset.t * Util.Smap.key list) list
 (* max nb of aircrft in a controlled sector *)
 let _threshold = 10.
 
@@ -21,15 +22,41 @@ let _nmax = 6
 
 let _ctx = Partitions.make_context l
 
-module Mem = struct
-  let reachable_partitions = Hashtbl.create 25;;
+(* Signature of the memory module used to fasten up the production *)
+module type ProductionMemory = sig
+  (* Those types are exported since working with partition is a secret for
+   * no one ... *)
+  type key = partition
+  type element = partition list
 
-  let sort_partitions_list l =
-    List.sort (fun p1 p2 ->
-        let (_, label1) = p1 in
-        let (_, label2) = p2 in
-        compare (List.hd label1) (List.hd label2)
-      ) l
+  (* Type of the hash table. Can stay hidden *)
+  type t
+
+  val add : key -> element -> unit
+  val find : key -> element
+  val mem : key -> bool
+end
+
+(* Memory of production rule *)
+module ProdMem : ProductionMemory = struct
+  type key = partition
+  type element = partition list
+  type t = (key, element) Hashtbl.t
+
+  let (table : t) = Hashtbl.create 25
+
+  let organise_partition (p : partition) =
+    List.sort (fun p1 p2 -> compare (List.hd @@ snd p1) (List.hd @@ snd p2)) p
+
+  (* [add p q] adds partition list [q] with key [p] to the hash table. The key
+     is sorted before being added into the table *)
+  let add (part : partition) (reachable_partitions : partition list) =
+    let (spart : partition) = organise_partition part in
+    Hashtbl.add table spart reachable_partitions
+
+  let find part = Hashtbl.find table (organise_partition part)
+
+  let mem part = Hashtbl.mem table (organise_partition part)
 end
 
 module type WLS = sig
@@ -85,16 +112,13 @@ module Make (Workload : WLS) = struct
     if p_father = p_child then 0. else 1.
 
   let produce config =
-    let sorted_part = Mem.sort_partitions_list config.partition in
     let reachable_partitions =
-      if not ( Hashtbl.mem Mem.reachable_partitions sorted_part )
-      then
-        let children = sorted_part::( Partitions.recombine _ctx sorted_part ) in
-        ( Hashtbl.add Mem.reachable_partitions sorted_part children );
-        children
-      else
-        Hashtbl.find Mem.reachable_partitions sorted_part in
-
+      if not (ProdMem.mem config.partition)
+      then let new_parts = Partitions.recombine _ctx config.partition in
+        ProdMem.add config.partition (config.partition :: new_parts) ;
+        config.partition :: new_parts
+      else ProdMem.find config.partition
+    in
     List.map ( fun p ->
         let cc = partition_cost ( config.time + 1 ) p Workload.f in
         let tc = trans_cost config.partition p in
