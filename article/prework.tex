@@ -87,6 +87,15 @@ The tree policy includes the selection and the expansion.
   \end{algorithmic}
 \end{algorithm}
 
+\subsubsection{Memoization}
+Production rule has been memoized with a hash table. Results are, for
+\texttt{scen3.json} with \texttt{tmax = 7} and \texttt{nsim = 10} on a core i5
+\@ 2.30GHz,
+\begin{itemize}
+  \item rev \texttt{e7f95}: 4 minutes 15.90s,
+  \item rev \texttt{cdd60e}: 26.72s.
+\end{itemize}
+
 \section{Per article review}
 \paragraph{Branch and price~\cite{treimuth2016branch}}
 The most important in this article is the model used. The rest depends heavily
