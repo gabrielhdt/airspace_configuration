@@ -29,7 +29,7 @@ module type ProductionMemory = sig
   type key = partition
   type element = partition list
 
-  (* Type of the hash table. Can stay hidden *)
+  (* Type of the memory *)
   type t
 
   val add : key -> element -> unit
@@ -37,26 +37,29 @@ module type ProductionMemory = sig
   val mem : key -> bool
 end
 
-(* Memory of production rule *)
+(* Memory of production rule. The memory is in place. Partitions given as key
+ * are automatically normalised (control sectors of the partition are sorted)
+ * to ensure that the same partition isn't entered twice. *)
 module ProdMem : ProductionMemory = struct
   type key = partition
   type element = partition list
   type t = (key, element) Hashtbl.t
 
-  let (table : t) = Hashtbl.create 25
+  (* TODO find a valid formula for initial length... *)
+  let (table : t) = Hashtbl.create (List.length l * 2)
 
-  let organise_partition (p : partition) =
+  let normalise_partition p =
     List.sort (fun p1 p2 -> compare (List.hd @@ snd p1) (List.hd @@ snd p2)) p
 
   (* [add p q] adds partition list [q] with key [p] to the hash table. The key
      is sorted before being added into the table *)
-  let add (part : partition) (reachable_partitions : partition list) =
-    let (spart : partition) = organise_partition part in
+  let add part reachable_partitions =
+    let (spart : partition) = normalise_partition part in
     Hashtbl.add table spart reachable_partitions
 
-  let find part = Hashtbl.find table (organise_partition part)
+  let find part = Hashtbl.find table (normalise_partition part)
 
-  let mem part = Hashtbl.mem table (organise_partition part)
+  let mem part = Hashtbl.mem table (normalise_partition part)
 end
 
 module type WLS = sig
