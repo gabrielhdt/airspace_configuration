@@ -1,14 +1,9 @@
 module type S = sig
   type state
-
   type tree
-
   val best_path_max : tree -> int -> tree list
-
   val best_path_secure : tree -> int -> tree list
-
   val best_path_robust : tree -> int -> tree list
-
   val make_node : state -> tree
 
   (********************************* DEBUG ***********************************)
@@ -17,15 +12,10 @@ end
 
 module type SuppS = sig
   type t
-
   val produce : t -> t list
-
   val reward : t -> float
-
   val terminal : t -> bool
-
   val print : t -> unit
-
   val make_root : (Util.Sset.t * Util.Smap.key list) list -> t
 end
 
@@ -56,13 +46,21 @@ module Make (Support : SuppS) = struct
       children = []
     }
 
+  module type WinPolicy =
+    sig
+      val lcb : tree -> float
+      val max : tree list -> tree
+      val robust : tree list -> tree
+      val secure : tree list -> tree
+    end
+
   (* Contains ways to select final best path *)
-  module Win_pol = struct
+  module WinPol : WinPolicy = struct
 
     (* arbitrary cste given by chaslot *)
     let _a = 4.
 
-    (* define le low confidence bound *)
+    (* low confidence bound *)
     let lcb node =
       node.q +. _a /. sqrt (float node.n +. 1.)
 
@@ -96,7 +94,7 @@ module Make (Support : SuppS) = struct
   (************************ DEBUG UTIL *******************************)
   let print_node node =
     Printf.printf "max/robust/secure scores: " ;
-    let lcb = Win_pol.lcb node in
+    let lcb = WinPol.lcb node in
     Printf.printf "%f/%d/%f" node.q node.n lcb ;
     print_newline ()
 
@@ -104,7 +102,7 @@ module Make (Support : SuppS) = struct
   (*******************************************************************)
 
   (* Selection policy *)
-  module Sel_pol = struct
+  module SelPol = struct
     (* TODO: add single player mcts 3rd term *)
     let ucb beta father child =
       child.q /. float child.n +.
@@ -129,12 +127,13 @@ module Make (Support : SuppS) = struct
 
 
   (* [produce t] creates the list of reachable nodes from [t] *)
-  (* Functor should create the produce rule *)
   let produce node =
     let next_states = Support.produce node.state in
-    List.map (fun s -> { state = s ; q = 0. ; n = 0 ; children = [] }) next_states
+    List.map (fun s -> { state = s ; q = 0. ; n = 0 ; children = [] })
+      next_states
 
-  (** [force_deploy t] tries to add children from a production rule *)
+  (** [force_deploy t] tries to add children from a production rule and saves
+      them into the node *)
   let force_deploy node =
     match node.children with
     | [] -> node.children <- produce node
@@ -161,12 +160,12 @@ module Make (Support : SuppS) = struct
   (** [select t a] builds a path toward most urgent node to expand *)
   (* TODO see above comment considering expand *)
   let rec select node ancestors =
-    force_deploy node;
+    force_deploy node ;
     match expandable node with
     | True | Term -> node :: ancestors
     | All_visited ->
       match node.children with
-      | (hd :: tl) -> let favourite = Sel_pol.best_child node in
+      | (hd :: tl) -> let favourite = SelPol.best_child node in
         select favourite (node :: ancestors)
       | [] -> ancestors
 
@@ -176,12 +175,11 @@ module Make (Support : SuppS) = struct
       let exnode = expand (List.hd path) in exnode :: path
     else path
 
-  (** [simulate_once t] parses the tree [t] randomly until a terminal state is found,
-      and returns an evaluation of the path *)
+  (** [simulate_once t] parses the tree [t] randomly until a terminal state
+      is found, and returns an evaluation of the path *)
   let simulate_once node =
     let rec loop next_node accu =
       let reward = Support.reward next_node.state in
-      (* TODO shouldn't be inverted here *)
       if Support.terminal next_node.state then reward +. accu
       else
         begin
@@ -203,13 +201,12 @@ module Make (Support : SuppS) = struct
 
   (** [backpropagate a w] updates ancestors [a] with the result win [w] *)
   let rec backpropagate ancestors reward n =
-    List.iter ( fun e -> e.q <- e.q +. reward; e.n <- e.n + n; ) ancestors
+    List.iter ( fun e -> e.q <- e.q +. reward; e.n <- e.n + n ) ancestors
 
   (** [mcts r] updates tree of root [t] with monte carlo *)
   let mcts root nsim =
     let flag = ref false in
     while not !flag do
-      (* for i = 0 to 5 do *)
       let path = treepolicy root in
       let wins = simulate (List.hd path) nsim in
       let reward = List.fold_left (fun accu e -> accu +. e) 0. wins in
@@ -234,13 +231,13 @@ module Make (Support : SuppS) = struct
 
   let best_path_max root nsim =
     mcts root nsim;
-    best_path root Win_pol.max
+    best_path root WinPol.max
 
   let best_path_secure root nsim =
     mcts root nsim;
-    best_path root Win_pol.secure
+    best_path root WinPol.secure
 
   let best_path_robust root nsim =
     mcts root nsim;
-    best_path root Win_pol.robust
+    best_path root WinPol.robust
 end

@@ -69,27 +69,22 @@ end
 
 module type S = sig
   type t
-
   val print : t -> unit
-
   val reward : t -> float
-
   val produce : t -> t list
-
   val terminal : t -> bool
-
-  val make_root : (Util.Sset.t * Util.Smap.key list) list -> t
+  val make_root : partition -> t
 
   (****************************** DEBUG **************************************)
-  val get_partitions : t -> (Util.Sset.t * Util.Smap.key list) list
+  val get_partitions : t -> partition
   val get_time : t -> int
 end
 
 module Make (Workload : WLS) = struct
 
   type t = {
-    time : int ; (* Used to determine whether the node is terminal *)
-    partition : (Util.Sset.t * Util.Smap.key list) list;
+    time : int; (* Used to determine whether the node is terminal *)
+    partition : partition;
     transition_cost : float;
     configuration_cost : float
   }
@@ -98,6 +93,7 @@ module Make (Workload : WLS) = struct
     Printf.printf "%d/%d/%f/%f" s.time (List.length s.partition)
       s.transition_cost s.configuration_cost ;
     print_newline ()
+
 
   let partition_cost time partition f =
     let stat_cost =
@@ -114,15 +110,21 @@ module Make (Workload : WLS) = struct
   let trans_cost p_father p_child =
     if p_father = p_child then 0. else 1.
 
+
+  (* Partition production, i.e. generation of children partitions *)
+  let prod_parts_nomem part = part :: Partitions.recombine _ctx part
+
+  (* [prod_parts p] generates all reachable partitions from partition [p],
+     uses memoization *)
+  let prod_parts part =
+    if ProdMem.mem part then ProdMem.find part else
+      let new_parts = prod_parts_nomem part in
+      ProdMem.add part new_parts ; new_parts
+
+  (* [produce c] produces all children states of config *)
   let produce config =
-    let reachable_partitions =
-      if not (ProdMem.mem config.partition)
-      then let new_parts = Partitions.recombine _ctx config.partition in
-        ProdMem.add config.partition (config.partition :: new_parts) ;
-        config.partition :: new_parts
-      else ProdMem.find config.partition
-    in
-    List.map ( fun p ->
+    let reachable_partitions = prod_parts config.partition in
+    List.map (fun p ->
         let cc = partition_cost ( config.time + 1 ) p Workload.f in
         let tc = trans_cost config.partition p in
         { time = (config.time + 1);
@@ -130,6 +132,7 @@ module Make (Workload : WLS) = struct
          transition_cost = tc;
          configuration_cost = cc }
       ) reachable_partitions
+
 
   let reward conf = 1. /. (
       1. +.
