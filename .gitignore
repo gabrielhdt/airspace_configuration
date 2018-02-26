@@ -16,6 +16,10 @@ _build/
 *.native
 *.docdir
 
+# profiling
+gmon.out
+perf.data
+
 # oasis generated files
 setup.data
 setup.log
