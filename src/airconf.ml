@@ -104,6 +104,7 @@ module Make (Workload : WLS) = struct
     type element = t list
     type t = (key, element) Hashtbl.t
 
+    (* TODO find valid formula to set inital length *)
     let (table : t) = Hashtbl.create 1000
 
     let normalise_conf c =
