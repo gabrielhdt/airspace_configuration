@@ -89,6 +89,36 @@ module Make (Workload : WLS) = struct
     configuration_cost : float
   }
 
+  module type StatusMemory = sig
+    type key = t
+    type element = t list
+
+    val table : (key, element) Hashtbl.t
+    val add : key -> element -> unit
+    val find : key -> element
+    val mem : key -> bool
+  end
+
+  module StatMem : StatusMemory = struct
+    type key = t
+    type element = t list
+    type t = (key, element) Hashtbl.t
+
+    let (table : t) = Hashtbl.create 1000
+
+    let normalise_conf c =
+      { c with
+        partition = List.sort (fun p1 p2 ->
+            compare (List.hd @@ snd p1) (List.hd @@ snd p2)) c.partition }
+
+    let find conf = Hashtbl.find table (normalise_conf conf)
+
+    let mem conf = Hashtbl.mem table (normalise_conf conf)
+
+    let add conf children_conf =
+      Hashtbl.add table (normalise_conf conf) children_conf
+  end
+
   let print s = Printf.printf "time/length/trc/sc: " ;
     Printf.printf "%d/%d/%f/%f" s.time (List.length s.partition)
       s.transition_cost s.configuration_cost ;
@@ -122,7 +152,7 @@ module Make (Workload : WLS) = struct
       ProdMem.add part new_parts ; new_parts
 
   (* [produce c] produces all children states of config *)
-  let produce config =
+  let produce_nomem config =
     let reachable_partitions = prod_parts config.partition in
     List.map (fun p ->
         let cc = partition_cost ( config.time + 1 ) p Workload.f in
@@ -132,6 +162,12 @@ module Make (Workload : WLS) = struct
          transition_cost = tc;
          configuration_cost = cc }
       ) reachable_partitions
+
+  (* Memoized version of the above *)
+  let produce config =
+    if StatMem.mem config then StatMem.find config else
+      let newconfs = produce_nomem config in
+      StatMem.add config newconfs ; newconfs
 
 
   let reward conf = 1. /. (
