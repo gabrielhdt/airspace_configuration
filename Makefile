@@ -11,10 +11,10 @@ clean:
 	$(OCB) -clean
 
 native:
-	$(OCB) $(OCB_FLAGS) main.native
+	$(OCB) $(OCB_FLAGS) main.native astarmain.native
 
 byte:
-	$(OCB) $(OCB_FLAGS) main.byte
+	$(OCB) $(OCB_FLAGS) main.byte astarmain.byte
 
 profile:
 	$(OCB) $(OCB_FLAGS) main.p.native
