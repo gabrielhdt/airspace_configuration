@@ -28,7 +28,7 @@ module Make (Support : SuppS) = struct
 
   (* Single player constant, ensures that rarely explored nodes are still
    * considered promising *)
-  let _spmctsc = 100.
+  let _spmctsc = 1000.
 
   type tree = {
     state : state ;
@@ -116,7 +116,8 @@ module Make (Support : SuppS) = struct
       child.q +.
       beta *. sqrt (2. *. log (float father.n) /. ((float child.n) +. 1.)) in
       let sn = (child.ss +. _spmctsc) /. (float child.n +. 1.) in
-      if sn >= 0. then ft +. sqrt sn
+      (* if sn >= 0. then ft +. sqrt sn *)
+      if sn >= 0. then ft
       else failwith "sqrt neg numb"
 
     let best_child father =
@@ -228,7 +229,6 @@ module Make (Support : SuppS) = struct
       let n = List.length wins in (* should be nsim *)
       backpropagate path reward n ;
       flag := stop path
-      (* flag := Airconf.terminal (List.hd path).state *)
     done
 
   let best_path root criterion =
@@ -236,9 +236,6 @@ module Make (Support : SuppS) = struct
       match current_node.children with
       | [] -> accu
       | children ->
-        Printf.printf "------New selection--------\n" ;
-        List.iter print_node children ;
-        List.iter (fun n -> Support.print n.state) children ;
         let best_ch = criterion children in
         aux best_ch (best_ch :: accu)
     in
