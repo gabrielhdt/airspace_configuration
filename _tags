@@ -1,3 +1,4 @@
 true: bin_annot
-<src>: include
-<src/scenario.*> or <src/main.*> or <src/astarmain.*>: package(yojson)
+<src/**>: include
+<src-bin>: include
+<src/scenario.*> or <src-bin/*>: package(yojson)

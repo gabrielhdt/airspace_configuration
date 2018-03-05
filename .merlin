@@ -1,6 +1,6 @@
 # S for sources, allows the use of :ML[I] in vim
 # supports file globbing
-S src
+S src/**
 
 # B for build path, where it can find cmi, cmt... to offer completion
 # from other files of the project.

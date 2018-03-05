@@ -4,6 +4,7 @@ DOCDIR = doc/ac.docdir
 
 OCB_FLAGS = -use-ocamlfind
 OCB = ocamlbuild
+TARGETS = airmcts astair
 
 all: native byte profile debug
 
@@ -11,16 +12,16 @@ clean:
 	$(OCB) -clean
 
 native:
-	$(OCB) $(OCB_FLAGS) main.native astarmain.native
+	$(OCB) $(OCB_FLAGS) $(TARGETS:=.native)
 
 byte:
-	$(OCB) $(OCB_FLAGS) main.byte astarmain.byte
+	$(OCB) $(OCB_FLAGS) $(TARGETS:=.byte)
 
 profile:
-	$(OCB) $(OCB_FLAGS) main.p.native
+	$(OCB) $(OCB_FLAGS) $(TARGETS:=.p.native)
 
 debug:
-	$(OCB) $(OCB_FLAGS) main.d.byte
+	$(OCB) $(OCB_FLAGS) $(TARGETS:=.d.byte)
 
 doc_html:
 	$(OCB) $(OCB_FLAGS) $(DOCDIR)/index.html
@@ -38,4 +39,4 @@ doc_dot:
 	$(OCB) $(OCB_FLAGS) $(DOCDIR)/ac.dot
 
 tags:
-	ctags src/*.ml src/*.mli Makefile
+	ctags src/*.ml src/*.mli
