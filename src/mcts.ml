@@ -112,12 +112,12 @@ module Make (Support : SuppS) = struct
   module SelPol = struct
     (* TODO: add single player mcts 3rd term *)
     let ucb beta father child =
+      let ft =
       child.q +.
-      beta *. sqrt (2. *. log (float father.n) /. ((float child.n) +. 1.)) +.
-      sqrt (
-        (child.ss -. (float child.n) *. child.q ** 2. +. _spmctsc) /.
-        (float child.n +. 1.)
-      )
+      beta *. sqrt (2. *. log (float father.n) /. ((float child.n) +. 1.)) in
+      let sn = (child.ss +. _spmctsc) /. (float child.n +. 1.) in
+      if sn >= 0. then ft +. sqrt sn
+      else failwith "sqrt neg numb"
 
     let best_child father =
       Auxfct.argmax (fun ch1 ch2 ->
@@ -213,8 +213,9 @@ module Make (Support : SuppS) = struct
   (** [backpropagate a r n] updates ancestors [a] with the total reward of
       the [n] simulations [r] *)
   let rec backpropagate ancestors reward n =
-    List.iter (fun e -> e.q <- e.q +. reward ; e.n <- e.n + n ;
-                e.ss <- e.ss +. reward ** 2.
+    List.iter (fun e -> e.q <- e.q +. reward ;
+                e.n <- e.n + n ;
+                e.ss <- e.ss +. (reward -. e.q /. (float e.n) +. 1.) ** 2.
               ) ancestors
 
   (** [mcts r] updates tree of root [t] with monte carlo *)
