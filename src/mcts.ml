@@ -22,13 +22,19 @@ end
 module Make (Support : SuppS) = struct
 
   type state = Support.t
+
   (* UCT mcts algo *)
   let _beta = 1.
+
+  (* Single player constant, ensures that rarely explored nodes are still
+   * considered promising *)
+  let _spmctsc = 100.
 
   type tree = {
     state : state ;
     mutable q : float ;
     mutable n : int ;
+    mutable ss : float ;
     mutable children : tree list
   }
 
@@ -43,6 +49,7 @@ module Make (Support : SuppS) = struct
       state = state ;
       q = 0. ;
       n = 0 ;
+      ss = 0. ; (** Sum of squares of rewards, single player requirement *)
       children = []
     }
 
@@ -105,8 +112,12 @@ module Make (Support : SuppS) = struct
   module SelPol = struct
     (* TODO: add single player mcts 3rd term *)
     let ucb beta father child =
-      child.q /. float child.n +.
-      beta *. sqrt (2. *. log (float father.n) /. ((float child.n) +. 1.))
+      let ft =
+      child.q +.
+      beta *. sqrt (2. *. log (float father.n) /. ((float child.n) +. 1.)) in
+      let sn = (child.ss +. _spmctsc) /. (float child.n +. 1.) in
+      if sn >= 0. then ft +. sqrt sn
+      else failwith "sqrt neg numb"
 
     let best_child father =
       Auxfct.argmax (fun ch1 ch2 ->
@@ -129,7 +140,7 @@ module Make (Support : SuppS) = struct
   (* [produce t] creates the list of reachable nodes from [t] *)
   let produce node =
     let next_states = Support.produce node.state in
-    List.map (fun s -> { state = s ; q = 0. ; n = 0 ; children = [] })
+    List.map (fun s -> { state = s ; q = 0. ; n = 0 ; ss = 0. ; children = [] })
       next_states
 
   (** [force_deploy t] tries to add children from a production rule and saves
@@ -199,9 +210,13 @@ module Make (Support : SuppS) = struct
     in
     loop 0 []
 
-  (** [backpropagate a w] updates ancestors [a] with the result win [w] *)
+  (** [backpropagate a r n] updates ancestors [a] with the total reward of
+      the [n] simulations [r] *)
   let rec backpropagate ancestors reward n =
-    List.iter ( fun e -> e.q <- e.q +. reward; e.n <- e.n + n ) ancestors
+    List.iter (fun e -> e.q <- e.q +. reward ;
+                e.n <- e.n + n ;
+                e.ss <- e.ss +. (reward -. e.q /. (float e.n) +. 1.) ** 2.
+              ) ancestors
 
   (** [mcts r] updates tree of root [t] with monte carlo *)
   let mcts root nsim =
