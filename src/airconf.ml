@@ -16,14 +16,10 @@ let l =
       ("f",["1";"2";"3";"4";"5"]);
       ("g",["1";"2"])  ]
 
-let _st_balance = (10., 0.)
-
-let _nmax = 6
-
 let _ctx = Partitions.make_context l
 
 (* Signature of the memory module used to fasten up the production *)
-module type ProductionMemory = sig
+module type PartitionMemory = sig
   (* Those types are exported since working with partition is a secret for
    * no one ... *)
   type key = partition
@@ -40,7 +36,7 @@ end
 (* Memory of production rule. The memory is in place. Partitions given as key
  * are automatically normalised (control sectors of the partition are sorted)
  * to ensure that the same partition isn't entered twice. *)
-module ProdMem : ProductionMemory = struct
+module PartMem : PartitionMemory = struct
   type key = partition
   type element = partition list
   type t = (key, element) Hashtbl.t
@@ -63,6 +59,7 @@ module ProdMem : ProductionMemory = struct
 end
 
 module type WLS = sig
+  val balance : float
   val tmax : int
   val f : int -> string -> int
 end
@@ -86,7 +83,7 @@ module Make (Workload : WLS) = struct
     time : int; (* Used to determine whether the node is terminal *)
     partition : partition;
     transition_cost : float;
-    configuration_cost : float
+    partition_cost : float
   }
 
   module type StatusMemory = sig
@@ -122,7 +119,7 @@ module Make (Workload : WLS) = struct
 
   let print s = Printf.printf "time/length/trc/sc: " ;
     Printf.printf "%d/%d/%f/%f" s.time (List.length s.partition)
-      s.transition_cost s.configuration_cost ;
+      s.transition_cost s.partition_cost ;
     print_newline ()
 
 
@@ -148,9 +145,10 @@ module Make (Workload : WLS) = struct
   (* [prod_parts p] generates all reachable partitions from partition [p],
      uses memoization *)
   let prod_parts part =
-    if ProdMem.mem part then ProdMem.find part else
+    if PartMem.mem part then PartMem.find part else
       let new_parts = prod_parts_nomem part in
-      ProdMem.add part new_parts ; new_parts
+      PartMem.add part new_parts ;
+      new_parts
 
   (* [produce c] produces all children states of config *)
   let produce_nomem config =
@@ -161,20 +159,23 @@ module Make (Workload : WLS) = struct
         { time = (config.time + 1);
          partition = p;
          transition_cost = tc;
-         configuration_cost = cc }
+         partition_cost = cc }
       ) reachable_partitions
 
   (* Memoized version of the above *)
   let produce config =
-    if StatMem.mem config then StatMem.find config else
+    if StatMem.mem config
+    then StatMem.find config
+    else
       let newconfs = produce_nomem config in
-      StatMem.add config newconfs ; newconfs
+      StatMem.add config newconfs ;
+      newconfs
 
 
   let reward conf = 1. /. (
       1. +.
-      (fst _st_balance *. conf.configuration_cost +.
-       snd _st_balance *. conf.transition_cost)
+      (Workload.balance *. conf.partition_cost +.
+       (1. -. Workload.balance) *. conf.transition_cost)
     )
 
   let terminal conf = conf.time > Workload.tmax
@@ -182,7 +183,7 @@ module Make (Workload : WLS) = struct
   let make_root p0 =
     let partition_cost = partition_cost 0 p0 Workload.f in
     {time = 0; partition = p0; transition_cost =0.;
-     configuration_cost = partition_cost }
+     partition_cost = partition_cost }
 
   (*********************** DEBUG *********************************************)
   let get_partitions conf = conf.partition
