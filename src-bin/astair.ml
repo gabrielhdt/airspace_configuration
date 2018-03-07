@@ -21,17 +21,21 @@ let usage = "Usage: " ^ Sys.argv.(0) ^ " " ^
 
 let scpath = ref ""
 let tmax = ref 5
+let balance = ref 0.5
 
 let speclist = [
   ("-scenario", Arg.Set_string scpath,
    "Scenario to load and play") ;
   ("-tmax", Arg.Set_int tmax,
    "Depth of the tree") ;
+  ("-balance", Arg.Set_float balance,
+   "Balance between the configuration cost and the transition cost")
 ]
 let () =
   Arg.parse speclist (fun x -> raise @@ Arg.Bad ("bad arg " ^ x)) usage ;
   let sc = Scenario.load !scpath in
   let module Wl = struct
+    let balance = !balance
     let tmax = !tmax
     let f = Scenario.f sc
   end in
