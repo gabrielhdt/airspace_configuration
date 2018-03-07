@@ -10,8 +10,9 @@ module type WLS = sig
 (** Horizon of the forecast, will determine the depth of the tree *)
   val tmax : int
 
-  (** [f t m] returns a forecasted load for sector [m] at time [t] *)
-  val f : int -> string -> int
+  (** [workload t m] returns a forecasted load for control sector [m] at
+      time [t] *)
+  val workload : int -> string list -> float * float * float
 end
 
 (** Output signature f the functor *)
