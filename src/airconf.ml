@@ -24,34 +24,6 @@ let l =
 
 let _ctx = Partitions.make_context l
 
-(* Memory of production rule. The memory is in place. Partitions given as key
- * are automatically normalised (control sectors of the partition are sorted)
- * to ensure that the same partition isn't entered twice. *)
-module PartitionMemory = struct
-  (* Those types are exported since working with partition is a secret for
-   * no one ... *)
-  type key = partition
-  type element = partition list
-  (* Type of the memory *)
-  type t = (key, element) Hashtbl.t
-
-  (* TODO find a valid formula for initial length... *)
-  let (table : t) = Hashtbl.create (List.length l * 2)
-
-  let normalise_partition p =
-    List.sort (fun p1 p2 -> compare (List.hd @@ snd p1) (List.hd @@ snd p2)) p
-
-  (* [add p q] adds partition list [q] with key [p] to the hash table. The key
-     is sorted before being added into the table *)
-  let add part reachable_partitions =
-    let (spart : partition) = normalise_partition part in
-    Hashtbl.add table spart reachable_partitions
-
-  let find part = Hashtbl.find table (normalise_partition part)
-
-  let mem part = Hashtbl.mem table (normalise_partition part)
-end
-
 module type WLS = sig
   val tmax : int
   val workload : int -> string list -> float * float * float
@@ -84,45 +56,40 @@ module Make (Workload : WLS) = struct
     | Normal
     | High
 
-  let e_wl a b c =
-    if a > b && a > c then High else if b > a && b > c then Normal else Low
-
-  module type StatusMemory = sig
-    type key = t
-    type element = t list
-
-    val table : (key, element) Hashtbl.t
+  module type Memoize = sig
+    type key
+    type element
     val add : key -> element -> unit
     val find : key -> element
     val mem : key -> bool
   end
 
-  module StatMem : StatusMemory = struct
-    type key = t
-    type element = t list
-    type t = (key, element) Hashtbl.t
+  module PartitionTools = struct
+    type d = partition
+    let length = 25
+    let normalise =
+      List.sort (fun p1 p2 -> compare (List.hd @@ snd p1) (List.hd @@ snd p2))
+  end
 
-    (* TODO find valid formula to set inital length *)
-    let (table : t) = Hashtbl.create 1000
-
-    let normalise_conf c =
+  module StatusTools = struct
+    type d = t
+    let length = 500
+    let normalise c =
       { c with
         partition = List.sort (fun p1 p2 ->
             compare (List.hd @@ snd p1) (List.hd @@ snd p2)) c.partition }
-
-    let find conf = Hashtbl.find table (normalise_conf conf)
-
-    let mem conf = Hashtbl.mem table (normalise_conf conf)
-
-    let add conf children_conf =
-      Hashtbl.add table (normalise_conf conf) children_conf
   end
+
+  module PartMem = Memoize.Make(PartitionTools)
+  module StatMem = Memoize.Make(StatusTools)
+
+  let e_wl a b c =
+    if a > b && a > c then High else if b > a && b > c then Normal else Low
 
   let print s = Printf.printf "time/length/trc/sc: " ;
     Printf.printf "%d/%d/%f/%f" s.time (List.length s.partition)
       s.transition_cost s.partition_cost ;
     print_newline ()
-
 
   let partition_cost time part =
     let (h, n, l) = List.fold_left (fun accu sec ->
@@ -147,9 +114,9 @@ module Make (Workload : WLS) = struct
   (* [prod_parts p] generates all reachable partitions from partition [p],
      uses memoization *)
   let prod_parts part =
-    if PartitionMemory.mem part then PartitionMemory.find part else
+    if PartMem.mem part then PartMem.find part else
       let new_parts = prod_parts_nomem part in
-      PartitionMemory.add part new_parts ;
+      PartMem.add part new_parts ;
       new_parts
 
   (* [produce c] produces all children states of config *)
