@@ -16,12 +16,12 @@ let speclist = [
 let () =
   Arg.parse speclist (fun x -> raise (Arg.Bad ("bad argument: " ^ x))) usage ;
   let sc = Scenario.load !scpath in
-  let module Wl = struct
+  let module Env = struct
     let tmax = !tmax
     let workload = Scenario.workload sc
   end
   in
-  let module Support = Airconf.Make(Wl) in
+  let module Support = Airconf.Make(Env) in
   let s15 = Util.Sset.add "1" (Util.Sset.add "5" Util.Sset.empty) in
   let s32 = Util.Sset.add "3" (Util.Sset.add "2" Util.Sset.empty) in
   let s4 = Util.Sset.add "4" Util.Sset.empty in

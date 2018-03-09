@@ -24,7 +24,7 @@ let l =
 
 let _ctx = Partitions.make_context l
 
-module type WLS = sig
+module type Environment = sig
   val tmax : int
   val workload : int -> string list -> float * float * float
 end
@@ -42,7 +42,7 @@ module type S = sig
   val get_time : t -> int
 end
 
-module Make (Workload : WLS) = struct
+module Make (Env : Environment) = struct
 
   type t = {
     time : int; (* Used to determine whether the node is terminal *)
@@ -94,7 +94,7 @@ module Make (Workload : WLS) = struct
   let partition_cost time part =
     let (h, n, l) = List.fold_left (fun accu sec ->
      let (a, b, c) = accu in
-     let (ph, pn, pl) = Workload.workload time (Util.Sset.elements (fst sec)) in
+     let (ph, pn, pl) = Env.workload time (Util.Sset.elements (fst sec)) in
      let status = e_wl ph pn pl in
      let card = Util.Sset.cardinal (fst sec) in
      match status with
@@ -145,7 +145,7 @@ module Make (Workload : WLS) = struct
   let reward conf = 1. /. (
       1. +. (conf.partition_cost +. _theta *. conf.transition_cost) )
 
-  let terminal conf = conf.time > Workload.tmax
+  let terminal conf = conf.time > Env.tmax
 
   let make_root p0 =
     let partition_cost = partition_cost 0 p0 in

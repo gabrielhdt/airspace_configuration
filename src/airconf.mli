@@ -2,7 +2,7 @@
     a traffic forecasting module *)
 
 (** Type of the traffic forecasting module *)
-module type WLS = sig
+module type Environment = sig
 
 (** Horizon of the forecast, will determine the depth of the tree *)
   val tmax : int
@@ -39,4 +39,4 @@ module type S = sig
   val get_time : t -> int
 end
 
-module Make : functor (Workload : WLS) -> S
+module Make : functor (Env : Environment) -> S
