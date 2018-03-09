@@ -92,7 +92,7 @@ module Make (Env : Environment) = struct
     print_newline ()
 
   let partition_cost time part =
-    let (h, n, l) = List.fold_left (fun accu sec ->
+    let (high, normal, low) = List.fold_left (fun accu sec ->
      let (a, b, c) = accu in
      let (ph, pn, pl) = Env.workload time (Util.Sset.elements (fst sec)) in
      let status = e_wl ph pn pl in
@@ -102,7 +102,7 @@ module Make (Env : Environment) = struct
      | Normal -> (a, b +. pn *. (float card) ** (-2.), c)
      | Low -> (a, b, c +. pl *. (float card) ** (-2.))
       ) (0., 0., 0.) part in
-    _alpha *. h +. _beta *. n +. _gamma *. l
+    _alpha *. high +. _beta *. normal +. _gamma *. low
     +. _lambda *. (float (List.length part))
 
   let trans_cost p_father p_child =
