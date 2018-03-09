@@ -135,7 +135,8 @@ module Make (Workload : WLS) = struct
      | Normal -> (a, b +. pn *. (float card) ** (-2.), c)
      | Low -> (a, b, c +. pl *. (float card) ** (-2.))
       ) (0., 0., 0.) part in
-    _alpha *. h +. _beta *. n +. _gamma *. l +. _lambda *. (float (List.length part))
+    _alpha *. h +. _beta *. n +. _gamma *. l
+    +. _lambda *. (float (List.length part))
 
   let trans_cost p_father p_child =
     if p_father = p_child then 0. else 1.
