@@ -35,9 +35,8 @@ let () =
   Arg.parse speclist (fun x -> raise @@ Arg.Bad ("bad arg " ^ x)) usage ;
   let sc = Scenario.load !scpath in
   let module Wl = struct
-    let balance = !balance
     let tmax = !tmax
-    let f = Scenario.f sc
+    let workload = Scenario.workload sc
   end in
   let module AirSupp = Airconf.Make(Wl) in
   (* Inital state *)

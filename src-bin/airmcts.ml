@@ -4,7 +4,6 @@ let usage = "Usage: " ^ Sys.argv.(0) ^ " " ^
 let scpath = ref ""
 let nsim = ref 8
 let tmax = ref 5
-let balance = ref 0.5
 
 let speclist = [
   ("-scenario", Arg.Set_string scpath,
@@ -12,17 +11,14 @@ let speclist = [
   ("-nsim", Arg.Set_int nsim,
    "Number of simulations carried out for each selection") ;
   ("-tmax", Arg.Set_int tmax,
-   "Depth of the tree") ;
-  ("-balance", Arg.Set_float balance,
-   "Balance between the configuration cost and the transition cost")
+   "Depth of the tree")
 ]
 let () =
   Arg.parse speclist (fun x -> raise (Arg.Bad ("bad argument: " ^ x))) usage ;
   let sc = Scenario.load !scpath in
   let module Wl = struct
-    let balance = !balance
     let tmax = !tmax
-    let f = Scenario.f sc
+    let workload = Scenario.workload sc
   end
   in
   let module Support = Airconf.Make(Wl) in

@@ -4,9 +4,6 @@
 (** Type of the traffic forecasting module *)
 module type WLS = sig
 
-  (** Balance between the configuration cost and the transition cost *)
-  val balance : float
-
 (** Horizon of the forecast, will determine the depth of the tree *)
   val tmax : int
 

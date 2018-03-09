@@ -9,4 +9,4 @@ val load : string -> t
 
 (** [f s t u] @returns a value used to compute the workload of sector [u] at
     time [t] for scenario [s] *)
-val f : t -> int -> string -> int
+val workload : t -> int -> string list -> float * float * float

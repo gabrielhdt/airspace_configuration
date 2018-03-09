@@ -1,6 +1,12 @@
 type partition = (Util.Sset.t * Util.Smap.key list) list
 (* max nb of aircrft in a controlled sector *)
-let _threshold = 10.
+
+let _alpha = 1.
+let _beta = 1.
+let _gamma = 1.
+let _lambda = 1.
+let _theta = 1.
+
 
 let l =
     [ ("s1",["1"]);
@@ -18,27 +24,15 @@ let l =
 
 let _ctx = Partitions.make_context l
 
-(* Signature of the memory module used to fasten up the production *)
-module type PartitionMemory = sig
+(* Memory of production rule. The memory is in place. Partitions given as key
+ * are automatically normalised (control sectors of the partition are sorted)
+ * to ensure that the same partition isn't entered twice. *)
+module PartitionMemory = struct
   (* Those types are exported since working with partition is a secret for
    * no one ... *)
   type key = partition
   type element = partition list
-
   (* Type of the memory *)
-  type t
-
-  val add : key -> element -> unit
-  val find : key -> element
-  val mem : key -> bool
-end
-
-(* Memory of production rule. The memory is in place. Partitions given as key
- * are automatically normalised (control sectors of the partition are sorted)
- * to ensure that the same partition isn't entered twice. *)
-module PartMem : PartitionMemory = struct
-  type key = partition
-  type element = partition list
   type t = (key, element) Hashtbl.t
 
   (* TODO find a valid formula for initial length... *)
@@ -59,9 +53,8 @@ module PartMem : PartitionMemory = struct
 end
 
 module type WLS = sig
-  val balance : float
   val tmax : int
-  val f : int -> string -> int
+  val workload : int -> string list -> float * float * float
 end
 
 module type S = sig
@@ -85,6 +78,14 @@ module Make (Workload : WLS) = struct
     transition_cost : float;
     partition_cost : float
   }
+
+  type estim_load =
+    | Low
+    | Normal
+    | High
+
+  let e_wl a b c =
+    if a > b && a > c then High else if b > a && b > c then Normal else Low
 
   module type StatusMemory = sig
     type key = t
@@ -123,17 +124,18 @@ module Make (Workload : WLS) = struct
     print_newline ()
 
 
-  let partition_cost time partition f =
-    let stat_cost =
-      List.fold_left ( fun accu elt ->
-          let subset = Util.Sset.elements (fst elt) in
-          let current_cost = (* Accumulation of the cost of each control sector *)
-            List.fold_left (fun acc m -> acc +. float ( f time m) ) 0. subset in
-          accu +. ( if current_cost -. _threshold < 0. then 0.
-                   else current_cost -. _threshold )
-        )
-        0. partition
-    in stat_cost +. 0.1 *. ( 1. +. stat_cost ) *. float (List.length partition)
+  let partition_cost time part =
+    let (h, n, l) = List.fold_left (fun accu sec ->
+     let (a, b, c) = accu in
+     let (ph, pn, pl) = Workload.workload time (Util.Sset.elements (fst sec)) in
+     let status = e_wl ph pn pl in
+     let card = Util.Sset.cardinal (fst sec) in
+     match status with
+     | High -> (a +. ph *. (float card) ** 2., b, c)
+     | Normal -> (a, b +. pn *. (float card) ** (-2.), c)
+     | Low -> (a, b, c +. pl *. (float card) ** (-2.))
+      ) (0., 0., 0.) part in
+    _alpha *. h +. _beta *. n +. _gamma *. l +. _lambda *. (float (List.length part))
 
   let trans_cost p_father p_child =
     if p_father = p_child then 0. else 1.
@@ -145,16 +147,16 @@ module Make (Workload : WLS) = struct
   (* [prod_parts p] generates all reachable partitions from partition [p],
      uses memoization *)
   let prod_parts part =
-    if PartMem.mem part then PartMem.find part else
+    if PartitionMemory.mem part then PartitionMemory.find part else
       let new_parts = prod_parts_nomem part in
-      PartMem.add part new_parts ;
+      PartitionMemory.add part new_parts ;
       new_parts
 
   (* [produce c] produces all children states of config *)
   let produce_nomem config =
     let reachable_partitions = prod_parts config.partition in
     List.map (fun p ->
-        let cc = partition_cost ( config.time + 1 ) p Workload.f in
+        let cc = partition_cost ( config.time + 1 ) p in
         let tc = trans_cost config.partition p in
         { time = (config.time + 1);
          partition = p;
@@ -173,15 +175,12 @@ module Make (Workload : WLS) = struct
 
 
   let reward conf = 1. /. (
-      1. +.
-      (Workload.balance *. conf.partition_cost +.
-       (1. -. Workload.balance) *. conf.transition_cost)
-    )
+      1. +. (conf.partition_cost +. _theta *. conf.transition_cost) )
 
   let terminal conf = conf.time > Workload.tmax
 
   let make_root p0 =
-    let partition_cost = partition_cost 0 p0 Workload.f in
+    let partition_cost = partition_cost 0 p0 in
     {time = 0; partition = p0; transition_cost =0.;
      partition_cost = partition_cost }
 
