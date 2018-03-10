@@ -1,7 +1,5 @@
 let () =
-  Arg.parse Options.speclist
-    (fun x -> raise @@ Arg.Bad ("bad argument: " ^ x))
-    (Options.usage Sys.argv.(0)) ;
+  Arg.parse Options.speclist Options.anon_fun (Options.usage Sys.argv.(0)) ;
   let sc = Scenario.load !Options.scpath in
   let module Env = struct
     let tmax = !Options.tmax

@@ -1,6 +1,8 @@
 let usage progname = "Usage: " ^ progname ^ " " ^
             "-scenario string [-nsim int] [-tmax int]"
 
+let anon_fun x = raise @@ Arg.Bad ("bad arg " ^ x)
+
 let scpath = ref ""
 let tmax = ref 7
 let nsim = ref 10
