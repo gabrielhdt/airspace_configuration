@@ -1,4 +1,4 @@
-(** Ad-hoc functorial memory to speed up computing *)
+(** Ad-hoc functorial memory to speed up computing in {!module:Airconf} *)
 
 (** Output type of the functor *)
 module type S = sig

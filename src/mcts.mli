@@ -28,7 +28,7 @@ module type S = sig
   (** Tree type to explore. Genericity is relevant for functor only *)
   type tree
 
-  (** [best_path_max t n] @returns a path of nodes from the root of [t] to a
+  (** [best_path_max t n] returns a path of nodes from the root of [t] to a
    *       terminal leaf. The selection is based on the reward in each node. *)
   val best_path_max : tree -> int -> tree list
 

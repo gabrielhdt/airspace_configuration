@@ -3,10 +3,10 @@
 (** [usage s] outputs the usage string with [s] the program name *)
 val usage : string -> string
 
-(** List used by {function:Arg.parse} *)
+(** List used for command line parsing *)
 val speclist : (string * Arg.spec * string) list
 
-(** Handles anonymous arguments (see {!module:Arg}) *)
+(** Handles anonymous arguments (arguments without keywords) *)
 val anon_fun : string -> 'a
 
 val scpath : string ref
