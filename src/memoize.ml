@@ -1,20 +1,21 @@
 module type S = sig
   type key
-  type element = key list
+  type element
   val add : key -> element -> unit
   val find : key -> element
   val mem : key -> bool
 end
 
 module type DataTools = sig
+  type s
   type d
   val length : int
-  val normalise : d -> d
+  val normalise : s -> s
 end
 
 module Make (DT : DataTools) = struct
-  type key = DT.d
-  type element = DT.d list
+  type key = DT.s
+  type element = DT.d
   type t = (key, element) Hashtbl.t
 
   let (table : t) = Hashtbl.create DT.length

@@ -65,14 +65,16 @@ module Make (Env : Environment) = struct
   end
 
   module PartitionTools = struct
-    type d = partition
+    type s = partition
+    type d = s list
     let length = 25
     let normalise =
       List.sort (fun p1 p2 -> compare (List.hd @@ snd p1) (List.hd @@ snd p2))
   end
 
   module StatusTools = struct
-    type d = t
+    type s = t
+    type d = s list
     let length = 500
     let normalise c =
       { c with

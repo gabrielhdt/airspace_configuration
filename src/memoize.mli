@@ -7,7 +7,7 @@ module type S = sig
   type key
 
   (** Type of the elements *)
-  type element = key list
+  type element
 
   (** [add k e] adds elemet [e] to memory with key [k] *)
   val add : key -> element -> unit
@@ -22,15 +22,19 @@ end
 (** Argument of the functor, tools to manipulate a data type *)
 module type DataTools = sig
 
+  (** Type of sources of data *)
+  type s
+
   (** Type of the data *)
   type d
 
   (** Supposed length of the table *)
   val length : int
 
-  (** [normalise d] returns a modified form of data [d] to avoid having
-      several forms carrying the same data *)
-  val normalise : d -> d
+  (** [normalise s] returns a modified form of source [s] to avoid having
+      several sources carrying the same data *)
+  val normalise : s -> s
 end
 
-module Make : functor (DT : DataTools) -> S with type key = DT.d
+module Make : functor (DT : DataTools) -> S
+  with type key = DT.s with type element = DT.d
