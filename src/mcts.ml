@@ -1,27 +1,27 @@
 module type S = sig
   type state
   type tree
+  val root : tree
   val best_path_max : tree -> int -> tree list
   val best_path_secure : tree -> int -> tree list
   val best_path_robust : tree -> int -> tree list
-  val make_node : state -> tree
 
   (********************************* DEBUG ***********************************)
   val get_state : tree -> state
 end
 
-module type SuppS = sig
+module type Support = sig
   type t
+  val init : t
   val produce : t -> t list
   val reward : t -> float
   val terminal : t -> bool
   val print : t -> unit
-  val make_root : (Util.Sset.t * Util.Smap.key list) list -> t
 end
 
-module Make (Support : SuppS) = struct
+module Make (Supp : Support) = struct
 
-  type state = Support.t
+  type state = Supp.t
 
   (* UCT mcts algo *)
   let _beta = 1.
@@ -44,14 +44,7 @@ module Make (Support : SuppS) = struct
     | Term
     | All_visited
 
-  let make_node state =
-    {
-      state = state ;
-      q = 0. ;
-      n = 0 ;
-      ss = 0. ; (** Sum of squares of rewards, single player requirement *)
-      children = []
-    }
+  let root = { state = Supp.init ; q = 0. ; n = 0 ; ss = 0. ; children = [] }
 
   module type WinPolicy =
     sig
@@ -130,7 +123,7 @@ module Make (Support : SuppS) = struct
    * iff node is terminal for the support and all its brothers are terminal and
    * visited *)
   let stop path =
-    let last = List.hd path in if not (Support.terminal last.state) then false
+    let last = List.hd path in if not (Supp.terminal last.state) then false
     else let father = List.hd (List.tl path) in
       let all_visited = List.fold_left (fun acc elt -> acc && elt.n > 0) true
           father.children
@@ -140,7 +133,7 @@ module Make (Support : SuppS) = struct
 
   (* [produce t] creates the list of reachable nodes from [t] *)
   let produce node =
-    let next_states = Support.produce node.state in
+    let next_states = Supp.produce node.state in
     List.map (fun s -> { state = s ; q = 0. ; n = 0 ; ss = 0. ; children = [] })
       next_states
 
@@ -159,7 +152,7 @@ module Make (Support : SuppS) = struct
       | [] -> All_visited
       | hd :: tl -> if hd.n = 0 then True else loop tl
     in
-    if Support.terminal node.state then Term else loop node.children
+    if Supp.terminal node.state then Term else loop node.children
 
   (** [expand t] returns node which must be visited among children of [t] *)
   let expand node =
@@ -191,8 +184,8 @@ module Make (Support : SuppS) = struct
       is found, and returns an evaluation of the path *)
   let simulate_once node =
     let rec loop next_node accu =
-      let reward = Support.reward next_node.state in
-      if Support.terminal next_node.state then reward +. accu
+      let reward = Supp.reward next_node.state in
+      if Supp.terminal next_node.state then reward +. accu
       else
         begin
           let children = produce next_node in

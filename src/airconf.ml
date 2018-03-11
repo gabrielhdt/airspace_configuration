@@ -1,5 +1,4 @@
 type partition = (Util.Sset.t * Util.Smap.key list) list
-(* max nb of aircrft in a controlled sector *)
 
 let l =
     [ ("s1",["1"]);
@@ -24,16 +23,17 @@ module type Environment = sig
   val gamma : float
   val lambda : float
   val theta : float
+  val init : partition
   val workload : int -> string list -> float * float * float
 end
 
 module type S = sig
   type t
+  val init : t
   val print : t -> unit
   val reward : t -> float
   val produce : t -> t list
   val terminal : t -> bool
-  val make_root : partition -> t
 
   (****************************** DEBUG **************************************)
   val get_partitions : t -> partition
@@ -147,10 +147,10 @@ module Make (Env : Environment) = struct
 
   let terminal conf = conf.time > Env.tmax
 
-  let make_root p0 =
-    let partition_cost = partition_cost 0 p0 in
-    {time = 0; partition = p0; transition_cost =0.;
-     partition_cost = partition_cost }
+  let init =
+    let partcost = partition_cost 0 Env.init in
+    { time = 0 ; partition = Env.init ;
+      partition_cost = partcost ; transition_cost = 0. }
 
   (*********************** DEBUG *********************************************)
   let get_partitions conf = conf.partition

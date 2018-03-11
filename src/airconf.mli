@@ -1,6 +1,9 @@
 (** Functorial interface to manipulate airspace configuration. Takes as input
     a traffic forecasting module *)
 
+(** A type alias, for convenience *)
+type partition = (Util.Sset.t * Util.Smap.key list) list
+
 (** Type of the traffic forecasting module *)
 module type Environment = sig
 
@@ -13,6 +16,9 @@ module type Environment = sig
   val lambda : float
   val theta : float
 
+  (** Initial partition of the airspace *)
+  val init : partition
+
   (** [workload t m] returns a forecasted load for control sector [m] at
       time [t] *)
   val workload : int -> string list -> float * float * float
@@ -22,6 +28,9 @@ end
 module type S = sig
   (** Specification of a configuration *)
   type t
+
+  (** Initial state *)
+  val init : t
 
   (** Prints specs of a partitioning *)
   val print : t -> unit
@@ -36,9 +45,6 @@ module type S = sig
   (** [terminal t] asserts whether a configuration [t] is the last to be
       considered *)
   val terminal : t -> bool
-
-  (** [make_root c] creates a new configuration for a given partition [c] *)
-  val make_root : (Util.Sset.t * Util.Smap.key list) list -> t
 
   (****************************** DEBUG **************************************)
   val get_partitions : t -> (Util.Sset.t * Util.Smap.key list) list
