@@ -3,6 +3,11 @@ let () =
   let sc = Scenario.load !Options.scpath in
   let module Env = struct
     let tmax = !Options.tmax
+    let alpha = !Options.alpha
+    let beta = !Options.beta
+    let gamma = !Options.gamma
+    let lambda = !Options.lambda
+    let theta = !Options.theta
     let workload = Scenario.workload sc
   end
   in

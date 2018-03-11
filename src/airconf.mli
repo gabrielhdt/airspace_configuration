@@ -4,8 +4,14 @@
 (** Type of the traffic forecasting module *)
 module type Environment = sig
 
-(** Horizon of the forecast, will determine the depth of the tree *)
+  (** Horizon of the forecast, will determine the depth of the tree *)
   val tmax : int
+
+  val alpha : float
+  val beta : float
+  val gamma : float
+  val lambda : float
+  val theta : float
 
   (** [workload t m] returns a forecasted load for control sector [m] at
       time [t] *)

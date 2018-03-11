@@ -12,3 +12,8 @@ val anon_fun : string -> 'a
 val scpath : string ref
 val tmax : int ref
 val nsim : int ref
+val alpha : float ref
+val beta : float ref
+val gamma : float ref
+val lambda : float ref
+val theta : float ref

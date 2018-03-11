@@ -1,32 +1,13 @@
-
-(*
-module type AstarAirconf = sig
-  type state
-  type user_param
-
-  val is_goal: user_param -> state -> bool
-  val next: user_param -> state -> state list
-  val k: user_param -> state -> state -> float
-  val h: user_param -> state -> float
-
-  val do_at_insertion:
-      user_param -> state -> state -> unit
-  val do_at_extraction:
-      user_param -> (prio, state) Pqueue.t -> state Memory.t -> state -> unit
-end
-   *)
-
-let usage = "Usage: " ^ Sys.argv.(0) ^ " " ^
-            "-scenario string [-tmax int]"
-
-let scpath = ref ""
-let tmax = ref 5
-
 let () =
   Arg.parse Options.speclist Options.anon_fun (Options.usage Sys.argv.(0)) ;
   let sc = Scenario.load !Options.scpath in
   let module Env = struct
-    let tmax = !tmax
+    let tmax = !Options.tmax
+    let alpha = !Options.alpha
+    let beta = !Options.beta
+    let gamma = !Options.gamma
+    let lambda = !Options.lambda
+    let theta = !Options.theta
     let workload = Scenario.workload sc
   end in
   let module AirSupp = Airconf.Make(Env) in

@@ -1,13 +1,6 @@
 type partition = (Util.Sset.t * Util.Smap.key list) list
 (* max nb of aircrft in a controlled sector *)
 
-let _alpha = 1.
-let _beta = 1.
-let _gamma = 1.
-let _lambda = 1.
-let _theta = 1.
-
-
 let l =
     [ ("s1",["1"]);
       ("s2",["2"]);
@@ -26,6 +19,11 @@ let _ctx = Partitions.make_context l
 
 module type Environment = sig
   val tmax : int
+  val alpha : float
+  val beta : float
+  val gamma : float
+  val lambda : float
+  val theta : float
   val workload : int -> string list -> float * float * float
 end
 
@@ -104,8 +102,8 @@ module Make (Env : Environment) = struct
      | Normal -> (a, b +. pn *. (float card) ** (-2.), c)
      | Low -> (a, b, c +. pl *. (float card) ** (-2.))
       ) (0., 0., 0.) part in
-    _alpha *. high +. _beta *. normal +. _gamma *. low
-    +. _lambda *. (float (List.length part))
+    Env.alpha *. high +. Env.beta *. normal +. Env.gamma *. low
+    +. Env.lambda *. (float (List.length part))
 
   let trans_cost p_father p_child =
     if p_father = p_child then 0. else 1.
@@ -145,7 +143,7 @@ module Make (Env : Environment) = struct
 
 
   let reward conf = 1. /. (
-      1. +. (conf.partition_cost +. _theta *. conf.transition_cost) )
+      1. +. (conf.partition_cost +. Env.theta *. conf.transition_cost) )
 
   let terminal conf = conf.time > Env.tmax
 
