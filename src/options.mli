@@ -17,3 +17,4 @@ val beta : float ref
 val gamma : float ref
 val lambda : float ref
 val theta : float ref
+val verbose : bool ref

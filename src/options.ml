@@ -7,11 +7,12 @@ let anon_fun x = raise @@ Arg.Bad ("bad arg " ^ x)
 let scpath = ref ""
 let tmax = ref 7
 let nsim = ref 10
-let alpha = ref 0.2
-let beta = ref 0.2
-let gamma = ref 0.2
-let lambda = ref 0.2
-let theta = ref 0.2
+let alpha = ref 1000.
+let beta = ref 10.
+let gamma = ref 100.
+let lambda = ref 1100.
+let theta = ref 1.
+let verbose = ref false
 
 let speclist = [
   ("-scenario", Arg.Set_string scpath,
@@ -30,4 +31,6 @@ let speclist = [
    "Sets how much the number of open positions is taken into account") ;
   ("-theta", Arg.Set_float theta,
    "Sets how much the cost of transitions is taken into account") ;
+  ("-verbose", Arg.Set verbose,
+   "Verbose mode: print final path") ;
 ]
