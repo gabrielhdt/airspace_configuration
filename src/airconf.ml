@@ -33,6 +33,7 @@ module type S = sig
   val print : t -> unit
   val reward : t -> float
   val produce : t -> t list
+  val produce_nomem : t -> t list
   val terminal : t -> bool
 
   (****************************** DEBUG **************************************)
@@ -103,7 +104,7 @@ module Make (Env : Environment) = struct
      | Low -> (a, b, c +. pl *. (float card) ** (-2.))
       ) (0., 0., 0.) part in
     Env.alpha *. high +. Env.beta *. normal +. Env.gamma *. low
-    +. Env.lambda *. (float (List.length part))
+    +. Env.lambda /. (float (List.length part))
 
   let trans_cost p_father p_child =
     if p_father = p_child then 0. else 1.
@@ -143,7 +144,7 @@ module Make (Env : Environment) = struct
 
 
   let reward conf = 1. /. (
-      1. +. (conf.partition_cost +. Env.theta *. conf.transition_cost) )
+      (conf.partition_cost +. Env.theta *. conf.transition_cost) )
 
   let terminal conf = conf.time > Env.tmax
 
