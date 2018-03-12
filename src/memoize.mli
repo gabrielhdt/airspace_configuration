@@ -17,6 +17,9 @@ module type S = sig
 
   (** [mem k] asserts whether an element in memory has the key [k] *)
   val mem : key -> bool
+
+  (** [print ()] displays various data about the memory *)
+  val print : unit -> unit
 end
 
 (** Argument of the functor, tools to manipulate a data type *)

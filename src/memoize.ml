@@ -4,6 +4,7 @@ module type S = sig
   val add : key -> element -> unit
   val find : key -> element
   val mem : key -> bool
+  val print : unit -> unit
 end
 
 module type DataTools = sig
@@ -26,4 +27,8 @@ module Make (DT : DataTools) = struct
 
   let mem k = Hashtbl.mem table (DT.normalise k)
 
+  let print () =
+    let ts = Hashtbl.stats table in
+    Printf.printf "length/number of buckets/max bucket length: " ;
+    Printf.printf "%d/%d/%d" ts.num_bindings ts.num_buckets ts.max_bucket_length
 end
