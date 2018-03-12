@@ -18,6 +18,8 @@ module type Support = sig
   val terminal : t -> bool
 
   val print : t -> unit
+
+  val get_time : t -> int
 end
 
 (** Output signature of the functor *)
