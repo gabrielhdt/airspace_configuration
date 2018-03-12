@@ -39,8 +39,10 @@ module type S = sig
       miscellaneous parameters such as number of flights *)
   val reward : t -> float
 
-  (** [produce t] returns all feasible configurations from configuration [t] *)
+(** [produce t] returns all feasible configurations from configuration [t]
+    (without memoization for the nomem version)*)
   val produce : t -> t list
+  val produce_nomem : t -> t list
 
   (** [terminal t] asserts whether a configuration [t] is the last to be
       considered *)
