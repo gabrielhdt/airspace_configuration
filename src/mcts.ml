@@ -17,6 +17,7 @@ module type Support = sig
   val reward : t -> float
   val terminal : t -> bool
   val print : t -> unit
+  val get_time : t -> int
 end
 
 module Make (Supp : Support) = struct
@@ -106,7 +107,7 @@ module Make (Supp : Support) = struct
     (* TODO: add single player mcts 3rd term *)
     let ucb beta father child =
       let ft =
-      child.q +.
+      child.q /. (float child.n +. 1.) +.
       beta *. sqrt (2. *. log (float father.n) /. ((float child.n) +. 1.)) in
       let sn = (child.ss +. _spmctsc) /. (float child.n +. 1.) in
       (* if sn >= 0. then ft +. sqrt sn *)
@@ -209,7 +210,7 @@ module Make (Supp : Support) = struct
   let rec backpropagate ancestors reward n =
     List.iter (fun e -> e.q <- e.q +. reward ;
                 e.n <- e.n + n ;
-                e.ss <- e.ss +. (reward -. e.q /. (float e.n) +. 1.) ** 2.
+                e.ss <- e.ss +. (reward -. e.q /. ((float e.n) +. 1.)) ** 2.
               ) ancestors
 
   (** [mcts r] updates tree of root [t] with monte carlo *)
