@@ -28,7 +28,7 @@ module Make (Supp : Support) = struct
 
   (* Single player constant, ensures that rarely explored nodes are still
    * considered promising *)
-  let _spmctsc = 1000.
+  let _spmctsc = 1.
 
   type tree = {
     state : state ;
@@ -103,19 +103,16 @@ module Make (Supp : Support) = struct
 
   (* Selection policy *)
   module SelPol = struct
-    (* TODO: add single player mcts 3rd term *)
-    let ucb beta father child =
-      let ft =
-      child.q +.
-      beta *. sqrt (2. *. log (float father.n) /. ((float child.n) +. 1.)) in
-      let sn = (child.ss +. _spmctsc) /. (float child.n +. 1.) in
-      (* if sn >= 0. then ft +. sqrt sn *)
-      if sn >= 0. then ft
-      else failwith "sqrt neg numb"
+    let ucb father child =
+      let log_over_armcount = (log (float father.n)) /. float child.n
+      and child_mean_rew = child.q /. (float child.n) in
+      let sdsq = child.ss /. (float child.n) -. child_mean_rew ** 2. in
+      let tuning = min 0.25 (sdsq +. sqrt (2. *. log_over_armcount))
+      in child_mean_rew +. sqrt (_spmctsc *. log_over_armcount *. tuning)
 
     let best_child father =
       Auxfct.argmax (fun ch1 ch2 ->
-          if ucb _beta father ch1 >= ucb _beta father ch2 then ch1 else ch2
+          if ucb father ch1 >= ucb father ch2 then ch1 else ch2
         ) father.children
   end
 
@@ -209,7 +206,7 @@ module Make (Supp : Support) = struct
   let rec backpropagate ancestors reward n =
     List.iter (fun e -> e.q <- e.q +. reward ;
                 e.n <- e.n + n ;
-                e.ss <- e.ss +. (reward -. e.q /. (float e.n) +. 1.) ** 2.
+                e.ss <- e.ss +. reward ** 2.
               ) ancestors
 
   (** [mcts r] updates tree of root [t] with monte carlo *)
