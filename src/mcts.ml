@@ -104,17 +104,17 @@ module Make (Supp : Support) = struct
   (* Selection policy *)
   module SelPol = struct
 
-    (*
     let ucb father child =
       let log_over_armcount = (log (float (father.n + 1))) /. float (child.n + 1)
       and child_mean_rew = child.q /. float (child.n + 1) in
       let sdsq = child.ss /. (float (child.n + 1)) -. child_mean_rew ** 2. in
       let tuning = min 0.25 (sdsq +. sqrt (2. *. log_over_armcount))
       in child_mean_rew +. sqrt (_spmctsc *. log_over_armcount *. tuning)
-       *)
+    (*
     let ucb father child =
       child.q /. (float child.n +. 1.) +.
       sqrt (2. *. log ((float father.n)) /. (float child.n +. 1.))
+       *)
 
     let best_child father =
       Auxfct.argmax (fun ch1 ch2 ->
@@ -207,11 +207,10 @@ module Make (Supp : Support) = struct
     in
     loop 0 []
 
-  (** [backpropagate a r n] updates ancestors [a] with the total reward of
-      the [n] simulations [r] *)
-  let rec backpropagate ancestors reward n =
+  (** [backpropagate a r] updates ancestors [a] with the reward [r] *)
+  let rec backpropagate ancestors reward =
     List.iter (fun e -> e.q <- e.q +. reward ;
-                e.n <- e.n + n ;
+                e.n <- e.n + 1 ;
                 e.ss <- e.ss +. reward ** 2.
               ) ancestors
 
@@ -221,9 +220,12 @@ module Make (Supp : Support) = struct
     while not !flag do
       let path = treepolicy root in
       let wins = simulate (List.hd path) nsim in
+      List.iter (fun r -> backpropagate path r) wins ;
+      (*
       let reward = List.fold_left (fun accu e -> accu +. e) 0. wins in
       let n = List.length wins in (* should be nsim *)
       backpropagate path reward n ;
+         *)
       flag := stop path
     done ; Printf.printf "%d nodes deployed\n" !_nodecount
 
