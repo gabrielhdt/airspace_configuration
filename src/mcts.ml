@@ -150,7 +150,9 @@ module Make (Supp : Support) = struct
       them into the node *)
   let force_deploy node =
     match node.children with
-    | [] -> node.children <- produce node ; incr _nodecount; _branchfactor := !_branchfactor + (List.length node.children)
+    | [] -> node.children <- produce node ;
+        incr _nodecount ;
+        _branchfactor := !_branchfactor + (List.length node.children)
     | _ :: _ -> ()
 
   (* TODO The two functions below could be grouped in one which would expand the
@@ -176,7 +178,11 @@ module Make (Supp : Support) = struct
   let rec select node ancestors =
     force_deploy node ;
     match expandable node with
-    | True | Term -> node :: ancestors
+    | True -> (* Select randomly a node among those not visited *)
+        let leftalone = Auxfct.random_elt @@ List.filter (fun c -> c.n = 0)
+            node.children in
+        leftalone :: node :: ancestors
+    | Term -> node :: ancestors
     | All_visited ->
       match node.children with
       | (hd :: tl) -> let favourite = SelPol.best_child node in
@@ -189,9 +195,9 @@ module Make (Supp : Support) = struct
       let exnode = expand (List.hd path) in exnode :: path
     else path
 
-  (** [simulate_once t] parses the tree [t] randomly until a terminal state
+  (** [default_policy t] parses the tree [t] randomly until a terminal state
       is found, and returns an evaluation of the path *)
-  let simulate_once node =
+  let default_policy node =
     let rec loop next_node accu =
       let reward = Supp.reward next_node.state in
       if Supp.terminal next_node.state then reward +. accu
@@ -209,7 +215,7 @@ module Make (Supp : Support) = struct
   let simulate node nsim =
     let rec loop cnt acc =
       if cnt > nsim then acc
-      else loop (cnt + 1) (simulate_once node :: acc)
+      else loop (cnt + 1) (default_policy node :: acc)
     in
     loop 0 []
 
