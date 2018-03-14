@@ -30,13 +30,13 @@ module Make (Supp : Support) = struct
 
   (* Single player constant, ensures that rarely explored nodes are still
    * considered promising *)
-  let _spmctsc = 4.
+  let _spmctsc = 1.2
 
   type tree = {
     state : state ;
     mutable q : float ;
     mutable n : int ;
-    mutable ss : float ;
+    mutable m2 : float ; (* Used to compute standard deviation *)
     mutable children : tree list
   }
 
@@ -46,7 +46,7 @@ module Make (Supp : Support) = struct
     | Term
     | All_visited
 
-  let root = { state = Supp.init ; q = 0. ; n = 0 ; ss = 0. ; children = [] }
+  let root = { state = Supp.init ; q = 0. ; n = 0 ; m2 = 0. ; children = [] }
 
   (* Contains ways to select final best path *)
   module WinPol = struct
@@ -105,10 +105,15 @@ module Make (Supp : Support) = struct
   (* Selection policy *)
   module SelPol = struct
 
+    let newm2 m2 newval oldmean newmean =
+      let delta = newval -. oldmean
+      and delta2 = newval -. newmean in
+      m2 +. delta *. delta2
+
     let ucb father child =
       let log_over_armcount = (log (float (father.n + 1))) /. float (child.n + 1)
       and child_mean_rew = child.q /. float (child.n + 1) in
-      let sdsq = child.ss /. (float (child.n + 1)) -. child_mean_rew ** 2. in
+      let sdsq = child.m2 /. float child.n in
       let tuning = min 0.25 (sdsq +. sqrt (2. *. log_over_armcount))
       in child_mean_rew +. sqrt (_spmctsc *. log_over_armcount *. tuning)
     (*
@@ -138,7 +143,7 @@ module Make (Supp : Support) = struct
   (* [produce t] creates the list of reachable nodes from [t] *)
   let produce node =
     let next_states = Supp.produce node.state in
-    List.map (fun s -> { state = s ; q = 0. ; n = 0 ; ss = 0. ; children = [] })
+    List.map (fun s -> { state = s ; q = 0. ; n = 0 ; m2 = 0. ; children = [] })
       next_states
 
   (** [force_deploy t] tries to add children from a production rule and saves
@@ -210,10 +215,12 @@ module Make (Supp : Support) = struct
 
   (** [backpropagate a r] updates ancestors [a] with the reward [r] *)
   let rec backpropagate ancestors reward =
-    List.iter (fun e -> e.q <- e.q +. reward ;
-                e.n <- e.n + 1 ;
-                e.ss <- e.ss +. reward ** 2.
-              ) ancestors
+    List.iter (fun e ->
+        let oldmean = e.q /. (float (e.n + 1)) in
+        e.q <- e.q +. reward ;
+        e.n <- e.n + 1 ;
+        e.m2 <- SelPol.newm2 e.m2 reward oldmean (e.q /. (float (e.n + 1)))
+      ) ancestors
 
   (** [mcts r] updates tree of root [t] with monte carlo *)
   let mcts root nsim =
