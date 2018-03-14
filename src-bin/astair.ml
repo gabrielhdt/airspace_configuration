@@ -1,3 +1,7 @@
+let _count = ref 0
+
+let user () = incr _count
+
 let () =
   Arg.parse Options.speclist Options.anon_fun (Options.usage Sys.argv.(0)) ;
   let sc = Scenario.load !Options.scpath in
@@ -28,12 +32,21 @@ let () =
     let initial_state _ = AirSupp.init
     let is_goal _ st = AirSupp.terminal st
     let next _ = AirSupp.produce
-    let k _ st1 st2 = AirSupp.reward st2 +. 10. *. if st2 = st1 then 1. else 0.
+    let k _ st1 st2 = 1. /. (AirSupp.reward st2)
     let h _ st = AirSupp.reward st
-    let do_at_insertion _ _ _ = ()
+    let do_at_insertion _ _ _ = user ()
     let do_at_extraction _ _ _ _ = ()
   end in
   let module AstarForAir = A_star.Make(AstAir) in
-  let final_state = AstarForAir.search () in
+  let b_path = AstarForAir.search () in
+
+  let total_reward = List.fold_left (fun accu e ->
+      accu +. AirSupp.reward e) 0. b_path in
+  Printf.printf "reward best path : %f\n" total_reward;
+
+  Printf.printf "path length : %d\n%d\n" (List.length b_path) !_count;
+
+  if !Options.verbose then
   List.iter (fun x -> Partitions.print_partition @@ AirSupp.get_partitions x)
-    final_state
+    b_path
+  else ()

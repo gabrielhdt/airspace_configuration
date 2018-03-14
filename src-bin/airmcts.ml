@@ -21,8 +21,15 @@ let () =
   in
   let module Support = Airconf.Make(Env) in
   let module Airmcts = Mcts.Make(Support) in
-  let b_path = (Airmcts.best_path_secure Airmcts.root !Options.nsim) in
+  let b_path = (Airmcts.best_path_mean Airmcts.root !Options.nsim) in
 
+  let total_reward = List.fold_left (fun accu e ->
+      accu +. Support.reward (Airmcts.get_state e)) 0. b_path in
+  Printf.printf "reward best path : %f\n" total_reward;
+
+  Printf.printf "path length : %d\n" (List.length b_path);
+
+  if !Options.verbose then
   Partitions.print_partitions
     (List.map (fun s -> Support.get_partitions s)
        (List.map (fun tree -> Airmcts.get_state tree) b_path)
