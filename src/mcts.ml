@@ -1,4 +1,5 @@
 let _nodecount = ref 0
+let _branchfactor = ref 0
 
 module type S = sig
   type state
@@ -7,6 +8,7 @@ module type S = sig
   val best_path_max : tree -> int -> tree list
   val best_path_secure : tree -> int -> tree list
   val best_path_robust : tree -> int -> tree list
+  val best_path_mean : tree -> int -> tree list
 
   (********************************* DEBUG ***********************************)
   val get_state : tree -> state
@@ -46,16 +48,8 @@ module Make (Supp : Support) = struct
 
   let root = { state = Supp.init ; q = 0. ; n = 0 ; ss = 0. ; children = [] }
 
-  module type WinPolicy =
-    sig
-      val lcb : tree -> float
-      val max : tree list -> tree
-      val robust : tree list -> tree
-      val secure : tree list -> tree
-    end
-
   (* Contains ways to select final best path *)
-  module WinPol : WinPolicy = struct
+  module WinPol = struct
 
     (* arbitrary cste given by chaslot *)
     let _a = 4.
@@ -73,6 +67,9 @@ module Make (Supp : Support) = struct
     let cmp_robust n1 n2 =
       if n1.n > n2.n then n1 else if n1.n < n2.n then n2 else cmp_max n1 n2
 
+    let cmp_mean n1 n2 =
+      if n1.q /. float n1.n > n2.q /. float n2.n then n1 else n2
+
     let cmp_secure n1 n2 =
       if lcb n1 > lcb n2 then n1 else n2
 
@@ -89,6 +86,10 @@ module Make (Supp : Support) = struct
     (* Select the child which maximises a lower confidence bound *)
     let secure children =
       Auxfct.argmax cmp_secure children
+
+    let mean children =
+      Auxfct.argmax cmp_mean children
+
   end
 
   (************************ DEBUG UTIL *******************************)
@@ -144,7 +145,7 @@ module Make (Supp : Support) = struct
       them into the node *)
   let force_deploy node =
     match node.children with
-    | [] -> node.children <- produce node ; incr _nodecount
+    | [] -> node.children <- produce node ; incr _nodecount; _branchfactor := !_branchfactor + (List.length node.children)
     | _ :: _ -> ()
 
   (* TODO The two functions below could be grouped in one which would expand the
@@ -227,7 +228,8 @@ module Make (Supp : Support) = struct
       backpropagate path reward n ;
          *)
       flag := stop path
-    done ; Printf.printf "%d nodes deployed\n" !_nodecount
+    done ; Printf.printf "%d nodes deployed\nbf : %f\n"
+      !_nodecount (float !_branchfactor /. float !_nodecount)
 
   let best_path root criterion =
     let rec aux current_node accu =
@@ -250,4 +252,8 @@ module Make (Supp : Support) = struct
   let best_path_robust root nsim =
     mcts root nsim;
     best_path root WinPol.robust
+
+  let best_path_mean root nsim =
+    mcts root nsim;
+    best_path root WinPol.mean
 end

@@ -44,6 +44,9 @@ module type S = sig
   (** Selects nodes which minimise a lower confidence bound *)
   val best_path_robust : tree -> int -> tree list
 
+  (** Selects nodes which minimise a lower confidence bound *)
+  val best_path_mean : tree -> int -> tree list
+
   (********************************* DEBUG ***********************************)
   val get_state : tree -> state
 end
