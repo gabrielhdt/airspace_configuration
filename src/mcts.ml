@@ -1,3 +1,5 @@
+let _nodecount = ref 0
+
 module type S = sig
   type state
   type tree
@@ -24,12 +26,9 @@ module Make (Supp : Support) = struct
 
   type state = Supp.t
 
-  (* UCT mcts algo *)
-  let _beta = 1.
-
   (* Single player constant, ensures that rarely explored nodes are still
    * considered promising *)
-  let _spmctsc = 1.
+  let _spmctsc = 4.
 
   type tree = {
     state : state ;
@@ -63,7 +62,7 @@ module Make (Supp : Support) = struct
 
     (* low confidence bound *)
     let lcb node =
-      node.q +. _a /. sqrt (float node.n +. 1.)
+      node.q /. (float node.n) +. _a /. sqrt (float node.n +. 1.)
 
     (* some functions that define how to select the final path
        (best q, best n of best lcb)*)
@@ -105,12 +104,17 @@ module Make (Supp : Support) = struct
   (* Selection policy *)
   module SelPol = struct
 
+    (*
     let ucb father child =
-      let log_over_armcount = (log (float father.n)) /. float child.n
-      and child_mean_rew = child.q /. (float child.n) in
-      let sdsq = child.ss /. (float child.n) -. child_mean_rew ** 2. in
+      let log_over_armcount = (log (float (father.n + 1))) /. float (child.n + 1)
+      and child_mean_rew = child.q /. float (child.n + 1) in
+      let sdsq = child.ss /. (float (child.n + 1)) -. child_mean_rew ** 2. in
       let tuning = min 0.25 (sdsq +. sqrt (2. *. log_over_armcount))
       in child_mean_rew +. sqrt (_spmctsc *. log_over_armcount *. tuning)
+       *)
+    let ucb father child =
+      child.q /. (float child.n +. 1.) +.
+      sqrt (2. *. log ((float father.n)) /. (float child.n +. 1.))
 
     let best_child father =
       Auxfct.argmax (fun ch1 ch2 ->
@@ -140,7 +144,7 @@ module Make (Supp : Support) = struct
       them into the node *)
   let force_deploy node =
     match node.children with
-    | [] -> node.children <- produce node
+    | [] -> node.children <- produce node ; incr _nodecount
     | _ :: _ -> ()
 
   (* TODO The two functions below could be grouped in one which would expand the
@@ -221,7 +225,7 @@ module Make (Supp : Support) = struct
       let n = List.length wins in (* should be nsim *)
       backpropagate path reward n ;
       flag := stop path
-    done
+    done ; Printf.printf "%d nodes deployed\n" !_nodecount
 
   let best_path root criterion =
     let rec aux current_node accu =

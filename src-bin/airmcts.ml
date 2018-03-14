@@ -21,11 +21,9 @@ let () =
   in
   let module Support = Airconf.Make(Env) in
   let module Airmcts = Mcts.Make(Support) in
-  let b_path = (Airmcts.best_path_robust Airmcts.root !Options.nsim) in
-  Printf.printf "%d\n" (List.length b_path);
+  let b_path = (Airmcts.best_path_secure Airmcts.root !Options.nsim) in
 
   Partitions.print_partitions
     (List.map (fun s -> Support.get_partitions s)
-       (List.map (fun tree -> Airmcts.get_state tree) b_path
-       )
+       (List.map (fun tree -> Airmcts.get_state tree) b_path)
     )
