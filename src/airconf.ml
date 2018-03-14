@@ -87,7 +87,7 @@ module Make (Env : Environment) = struct
   let e_wl a b c =
     if a > b && a > c then High else if b > a && b > c then Normal else Low
 
-  let print s = Printf.printf "time/length/trc/sc: " ;
+  let print s = Printf.printf "time/length/trans cost/part cost:\t" ;
     Printf.printf "%d/%d/%f/%f" s.time (List.length s.partition)
       s.transition_cost s.partition_cost ;
     print_newline ()
