@@ -29,7 +29,7 @@ module Make (Supp : Support) = struct
 
   (* Single player constant, ensures that rarely explored nodes are still
    * considered promising *)
-  let _spmctsc = 1.2
+  let _spmctsc = 2.
 
   type tree = {
     state : state ;
@@ -55,10 +55,11 @@ module Make (Supp : Support) = struct
 
     (* low confidence bound *)
     let lcb node =
-      node.q +. _a /. sqrt (float node.n +. 1.)
+      assert (node.n > 0) ;
+      node.q +. _a /. (sqrt @@ float node.n)
 
     (* some functions that define how to select the final path
-       (best q, best n of best lcb)*)
+       (best q, best n of best lcb) *)
     let cmp_max n1 n2 =
       if n1.q > n2.q then n1 else n2
 
@@ -97,14 +98,9 @@ module Make (Supp : Support) = struct
   (* Selection policy *)
   module SelPol = struct
 
-    let newm2 m2 newval oldmean newmean =
-      let delta = newval -. oldmean
-      and delta2 = newval -. newmean in
-      m2 +. delta *. delta2
-
     let ucb father child =
-      let log_over_armcount = (log (float (father.n + 1))) /.
-                              float (child.n + 1)
+      assert (child.n > 0) ;
+      let log_over_armcount = (log (float father.n)) /. float child.n
       and sdsq = child.m2 /. float child.n in
       let tuning = min 0.25 (sdsq +. sqrt (2. *. log_over_armcount))
       in child.q +. sqrt (_spmctsc *. log_over_armcount *. tuning)
@@ -134,8 +130,9 @@ module Make (Supp : Support) = struct
         _branchfactor := !_branchfactor + (List.length node.children)
     | _ :: _ -> ()
 
-  (* TODO The two functions below could be grouped in one which would expand the
-   * node or raise an exception *)
+  (* [expandable n] returns whether a node [n] can be expanded. A node is
+   * expandable if it is non terminal and one of its children has never been
+   * selected *)
   let expandable node =
     (* Parses the children to see if one has not been visited *)
     let rec loop = function
@@ -144,23 +141,17 @@ module Make (Supp : Support) = struct
     in
     if Supp.terminal node.state then Term else loop node.children
 
-  (** [expand t] returns node which must be visited among children of [t] *)
+  (** [expand n] returns node which must be visited among children of [n] *)
   let expand node =
-    let rec loop = function
-      | [] -> failwith "no nodes to expand"
-      | hd :: tl -> if hd.n = 0 then hd else loop tl
-    in
-    loop node.children
+    let leftalone = List.filter (fun c -> c.n = 0) node.children in
+    assert (List.length leftalone > 0) ;
+    Auxfct.random_elt leftalone
 
   (** [select t a] builds a path toward most urgent node to expand *)
   let rec select node ancestors =
     force_deploy node ;
     match expandable node with
-    | True -> (* Select randomly a node among those not visited *)
-        let leftalone = Auxfct.random_elt @@ List.filter (fun c -> c.n = 0)
-            node.children in
-        leftalone :: node :: ancestors
-    | Term -> node :: ancestors
+    | True | Term -> node :: ancestors
     | All_visited ->
       match node.children with
       | (hd :: tl) -> let favourite = SelPol.best_child node in
@@ -169,12 +160,13 @@ module Make (Supp : Support) = struct
 
   let treepolicy root =
     let path = select root [] in
-    if expandable (List.hd path) = True then
-      let exnode = expand (List.hd path) in exnode :: path
-    else path
+    if Supp.terminal (List.hd path).state then path else
+      let exnode = expand (List.hd path) in
+      exnode :: path
 
-  (** [default_policy t] parses the tree [t] randomly until a terminal state
-      is found, and returns an evaluation of the path *)
+  (* [simulate n] also called default policy or random walk selects children
+   * randomly from node [n] up to a terminal node and returns the associated
+   * reward *)
   let simulate node =
     let rec loop next_node accu =
       let reward = Supp.reward next_node.state in
@@ -188,24 +180,16 @@ module Make (Supp : Support) = struct
     in
     loop node 0.
 
-  (** [simulate n ns] starting from node [n] gives the results of [ns]
-      simulations *)
-      (*
-  let simulate node nsim =
-    let rec loop cnt acc =
-      if cnt > nsim then acc
-      else loop (cnt + 1) (default_policy node :: acc)
-    in
-    loop 0 []
-         *)
-
   (** [backpropagate a r] updates ancestors [a] with the reward [r] *)
   let rec backpropagate ancestors reward =
     List.iter (fun e ->
-        let oldmean = e.q in
         e.n <- e.n + 1 ;
-        e.q <- e.q +. (reward -. e.q) /. (float e.n +. 1.) ;
-        e.m2 <- SelPol.newm2 e.m2 reward oldmean (e.q /. (float (e.n + 1)))
+        let oldmean = e.q in
+        let delta = reward -. oldmean in
+        let newmean = oldmean +. delta /. float e.n in
+        let delta2 = reward -. newmean in
+        e.q <- e.q +. delta /. float e.n ;
+        e.m2 <- e.m2 +. delta *. delta2
       ) ancestors
 
   (** [mcts r] updates tree of root [t] with monte carlo *)
