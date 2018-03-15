@@ -14,7 +14,7 @@ let () =
     (s32, [("a" : Util.Smap.key) ]) ;
     (s4, [("s4" : Util.Smap.key) ])] in
   let module Env = struct
-    let tmax = !Options.tmax
+    let tmax = !Options.maxsearch
     let alpha = !Options.alpha
     let beta = !Options.beta
     let gamma = !Options.gamma

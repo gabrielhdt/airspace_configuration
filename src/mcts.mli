@@ -36,16 +36,13 @@ module type S = sig
 
   (** [best_path_max t n] returns a path of nodes from the root of [t] to a
       terminal leaf. The selection is based on the reward in each node. *)
-  val best_path_max : tree -> int -> tree list
+  val best_path_max : tree -> float -> tree list
 
   (** Selects nodes which have the highest visit count *)
-  val best_path_secure : tree -> int -> tree list
+  val best_path_secure : tree -> float -> tree list
 
   (** Selects nodes which minimise a lower confidence bound *)
-  val best_path_robust : tree -> int -> tree list
-
-  (** Selects nodes which minimise a lower confidence bound *)
-  val best_path_mean : tree -> int -> tree list
+  val best_path_robust : tree -> float -> tree list
 
   (********************************* DEBUG ***********************************)
   val get_state : tree -> state

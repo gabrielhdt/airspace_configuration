@@ -9,7 +9,7 @@ let () =
     (s32, [("a" : Util.Smap.key) ]) ;
     (s4, [("s4" : Util.Smap.key) ])] in
   let module Env = struct
-    let tmax = !Options.tmax
+    let tmax = !Options.maxsearch
     let alpha = !Options.alpha
     let beta = !Options.beta
     let gamma = !Options.gamma
@@ -21,7 +21,7 @@ let () =
   in
   let module Support = Airconf.Make(Env) in
   let module Airmcts = Mcts.Make(Support) in
-  let b_path = (Airmcts.best_path_mean Airmcts.root !Options.nsim) in
+  let b_path = (Airmcts.best_path_max Airmcts.root !Options.maxtime) in
 
   let total_reward = List.fold_left (fun accu e ->
       accu +. Support.reward (Airmcts.get_state e)) 0. b_path in

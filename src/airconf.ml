@@ -146,7 +146,7 @@ module Make (Env : Environment) = struct
   let reward conf = 1. /. (
       (conf.partition_cost +. Env.theta *. conf.transition_cost) )
 
-  let terminal conf = conf.time > Env.tmax
+  let terminal conf = conf.time >= Env.tmax
 
   let init =
     let partcost = partition_cost 0 Env.init in

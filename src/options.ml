@@ -5,8 +5,8 @@ let usage progname = "Usage: " ^ progname ^ " " ^
 let anon_fun x = raise @@ Arg.Bad ("bad arg " ^ x)
 
 let scpath = ref ""
-let tmax = ref 7
-let nsim = ref 10
+let maxsearch = ref 7
+let maxtime = ref 3.
 let alpha = ref 1000.
 let beta = ref 10.
 let gamma = ref 100.
@@ -17,10 +17,10 @@ let verbose = ref false
 let speclist = [
   ("-scenario", Arg.Set_string scpath,
    "Scenario to load and play") ;
-  ("-nsim", Arg.Set_int nsim,
-   "Number of simulations carried out for each selection") ;
-  ("-tmax", Arg.Set_int tmax,
+  ("-maxsearch", Arg.Set_int maxsearch,
    "Depth of the tree") ;
+  ("-maxtime", Arg.Set_float maxtime,
+   "Duration of the program") ;
   ("-alpha", Arg.Set_float alpha,
    "Sets how much overload is taken into account") ;
   ("-beta", Arg.Set_float beta,
