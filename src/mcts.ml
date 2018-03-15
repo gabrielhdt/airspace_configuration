@@ -20,10 +20,13 @@ module type Support = sig
   val reward : t -> float
   val terminal : t -> bool
   val print : t -> unit
-  val get_time : t -> int
 end
 
-module Make (Supp : Support) = struct
+module type MctsParameters = sig
+  val expvexp : float
+end
+
+module Make (Supp : Support) (MctsParam : MctsParameters) = struct
 
   type state = Supp.t
 
@@ -103,7 +106,7 @@ module Make (Supp : Support) = struct
       let log_over_armcount = (log (float father.n)) /. float child.n
       and sdsq = child.m2 /. float child.n in
       let tuning = min 0.25 (sdsq +. sqrt (2. *. log_over_armcount))
-      in child.q +. sqrt (_spmctsc *. log_over_armcount *. tuning)
+      in child.q +. sqrt (MctsParam.expvexp *. log_over_armcount *. tuning)
 
     let best_child father =
       Auxfct.argmax (fun ch1 ch2 ->

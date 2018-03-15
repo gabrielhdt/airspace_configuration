@@ -18,9 +18,17 @@ module type Support = sig
   val terminal : t -> bool
 
   val print : t -> unit
-
-  val get_time : t -> int
 end
+
+(** Signature of second input module, contains parameters of the mcts *)
+module type MctsParameters = sig
+
+  (** Tradeoff between exploration and exploitation. The higher the value,
+      the more not visited nodes are considered promising. See bandit
+      algorithms for more information *)
+  val expvexp : float
+end
+
 
 (** Output signature of the functor *)
 module type S = sig
@@ -48,4 +56,5 @@ module type S = sig
   val get_state : tree -> state
 end
 
-module Make : functor (Supp : Support) -> S with type state = Supp.t
+module Make : functor (Supp : Support) (MctsParam : MctsParameters) ->
+  S with type state = Supp.t

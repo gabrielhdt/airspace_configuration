@@ -20,7 +20,8 @@ let () =
   end
   in
   let module Support = Airconf.Make(Env) in
-  let module Airmcts = Mcts.Make(Support) in
+  let module MctsParam = struct let expvexp = 1. end in
+  let module Airmcts = Mcts.Make(Support)(MctsParam) in
   let b_path = (Airmcts.best_path_max Airmcts.root !Options.maxtime) in
 
   let total_reward = List.fold_left (fun accu e ->
