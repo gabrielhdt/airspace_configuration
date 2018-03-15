@@ -12,6 +12,7 @@ let beta = ref 10.
 let gamma = ref 100.
 let lambda = ref 100.
 let theta = ref 1.
+let expvexp = ref 2.
 let verbose = ref false
 
 let speclist = [
@@ -35,4 +36,6 @@ let speclist = [
    "Verbose mode: print final path") ;
   ("-v", Arg.Set verbose,
    "Verbose mode: print final path") ;
+  ("-expvexp", Arg.Set_float expvexp,
+   "Sets tradeoff between exploration and exploitation") ;
 ]
