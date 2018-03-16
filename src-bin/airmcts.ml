@@ -8,6 +8,7 @@ let () =
     (s15, [("d" : Util.Smap.key) ]) ;
     (s32, [("a" : Util.Smap.key) ]) ;
     (s4, [("s4" : Util.Smap.key) ])] in
+
   let module Env = struct
     let tmax = !Options.maxsearch
     let alpha = !Options.alpha
@@ -17,10 +18,13 @@ let () =
     let theta = !Options.theta
     let init = initial_partition
     let workload = Scenario.workload sc
-  end
-  in
+  end in
+
+  let module MctsParam = struct
+    let expvexp = !Options.expvexp
+  end in
+
   let module Support = Airconf.Make(Env) in
-  let module MctsParam = struct let expvexp = !Options.expvexp end in
   let module Airmcts = Mcts.Make(Support)(MctsParam) in
   let b_path = (Airmcts.best_path_max Airmcts.root !Options.maxtime) in
 
