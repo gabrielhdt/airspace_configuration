@@ -37,7 +37,7 @@ module type S = sig
 
   (** [reward c] gives the reward associated to config [c], based on
       miscellaneous parameters such as number of flights *)
-  val reward : t -> float
+  val cost : t -> float
 
 (** [produce t] returns all feasible configurations from configuration [t]
     (without memoization for the nomem version)*)

@@ -11,8 +11,8 @@ module type Support = sig
   (** [produce s] returns new states reachable from [s] *)
   val produce : t -> t list
 
-  (** [conf_cost s] returns the cost of a state *)
-  val reward : t -> float
+  (** [cost s] returns the cost of a state *)
+  val cost : t -> float
 
   (** [terminal s] returns whether state [s] is terminal *)
   val terminal : t -> bool

@@ -31,7 +31,7 @@ module type S = sig
   type t
   val init : t
   val print : t -> unit
-  val reward : t -> float
+  val cost : t -> float
   val produce : t -> t list
   val produce_nomem : t -> t list
   val terminal : t -> bool
@@ -123,7 +123,18 @@ module Make (Env : Environment) = struct
 
   (* [produce c] produces all children states of config *)
   let produce_nomem config =
-    let reachable_partitions = prod_parts config.partition in
+    let reachable_partitions = prod_parts_nomem config.partition in
+    List.map (fun p ->
+        let cc = partition_cost ( config.time + 1 ) p in
+        let tc = trans_cost config.partition p in
+        { time = (config.time + 1);
+         partition = p;
+         transition_cost = tc;
+         partition_cost = cc }
+      ) reachable_partitions
+
+  let produce config =
+    let reachable_partitions = prod_parts_nomem config.partition in
     List.map (fun p ->
         let cc = partition_cost ( config.time + 1 ) p in
         let tc = trans_cost config.partition p in
@@ -134,17 +145,16 @@ module Make (Env : Environment) = struct
       ) reachable_partitions
 
   (* Memoized version of the above *)
-  let produce config =
+  (* let produce config =
     if StatMem.mem config
     then StatMem.find config
     else
       let newconfs = produce_nomem config in
       StatMem.add config newconfs ;
-      newconfs
+      newconfs *)
 
 
-  let reward conf = 1. /. (
-      (conf.partition_cost +. Env.theta *. conf.transition_cost) )
+  let cost conf = conf.partition_cost +. Env.theta *. conf.transition_cost
 
   let terminal conf = conf.time >= Env.tmax
 

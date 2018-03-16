@@ -17,7 +17,7 @@ module type Support = sig
   type t
   val init : t
   val produce : t -> t list
-  val reward : t -> float
+  val cost : t -> float
   val terminal : t -> bool
   val print : t -> unit
 end
@@ -169,40 +169,37 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
 
   (* [simulate n] also called default policy or random walk selects children
    * randomly from node [n] up to a terminal node and returns the associated
-   * reward *)
+   * cost *)
   let simulate node =
     let rec loop next_node accu =
-      let reward = Supp.reward next_node.state in
-      if Supp.terminal next_node.state then reward +. accu
+      let cost = Supp.cost next_node.state in
+      if Supp.terminal next_node.state then cost +. accu
       else
         begin
           let children = produce next_node in
           let randchild = Auxfct.random_elt children in
-          loop randchild (accu +. reward)
+          loop randchild (accu +. cost)
         end
     in
     loop node 0.
 
-  (** [backpropagate a r] updates ancestors [a] with the reward [r] *)
-  let rec backpropagate ancestors reward =
+  (** [backpropagate a r] updates ancestors [a] with the cost [r] *)
+  let rec backpropagate ancestors cost =
     List.iter (fun e ->
-        e.n <- e.n + 1 ;
-        let oldmean = e.q in
-        let delta = reward -. oldmean in
-        let newmean = oldmean +. delta /. float e.n in
-        let delta2 = reward -. newmean in
-        e.q <- e.q +. delta /. float e.n ;
-        e.m2 <- e.m2 +. delta *. delta2
+        let delta = cost -. e.q in
+        let newmean = e.q +. delta /. (float e.n +. 1.) in
+        let delta2 = cost -. newmean in
+        e.q <- e.q +. delta /. (float e.n +. 1.) ;
+        e.m2 <- e.m2 +. delta *. delta2;
+        e.n <- e.n + 1
       ) ancestors
 
   (** [mcts r] updates tree of root [t] with monte carlo *)
   let mcts root maxtime =
-    let flag = ref false in
-    while not !flag do
+    while not (stop maxtime) do
       let path = treepolicy root in
-      let reward = simulate (List.hd path) in
-      List.iter (fun n -> backpropagate path reward) path ;
-      flag := stop maxtime
+      let cost = simulate (List.hd path) in
+      List.iter (fun n -> backpropagate path (exp ~-. cost)) path
     done ; Printf.printf "%d nodes deployed\nmean branch factor: %f\n"
       !_nodecount (float !_branchfactor /. float !_nodecount)
 

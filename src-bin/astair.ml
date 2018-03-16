@@ -32,8 +32,8 @@ let () =
     let initial_state _ = AirSupp.init
     let is_goal _ st = AirSupp.terminal st
     let next _ = AirSupp.produce
-    let k _ st1 st2 = 1. /. (AirSupp.reward st2)
-    let h _ st = AirSupp.reward st
+    let k _ st1 st2 = AirSupp.cost st2
+    let h _ st = 0.
     let do_at_insertion _ _ _ = user ()
     let do_at_extraction _ _ _ _ = ()
   end in
@@ -41,10 +41,10 @@ let () =
   let b_path = AstarForAir.search () in
 
   let total_reward = List.fold_left (fun accu e ->
-      accu +. AirSupp.reward e) 0. b_path in
-  Printf.printf "reward best path : %f\n" total_reward;
+      accu +. AirSupp.cost e) 0. b_path in
+  Printf.printf "reward best path : %f\n" (total_reward);
 
-  Printf.printf "path length : %d\n%d\n" (List.length b_path) !_count;
+  Printf.printf "path length : %d\nnb visited nodes : %d\n" (List.length b_path) !_count;
 
   if !Options.verbose then
   List.iter (fun x -> Partitions.print_partition @@ AirSupp.get_partitions x)
