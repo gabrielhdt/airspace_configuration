@@ -198,8 +198,8 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
   let mcts root maxtime =
     while not (stop maxtime) do
       let path = treepolicy root in
-      let cost = simulate (List.hd path) in
-      List.iter (fun n -> backpropagate path (exp ~-. cost)) path
+      let reward = exp ~-. (simulate (List.hd path)) in
+      backpropagate path reward
     done ; Printf.printf "%d nodes deployed\nmean branch factor: %f\n"
       !_nodecount (float !_branchfactor /. float !_nodecount)
 
