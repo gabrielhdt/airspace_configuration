@@ -202,7 +202,8 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
       let path = treepolicy root in
       let reward = simulate (List.hd path) in
       List.iter (fun n -> backpropagate path reward) path ;
-      flag := stop maxtime
+      flag := stop maxtime ;
+      Cldisp.mctsinfo !_nodecount reward
     done ; Printf.printf "%d nodes deployed\nmean branch factor: %f\n"
       !_nodecount (float !_branchfactor /. float !_nodecount)
 
