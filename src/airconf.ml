@@ -87,10 +87,15 @@ module Make (Env : Environment) = struct
   let e_wl a b c =
     if a > b && a > c then High else if b > a && b > c then Normal else Low
 
-  let print s = Printf.printf "time/length/trans cost/part cost:\t" ;
-    Printf.printf "%d/%d/%f/%f" s.time (List.length s.partition)
-      s.transition_cost s.partition_cost ;
-    print_newline ()
+  let part2str part =
+    let sidlst = List.map (fun elt -> let secs, keys = elt in List.hd keys)
+        (PartitionTools.normalise part)
+    in "[" ^ List.fold_left (fun acc elt -> acc ^ ", " ^ elt) "" sidlst ^ "]"
+
+  (** [print s] displays data of status [s] *)
+  let print s =
+    Printf.printf "{t:%d;c:%f}" s.time (s.partition_cost +. s.transition_cost) ;
+    Printf.printf "-> %s" (part2str s.partition)
 
   let partition_cost time part =
     let (high, normal, low) = List.fold_left (fun accu sec ->
