@@ -4,6 +4,8 @@ complete -c airmcts -o scenario --description \
 "Path to scenario file"
 complete -c airmcts -o maxtime --description \
 "Amount of time during which the program will run"
+complete -c airmcts -o maxsearch --description \
+"Depth of the tree"
 complete -c airmcts -o expvexp --description \
 "Tradeoff between exploration and exploitation"
 complete -c airmcts -o alpha --description \
