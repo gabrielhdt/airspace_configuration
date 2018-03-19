@@ -5,9 +5,8 @@ let () =
   let s32 = Util.Sset.add "3" (Util.Sset.add "2" Util.Sset.empty) in
   let s4 = Util.Sset.add "4" Util.Sset.empty in
   let initial_partition = [
-    (s15, [("d" : Util.Smap.key) ]) ;
-    (s32, [("a" : Util.Smap.key) ]) ;
-    (s4, [("s4" : Util.Smap.key) ])] in
+    (s15, [("d") ]) ;   (s32, [("a") ]) ;   (s4, [("s4") ])
+  ] in
 
   let module Env = struct
     let tmax = !Options.maxsearch
