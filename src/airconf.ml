@@ -115,12 +115,10 @@ module Make (Env : Environment) = struct
   let compute_cost time part p_father =
     let highcost, normalcost, lowcost = workload_costs time part
     and transcost = trans_cost p_father part
-    and sizefac = 1. /. (float @@ (_nsec - List.length part)) in
-    (
-      Env.alpha *. highcost +. Env.beta *. normalcost *. Env.gamma *. lowcost +.
-      Env.lambda *. sizefac +.
-      Env.theta *. transcost
-    ) /. float Env.tmax
+    and sizefac = float @@ List.length part in
+    Env.alpha *. highcost +. Env.beta *. normalcost *. Env.gamma *. lowcost +.
+    Env.lambda *. sizefac +.
+    Env.theta *. transcost
 
   let cost conf = conf.cost
 
