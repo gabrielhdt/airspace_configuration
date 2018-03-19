@@ -32,6 +32,7 @@ let () =
       begin
         let newtree = List.hd acc in
         Airmcts.mcts newtree ;
+        Airmcts.print_children newtree ;
         buildpath (cnt + 1) (Airmcts.select_robust newtree :: acc)
       end
   in

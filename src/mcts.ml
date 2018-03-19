@@ -11,6 +11,7 @@ module type S = sig
   val select_secure : tree -> tree
 
   (********************************* DEBUG ***********************************)
+  val print_children : tree -> unit
   val get_state : tree -> state
 end
 
@@ -93,6 +94,10 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
     Printf.printf "%f/%d/%f" node.q node.n lcb ;
     print_newline ()
 
+  let print_children node =
+    List.iter (fun n -> Printf.printf "{q=%f;n=%d}" n.q n.n) node.children ;
+    print_newline ()
+
   let get_state n = n.state
   (*******************************************************************)
 
@@ -112,8 +117,8 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
         ) father.children
   end
 
-  (* [stop p] returns whether the mcts should stop on this path *)
-  let stop maxtime = Sys.time () >= maxtime
+  (* [stop t] returns whether the mcts should stop given start time [t] *)
+  let stop timestart = Sys.time () -. timestart >= MctsParam.lapse
 
 
   (* [produce t] creates the list of reachable nodes from [t] *)
@@ -192,9 +197,10 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
         e.n <- e.n + 1
       ) ancestors
 
-  (** [mcts r] updates tree of root [t] with monte carlo *)
+  (** [mcts r] updates tree of root [r] with monte carlo *)
   let mcts root =
-    while not (stop MctsParam.lapse) do
+    let start = Sys.time () in
+    while not (stop start) do
       let path = treepolicy root in
       let sim = simulate (List.hd path) in
       assert (sim > 0.);

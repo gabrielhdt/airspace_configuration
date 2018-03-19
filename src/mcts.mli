@@ -61,6 +61,7 @@ module type S = sig
   val select_secure : tree -> tree
 
   (********************************* DEBUG ***********************************)
+  val print_children : tree -> unit
   val get_state : tree -> state
 end
 
