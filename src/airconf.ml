@@ -14,6 +14,8 @@ let l =
       ("f",["1";"2";"3";"4";"5"]);
       ("g",["1";"2"])  ]
 
+let _nsec = 5
+
 let _ctx = Partitions.make_context l
 
 module type Environment = sig
@@ -31,9 +33,8 @@ module type S = sig
   type t
   val init : t
   val print : t -> unit
-  val reward : t -> float
+  val cost : t -> float
   val produce : t -> t list
-  val produce_nomem : t -> t list
   val terminal : t -> bool
 
   (****************************** DEBUG **************************************)
@@ -46,8 +47,7 @@ module Make (Env : Environment) = struct
   type t = {
     time : int; (* Used to determine whether the node is terminal *)
     partition : partition;
-    transition_cost : float;
-    partition_cost : float
+    cost : float
   }
 
   type estim_load =
@@ -84,6 +84,11 @@ module Make (Env : Environment) = struct
   module PartMem = Memoize.Make(PartitionTools)
   module StatMem = Memoize.Make(StatusTools)
 
+  let print s = Printf.printf "time/length/cost:\t" ;
+    Printf.printf "%d/%d/%f" s.time (List.length s.partition)
+      s.cost ;
+    print_newline ()
+
   let e_wl a b c =
     if a > b && a > c then High else if b > a && b > c then Normal else Low
 
@@ -92,34 +97,38 @@ module Make (Env : Environment) = struct
         (PartitionTools.normalise part)
     in "[" ^ List.fold_left (fun acc elt -> acc ^ ", " ^ elt) "" sidlst ^ "]"
 
-  (** [print s] displays data of status [s] *)
-  let print s =
-    Printf.printf "{t:%d;c:%f}" s.time (s.partition_cost +. s.transition_cost) ;
-    Printf.printf "-> %s" (part2str s.partition)
-
-  let partition_cost time part =
-    let (high, normal, low) = List.fold_left (fun accu sec ->
-     let (a, b, c) = accu in
-     let (ph, pn, pl) = Env.workload time (Util.Sset.elements (fst sec)) in
-     let status = e_wl ph pn pl in
-     let card = Util.Sset.cardinal (fst sec) in
-     match status with
-     | High -> (a +. ph *. (float card) ** 2., b, c)
-     | Normal -> (a, b +. pn *. (float card) ** (-2.), c)
-     | Low -> (a, b, c +. pl *. (float card) ** (-2.))
-      ) (0., 0., 0.) part in
-    Env.alpha *. high +. Env.beta *. normal +. Env.gamma *. low
-    +. Env.lambda /. (float (List.length part))
+  let workload_costs time part =
+    List.fold_left (fun accu sec ->
+        let (a, b, c) = accu in
+        let (ph, pn, pl) = Env.workload time (Util.Sset.elements (fst sec)) in
+        let status = e_wl ph pn pl in
+        let card = Util.Sset.cardinal (fst sec) in
+        match status with
+        | High -> (a +. ph *. (float card) ** 2., b, c)
+        | Normal -> (a, b +. pn *. (float card) ** (-2.), c)
+        | Low -> (a, b, c +. pl *. (float card) ** (-2.))
+      ) (0., 0., 0.) part
 
   let trans_cost p_father p_child =
     if p_father = p_child then 0. else 1.
 
+  let compute_cost time part p_father =
+    let highcost, normalcost, lowcost = workload_costs time part
+    and transcost = trans_cost p_father part
+    and sizefac = 1. /. (float @@ (_nsec - List.length part)) in
+    (
+      Env.alpha *. highcost +. Env.beta *. normalcost *. Env.gamma *. lowcost +.
+      Env.lambda *. sizefac +.
+      Env.theta *. transcost
+    ) /. float Env.tmax
+
+  let cost conf = conf.cost
 
   (* Partition production, i.e. generation of children partitions *)
   let prod_parts_nomem part = part :: Partitions.recombine _ctx part
 
-  (* [prod_parts p] generates all reachable partitions from partition [p],
-     uses memoization *)
+  (* [prod_parts p] generates all reachable partitions from partition [p].
+   * Uses memoization, see nomem version for the original function *)
   let prod_parts part =
     if PartMem.mem part then PartMem.find part else
       let new_parts = prod_parts_nomem part in
@@ -127,36 +136,29 @@ module Make (Env : Environment) = struct
       new_parts
 
   (* [produce c] produces all children states of config *)
-  let produce_nomem config =
-    let reachable_partitions = prod_parts config.partition in
+      (* No mem version here *)
+  let produce config =
+    let reachable_partitions = prod_parts_nomem config.partition in
     List.map (fun p ->
-        let cc = partition_cost ( config.time + 1 ) p in
-        let tc = trans_cost config.partition p in
-        { time = (config.time + 1);
-         partition = p;
-         transition_cost = tc;
-         partition_cost = cc }
+        { partition = p ; time = config.time + 1 ;
+          cost = compute_cost (config.time + 1) p config.partition }
       ) reachable_partitions
 
   (* Memoized version of the above *)
-  let produce config =
+  (* let produce config =
     if StatMem.mem config
     then StatMem.find config
     else
       let newconfs = produce_nomem config in
       StatMem.add config newconfs ;
-      newconfs
+      newconfs *)
 
-
-  let reward conf = 1. /. (
-      (conf.partition_cost +. Env.theta *. conf.transition_cost) )
 
   let terminal conf = conf.time >= Env.tmax
 
   let init =
-    let partcost = partition_cost 0 Env.init in
     { time = 0 ; partition = Env.init ;
-      partition_cost = partcost ; transition_cost = 0. }
+      cost = compute_cost 0 Env.init Env.init }
 
   (*********************** DEBUG *********************************************)
   let get_partitions conf = conf.partition

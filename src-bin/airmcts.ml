@@ -29,8 +29,8 @@ let () =
   let b_path = (Airmcts.best_path_max Airmcts.root !Options.maxtime) in
 
   let total_reward = List.fold_left (fun accu e ->
-      accu +. Support.reward (Airmcts.get_state e)) 0. b_path in
-  Printf.printf "reward best path : %f\n" total_reward;
+      accu +. Support.cost (Airmcts.get_state e)) 0. b_path in
+  Printf.printf "reward best path : %f\n" (total_reward);
 
   Printf.printf "path length : %d\n" (List.length b_path);
 
