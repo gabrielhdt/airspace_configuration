@@ -4,7 +4,7 @@ DOCDIR = doc/ac.docdir
 
 OCB_FLAGS = -use-ocamlfind
 OCB = ocamlbuild
-TARGETS = airmcts astair
+TARGETS = airmcts astair dijkstra
 
 all: native byte profile debug
 
