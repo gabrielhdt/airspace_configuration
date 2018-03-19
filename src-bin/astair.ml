@@ -14,7 +14,7 @@ let () =
     (s32, [("a" : Util.Smap.key) ]) ;
     (s4, [("s4" : Util.Smap.key) ])] in
   let module Env = struct
-    let tmax = !Options.maxsearch
+    let tmax = !Options.horizon
     let alpha = !Options.alpha
     let beta = !Options.beta
     let gamma = !Options.gamma
@@ -31,7 +31,7 @@ let () =
 
     let initial_state _ = AirSupp.init
     let is_goal _ st = AirSupp.terminal st
-    let next _ = AirSupp.produce_nomem
+    let next _ = AirSupp.produce
     let k _ st1 st2 = AirSupp.cost st2
     let h _ st = 0.
     let do_at_insertion _ _ _ = user ()
