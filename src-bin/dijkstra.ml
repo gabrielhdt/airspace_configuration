@@ -1,3 +1,5 @@
+let _cnt = ref 0;;
+
 Arg.parse Options.speclist Options.anon_fun (Options.usage Sys.argv.(0)) ;;
 let sc = Scenario.load !Options.scpath
 let s15 = Util.Sset.add "1" (Util.Sset.add "5" Util.Sset.empty)
@@ -43,11 +45,15 @@ let iter_tree t f_leaf f_node=
   in
   inner t
 
-let fold_tree f t accu =
-  let rec inner node a =
+let fold_tree f t (accu : NSet.t) =
+  let rec inner (node : Support.t tree) (a : NSet.t) =
     match node with
     | Leaf -> a
-    | Node (conf,_) -> inner node (f node a)
+    | Node (conf, children) ->
+      let newacc = List.fold_left (fun acc elt ->
+        f elt acc) a children in
+      List.fold_left (fun acc elt -> inner elt acc)
+        (newacc : NSet.t) (children : Support.t tree list)
   in
   inner t accu
 
@@ -75,10 +81,13 @@ let find_best htbl =
 
 let best_path data node =
   let rec inner node accu =
-    let prev = snd (Hashtbl.find data node) in
+    let prev = match node with
+      | Leaf -> failwith "not good"
+      | Node (n, _) ->
+        snd (Hashtbl.find data n) in
     match prev with
     | None -> accu
-    | Some n -> inner prev (node::accu)
+    | Some n -> inner n (node::accu)
   in
   inner node []
 
@@ -90,12 +99,14 @@ let dijkstra t =
   | Node (conf, sons) -> conf in
   let data = Hashtbl.create (len t) in
   iter_tree t (fun _ -> ()) (fun n _ -> Hashtbl.add data n (infinity, None));
+  Printf.printf "data filled%!\n" ;
   Hashtbl.replace data root (0., None);
   let q = ref (fold_tree (fun a accu -> NSet.add a accu) t NSet.empty) in
-  let path = ref [] in
+  Printf.printf "Q set up%!\n" ; let path = ref [] in
 
   try
     while NSet.cardinal !q <> 0 do
+      incr _cnt ; Printf.printf "\r%d%!" !_cnt ;
       let (u, value) = NSet.fold (fun elt (k, v) ->
           match elt with
           | Leaf -> path := best_path data elt; raise Eureka
@@ -104,7 +115,7 @@ let dijkstra t =
             if new_v < v then (elt, new_v) else (k, v)
         ) !q (t, infinity) in
       match u with
-      | Leaf -> path := best_path data elt; raise Eureka
+      | Leaf -> path := best_path data u ; raise Eureka
       | Node (v, l) -> if fst (Hashtbl.find data v) = infinity
           then failwith "tata"
           else
@@ -127,4 +138,5 @@ let dijkstra t =
 let () =
   let root = Support.init in
   let my_tree = build_tree root Support.produce Support.terminal in
-  Printf.printf "%d\n" (len my_tree)
+  Printf.printf "%d\n%!" (len my_tree) ;
+  ignore @@ dijkstra my_tree
