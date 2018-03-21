@@ -31,13 +31,6 @@ type 'a tree =
 module NSet = Set.Make (
   struct
     type t = Support.t tree
-    (* let compare t1 t2 =
-      match t1, t2 with
-      | Leaf, Leaf -> 0
-      | (Leaf, _) -> -1
-      | (_, Leaf) -> 1
-      | (Node (c1, _), Node (c2,_)) ->
-        compare (Support.get_time c1) (Support.get_time c2) *)
     let compare = compare
   end)
 
@@ -79,6 +72,16 @@ let find_best htbl =
       if v < b then (k,v) else (a,b)
     ) htbl (Leaf, infinity)
 
+
+let best_path data node =
+  let rec inner node accu =
+    let prev = snd (Hashtbl.find data node) in
+    match prev with
+    | None -> accu
+    | Some n -> inner prev (node::accu)
+  in
+  inner node []
+
 exception Eureka
 
 let dijkstra t =
@@ -89,18 +92,19 @@ let dijkstra t =
   iter_tree t (fun _ -> ()) (fun n _ -> Hashtbl.add data n (infinity, None));
   Hashtbl.replace data root (0., None);
   let q = ref (fold_tree (fun a accu -> NSet.add a accu) t NSet.empty) in
+  let path = ref [] in
 
   try
     while NSet.cardinal !q <> 0 do
       let (u, value) = NSet.fold (fun elt (k, v) ->
           match elt with
-          | Leaf -> raise Eureka
+          | Leaf -> path := best_path data elt; raise Eureka
           | Node (conf, _) ->
             let (new_v, _) = (Hashtbl.find data conf) in
             if new_v < v then (elt, new_v) else (k, v)
         ) !q (t, infinity) in
       match u with
-      | Leaf -> raise Eureka
+      | Leaf -> path := best_path data elt; raise Eureka
       | Node (v, l) -> if fst (Hashtbl.find data v) = infinity
           then failwith "tata"
           else
@@ -117,7 +121,7 @@ let dijkstra t =
             end
     done;
     failwith "Unreachable"
-  with Eureka -> data
+  with Eureka -> !path
 
 
 let () =
