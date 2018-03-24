@@ -2,12 +2,12 @@
 type cost = float
 type node_aux = {id: int ; mutable label: cost ; mutable father: int}
 type node = {id: int ; edges: (int * cost) list}
+type graph = node array
 
 type status = unit
 type tree = Node of int *  status * tree list
           | Leaf of int * status
 
-let costtable : (int, float) Hashtbl.t = Hashtbl.create 10000
 let reltable : (int, int list) Hashtbl.t = Hashtbl.create 10000
 
 let build_tree root produce term =
@@ -22,16 +22,16 @@ let build_tree root produce term =
       mrid, (Node (cid, st, children))
   in loop root 0
 
-let rec fillcost cost = function
-  | Leaf (id, st) -> Hashtbl.add costtable id (cost st)
-  | Node (id, st, children) -> Hashtbl.add costtable id (cost st) ;
-      List.iter (fillcost cost) children
-
 let rec fillrel = function
   | Leaf (id, st) -> ()
   | Node (id, _, children) -> let cids = List.map (fun elt ->
       match elt with Leaf (id, _) | Node (id, _, _) -> id) children in
       Hashtbl.add reltable id cids
+
+let build_graph cost =
+  Array.of_list @@ Hashtbl.fold (fun key elt acc ->
+      let edges = List.map (fun id -> id, cost id) elt in
+      { id = key ; edges = edges } :: acc) reltable []
 
 let print_data_lengths data =
   Printf.printf "[|" ;
