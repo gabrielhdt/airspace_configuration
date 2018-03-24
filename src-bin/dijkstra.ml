@@ -1,26 +1,55 @@
+Arg.parse Options.speclist Options.anon_fun (Options.usage Sys.argv.(0)) ;;
+
+let sc = Scenario.load !Options.scpath
+let s15 = Util.Sset.add "1" (Util.Sset.add "5" Util.Sset.empty)
+let s32 = Util.Sset.add "3" (Util.Sset.add "2" Util.Sset.empty)
+let s4 = Util.Sset.add "4" Util.Sset.empty
+let initial_partition = [
+  (s15, [("d") ]) ; (s32, [("a") ]) ; (s4, [("s4") ])
+]
+
+module Env = struct
+  let tmax = !Options.maxsearch
+  let alpha = !Options.alpha
+  let beta = !Options.beta
+  let gamma = !Options.gamma
+  let lambda = !Options.lambda
+  let theta = !Options.theta
+  let init = initial_partition
+  let workload = Scenario.workload sc
+end
+
+module Support = Airconf.Make(Env)
+
 (* Mind the init_data default label value! *)
 type cost = float
 type node_aux = {id: int ; mutable label: cost ; mutable father: int}
 type node = {id: int ; edges: (int * cost) list}
 type graph = node array
 
-type status = unit
-type tree = Node of int *  status * tree list
+type status = Support.t
+type tree = Node of int * status * tree list
           | Leaf of int * status
 
 let reltable : (int, int list) Hashtbl.t = Hashtbl.create 10000
+let costtable : (int, cost) Hashtbl.t = Hashtbl.create 10000
 
 let build_tree root produce term =
   let rec loop st id =
     let cid = succ id in
     if term st then cid, Leaf (cid, st)
     else
-      let mrid, children = List.fold_left ( fun (lid, sib) elt ->
+      let mrid, children = List.fold_left (fun (lid, sib) elt ->
           let nid, nnode = loop elt lid in
           nid, nnode :: sib) (cid, []) (produce st)
       in
       mrid, (Node (cid, st, children))
   in loop root 0
+
+let rec fillcost cost node = match node with
+  | Leaf (id, st) -> Hashtbl.add costtable id (cost st)
+  | Node (id, st, children) -> Hashtbl.add costtable id (cost st) ;
+      List.iter (fun c -> fillcost cost c) children
 
 let rec fillrel = function
   | Leaf (id, st) -> ()
@@ -28,9 +57,9 @@ let rec fillrel = function
       match elt with Leaf (id, _) | Node (id, _, _) -> id) children in
       Hashtbl.add reltable id cids
 
-let build_graph cost =
+let build_graph () =
   Array.of_list @@ Hashtbl.fold (fun key elt acc ->
-      let edges = List.map (fun id -> id, cost id) elt in
+      let edges = List.map (fun id -> id, Hashtbl.find costtable id) elt in
       { id = key ; edges = edges } :: acc) reltable []
 
 let print_data_lengths data =
@@ -95,15 +124,10 @@ let dijkstra (graph: node array) source =
   loop id_fixed piv data 0
 
 let () =
-  let graph = [|
-    {id=0 ; edges=[(5, 3.) ; (2, 9.) ; (1, 8.)]} ;
-    {id=1 ; edges=[(2, 3.) ; (3, 1.) ; (5, 1.)]} ;
-    {id=2 ; edges=[(1, 1.) ; (3, 1.) ; (4, 3.)]} ;
-    {id=3 ; edges=[(1, 1.) ; (2, 1.) ; (4, 1.)]} ;
-    {id=4 ; edges=[]} ;
-    {id=5 ; edges=[(0, 1.) ; (1, 3.) ; (3, 6.) ; (4, 1.)]}
-  |]
-  in
+  let _, tree = build_tree Support.init Support.produce Support.terminal in
+  fillrel tree ; fillcost Support.cost tree ;
+  let graph = build_graph () in
+  Printf.printf "Graph of %d nodes\n" (Array.length graph) ;
   let sol = dijkstra graph 0
   in
   Printf.printf "Array of (cost, father): " ;
