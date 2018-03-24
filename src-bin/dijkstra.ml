@@ -1,142 +1,110 @@
-let _cnt = ref 0;;
+(* Mind the init_data default label value! *)
+type cost = float
+type node_aux = {id: int ; mutable label: cost ; mutable father: int}
+type node = {id: int ; edges: (int * cost) list}
 
-Arg.parse Options.speclist Options.anon_fun (Options.usage Sys.argv.(0)) ;;
-let sc = Scenario.load !Options.scpath
-let s15 = Util.Sset.add "1" (Util.Sset.add "5" Util.Sset.empty)
-let s32 = Util.Sset.add "3" (Util.Sset.add "2" Util.Sset.empty)
-let s4 = Util.Sset.add "4" Util.Sset.empty
-let initial_partition = [
-  (s15, [("d") ]) ; (s32, [("a") ]) ; (s4, [("s4") ])
-]
+type status = unit
+type tree = Node of int *  status * tree list
+          | Leaf of int * status
 
-module Env = struct
-  let tmax = !Options.maxsearch
-  let alpha = !Options.alpha
-  let beta = !Options.beta
-  let gamma = !Options.gamma
-  let lambda = !Options.lambda
-  let theta = !Options.theta
-  let init = initial_partition
-  let workload = Scenario.workload sc
-end
-
-module MctsParam = struct
-  let expvexp = !Options.expvexp
-end
-
-module Support = Airconf.Make(Env)
-
-type 'a tree =
-  | Leaf
-  | Node of 'a * (('a tree) list)
-
-module NSet = Set.Make (
-  struct
-    type t = Support.t tree
-    let compare = compare
-  end)
-
-
-let iter_tree t f_leaf f_node=
-  let rec inner node =
-    match node with
-    | Leaf -> f_leaf ()
-    | Node (v, l) -> f_node v l; List.iter inner l
-  in
-  inner t
-
-let fold_tree f t (accu : NSet.t) =
-  let rec inner (node : Support.t tree) (a : NSet.t) =
-    match node with
-    | Leaf -> a
-    | Node (conf, children) ->
-      let newacc = List.fold_left (fun acc elt ->
-        f elt acc) a children in
-      List.fold_left (fun acc elt -> inner elt acc)
-        (newacc : NSet.t) (children : Support.t tree list)
-  in
-  inner t accu
+let costtable : (int, float) Hashtbl.t = Hashtbl.create 10000
+let reltable : (int, int list) Hashtbl.t = Hashtbl.create 10000
 
 let build_tree root produce term =
-  let rec inner node =
-    if term node
-    then Leaf
-    else Node (node, List.map (fun e -> inner e) (produce node))
+  let rec loop st id =
+    let cid = succ id in
+    if term st then cid, Leaf (cid, st)
+    else
+      let mrid, children = List.fold_left ( fun (lid, sib) elt ->
+          let nid, nnode = loop elt lid in
+          nid, nnode :: sib) (cid, []) (produce st)
+      in
+      mrid, (Node (cid, st, children))
+  in loop root 0
+
+let rec fillcost cost = function
+  | Leaf (id, st) -> Hashtbl.add costtable id (cost st)
+  | Node (id, st, children) -> Hashtbl.add costtable id (cost st) ;
+      List.iter (fillcost cost) children
+
+let rec fillrel = function
+  | Leaf (id, st) -> ()
+  | Node (id, _, children) -> let cids = List.map (fun elt ->
+      match elt with Leaf (id, _) | Node (id, _, _) -> id) children in
+      Hashtbl.add reltable id cids
+
+let print_data_lengths data =
+  Printf.printf "[|" ;
+  for i=0 to (Array.length data) - 1 do
+    Printf.printf "(%f, %d); " data.(i).label data.(i).father
+  done ;
+  Printf.printf "|]\n"
+
+let update data_orig (piv: node) id_fixed =
+  let data = Array.copy data_orig
   in
-  inner root
-
-let len tree =
-  let rec inner tree accu =
-    match tree with
-    | Leaf -> accu
-    | Node (_, l) -> inner (List.hd l) (accu + 1)
-  in
-  inner tree 0
-
-let find_best htbl =
-  Hashtbl.fold (fun k v (a,b) ->
-      if v < b then (k,v) else (a,b)
-    ) htbl (Leaf, infinity)
-
-
-let best_path data node =
-  let rec inner node accu =
-    let prev = match node with
-      | Leaf -> failwith "not good"
-      | Node (n, _) ->
-        snd (Hashtbl.find data n) in
-    match prev with
-    | None -> accu
-    | Some n -> inner n (node::accu)
-  in
-  inner node []
-
-exception Eureka
-
-let dijkstra t =
-  let root = match t with
-  | Leaf -> failwith "pas de branche"
-  | Node (conf, sons) -> conf in
-  let data = Hashtbl.create (len t) in
-  iter_tree t (fun _ -> ()) (fun n _ -> Hashtbl.add data n (infinity, None));
-  Printf.printf "data filled%!\n" ;
-  Hashtbl.replace data root (0., None);
-  let q = ref (fold_tree (fun a accu -> NSet.add a accu) t NSet.empty) in
-  Printf.printf "Q set up%!\n" ; let path = ref [] in
-
-  try
-    while NSet.cardinal !q <> 0 do
-      incr _cnt ; Printf.printf "\r%d%!" !_cnt ;
-      let (u, value) = NSet.fold (fun elt (k, v) ->
-          match elt with
-          | Leaf -> path := best_path data elt; raise Eureka
-          | Node (conf, _) ->
-            let (new_v, _) = (Hashtbl.find data conf) in
-            if new_v < v then (elt, new_v) else (k, v)
-        ) !q (t, infinity) in
-      match u with
-      | Leaf -> path := best_path data u ; raise Eureka
-      | Node (v, l) -> if fst (Hashtbl.find data v) = infinity
-          then failwith "tata"
-          else
+  let rec loop = function
+    | [] -> data
+    | hd :: tl ->
+        if not (List.mem (fst hd) id_fixed) then (* Not already fixed *)
+          let frompiv_cost = data.(piv.id).label +. (snd hd)
+          in
+          if data.(fst hd).label > frompiv_cost then
             begin
-              q := NSet.remove u !q;
-              List.iter (fun s ->
-                  match s with
-                  | Leaf -> ()
-                  | Node (v, _) ->
-                    let alt = value +. Support.cost v in
-                    if alt < fst (Hashtbl.find data v) then
-                      Hashtbl.replace data v (alt, Some u)
-                ) l;
-            end
-    done;
-    failwith "Unreachable"
-  with Eureka -> !path
+              data.(fst hd).label <- frompiv_cost ;
+              data.(fst hd).father <- piv.id
+            end ;
+          loop tl
+        else loop tl
+  in
+  loop piv.edges
 
+let cmplabel a b = compare a.label b.label
+
+let argmin_notfixed data id_fixed =
+  let datalst_tmp = Array.to_list data
+  in
+  let datalst_s = List.sort cmplabel datalst_tmp in
+  let rec extract_notfixed (dataso: node_aux list) = match dataso with
+    | [] -> (-1)
+    | hd :: tl ->
+    if List.mem hd.id id_fixed then extract_notfixed tl
+    else hd.id
+  in
+  extract_notfixed datalst_s
+
+let init_data i x = {id=i ; label=infinity ; father=(-1)}
+
+let dijkstra (graph: node array) source =
+  (* Init *)
+  let n = Array.length graph in
+  let pre_data = Array.make n {id=0 ; label=infinity ; father=(-1)} in
+  let data = Array.mapi init_data pre_data
+  and id_fixed = [source]
+  and piv = graph.(source) in
+  data.(source) <- {id=source ; label=0. ; father=(-1)} ;
+  (* Loop *)
+  let rec loop fixed piv data k =
+    if k = n-1 then data else
+      let new_data = update data piv fixed
+      in
+      let piv = graph.(argmin_notfixed new_data fixed)
+      in
+      loop (piv.id :: fixed) piv new_data (k+1)
+  in
+  loop id_fixed piv data 0
 
 let () =
-  let root = Support.init in
-  let my_tree = build_tree root Support.produce Support.terminal in
-  Printf.printf "%d\n%!" (len my_tree) ;
-  ignore @@ dijkstra my_tree
+  let graph = [|
+    {id=0 ; edges=[(5, 3.) ; (2, 9.) ; (1, 8.)]} ;
+    {id=1 ; edges=[(2, 3.) ; (3, 1.) ; (5, 1.)]} ;
+    {id=2 ; edges=[(1, 1.) ; (3, 1.) ; (4, 3.)]} ;
+    {id=3 ; edges=[(1, 1.) ; (2, 1.) ; (4, 1.)]} ;
+    {id=4 ; edges=[]} ;
+    {id=5 ; edges=[(0, 1.) ; (1, 3.) ; (3, 6.) ; (4, 1.)]}
+  |]
+  in
+  let sol = dijkstra graph 0
+  in
+  Printf.printf "Array of (cost, father): " ;
+  print_data_lengths sol
