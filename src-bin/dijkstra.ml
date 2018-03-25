@@ -31,31 +31,34 @@ type status = Support.t
 type tree = Node of int * status * tree list
           | Leaf of int * status
 
-let reltable : (int, int list) Hashtbl.t = Hashtbl.create 10000
-let costtable : (int, cost) Hashtbl.t = Hashtbl.create 10000
+let _size = int_of_float @@ 6. ** (float Env.tmax)
 
-let build_tree root produce term =
+let reltable : (int, int list) Hashtbl.t = Hashtbl.create _size
+let costtable : (int, cost) Hashtbl.t = Hashtbl.create _size
+
+let build_tree root =
   let rec loop st id =
     let cid = succ id in
-    if term st then cid, Leaf (cid, st)
+    if Support.terminal st then cid, Leaf (cid, st)
     else
       let mrid, children = List.fold_left (fun (lid, sib) elt ->
           let nid, nnode = loop elt lid in
-          nid, nnode :: sib) (cid, []) (produce st)
+          nid, nnode :: sib) (cid, []) (Support.produce st)
       in
       mrid, (Node (cid, st, children))
-  in loop root 0
+  in snd @@ loop root 0
 
-let rec fillcost cost node = match node with
-  | Leaf (id, st) -> Hashtbl.add costtable id (cost st)
-  | Node (id, st, children) -> Hashtbl.add costtable id (cost st) ;
-      List.iter (fun c -> fillcost cost c) children
+let rec fillcost = function
+  | Leaf (id, st) -> Hashtbl.add costtable id (Support.cost st)
+  | Node (id, st, children) -> Hashtbl.add costtable id (Support.cost st) ;
+      List.iter (fun c -> fillcost c) children
 
 let rec fillrel = function
-  | Leaf (id, st) -> ()
+  | Leaf (id, _) -> Hashtbl.add reltable id []
   | Node (id, _, children) -> let cids = List.map (fun elt ->
       match elt with Leaf (id, _) | Node (id, _, _) -> id) children in
-      Hashtbl.add reltable id cids
+      Hashtbl.add reltable id cids ;
+      List.iter fillrel children
 
 let build_graph () =
   Array.of_list @@ Hashtbl.fold (fun key elt acc ->
@@ -124,8 +127,8 @@ let dijkstra (graph: node array) source =
   loop id_fixed piv data 0
 
 let () =
-  let _, tree = build_tree Support.init Support.produce Support.terminal in
-  fillrel tree ; fillcost Support.cost tree ;
+  let tree = build_tree Support.init in
+  fillrel tree ; fillcost tree ;
   let graph = build_graph () in
   Printf.printf "Graph of %d nodes\n" (Array.length graph) ;
   let sol = dijkstra graph 0
