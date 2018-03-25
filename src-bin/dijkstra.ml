@@ -73,8 +73,6 @@ let dijkstra (graph : (int * float) list IMap.t) sid =
   and notvisited = IMap.fold (fun id _ nvset -> ISet.add id nvset) graph
       ISet.empty in
   let rec loop nvset dmap =
-    Printf.printf "Lengths: notvis/data: %d/%d\n%!" (ISet.cardinal nvset)
-      (IMap.cardinal dmap) ;
     if nvset = ISet.empty then dmap else
       let tmpid = ISet.choose nvset in
       let tmpdist = (IMap.find tmpid dmap).dist in
@@ -85,7 +83,7 @@ let dijkstra (graph : (int * float) list IMap.t) sid =
       let newdmap = List.fold_left (fun acc (id, cost) ->
           let alt = (IMap.find mid acc).dist +. cost
           and distneigh = (IMap.find id acc).dist in
-          if alt > distneigh then
+          if alt < distneigh then
             let newdata = { dist = alt ; prev = Some mid } in
             let racc = IMap.remove id acc in IMap.add id newdata racc
           else acc) dmap (IMap.find mid graph) in
