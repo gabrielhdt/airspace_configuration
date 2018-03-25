@@ -21,11 +21,11 @@ end
 
 module Support = Airconf.Make(Env)
 
+module IMap = Map.Make(struct type t = int let compare = compare end)
+module ISet = Set.Make(struct type t = int let compare = compare end)
+
 (* Mind the init_data default label value! *)
-type cost = float
-type node_aux = {id: int ; mutable label: cost ; mutable father: int}
-type node = {id: int ; edges: (int * cost) list}
-type graph = node array
+type node_data = { dist : float ; prev : int option }
 
 type status = Support.t
 type tree = Node of int * status * tree list
@@ -34,7 +34,7 @@ type tree = Node of int * status * tree list
 let _size = int_of_float @@ 6. ** (float Env.tmax)
 
 let reltable : (int, int list) Hashtbl.t = Hashtbl.create _size
-let costtable : (int, cost) Hashtbl.t = Hashtbl.create _size
+let costtable : (int, float) Hashtbl.t = Hashtbl.create _size
 
 let build_tree root =
   let rec loop st id =
@@ -46,7 +46,7 @@ let build_tree root =
           nid, nnode :: sib) (cid, []) (Support.produce st)
       in
       mrid, (Node (cid, st, children))
-  in snd @@ loop root 0
+  in snd @@ loop root ~-1
 
 let rec fillcost = function
   | Leaf (id, st) -> Hashtbl.add costtable id (Support.cost st)
@@ -61,87 +61,42 @@ let rec fillrel = function
       List.iter fillrel children
 
 let build_graph () =
-  Array.of_list @@ Hashtbl.fold (fun key elt acc ->
+  Hashtbl.fold (fun key elt acc ->
       let edges = List.map (fun id -> id, Hashtbl.find costtable id) elt in
-      { id = key ; edges = edges } :: acc) reltable []
+      IMap.add key edges acc) reltable IMap.empty
 
-let print_arr print_elt arr =
-  print_string "[|" ;
-  for i = 0 to (Array.length arr) - 1 do
-    print_string "; " ;
-    print_elt arr.(i)
-  done ;
-  print_string "|]"
-
-let print_id_cost ic = Printf.printf "(%d, %f)" (fst ic) (snd ic)
-
-let print_node n = Printf.printf "{id=%d;edges=" n.id ; print_arr print_id_cost
-    (Array.of_list n.edges) ; print_string "}"
-
-let print_naux (na : node_aux) = Printf.printf "{id=%d;label=%f;father=%d}"
-    na.id na.label na.father
-
-let update data_orig (piv: node) id_fixed =
-  let data = Array.copy data_orig
-  in
-  let rec loop = function
-    | [] -> data
-    | hd :: tl ->
-        if not (List.mem (fst hd) id_fixed) then (* Not already fixed *)
-          let frompiv_cost = data.(piv.id).label +. (snd hd)
-          in
-          if data.(fst hd).label > frompiv_cost then
-            begin
-              data.(fst hd).label <- frompiv_cost ;
-              data.(fst hd).father <- piv.id
-            end ;
-          loop tl
-        else loop tl
-  in
-  loop piv.edges
-
-let cmplabel a b = compare a.label b.label
-
-let argmin_notfixed data id_fixed =
-  let datalst_tmp = Array.to_list data
-  in
-  let datalst_s = List.sort cmplabel datalst_tmp in
-  let rec extract_notfixed (dataso: node_aux list) = match dataso with
-    | [] -> (-1)
-    | hd :: tl ->
-    if List.mem hd.id id_fixed then extract_notfixed tl
-    else hd.id
-  in
-  extract_notfixed datalst_s
-
-let init_data i x = {id=i ; label=infinity ; father=(-1)}
-
-let dijkstra (graph: node array) source =
-  (* Init *)
-  let n = Array.length graph in
-  let pre_data = Array.make n {id=0 ; label=infinity ; father=(-1)} in
-  let data = Array.mapi init_data pre_data
-  and id_fixed = [source]
-  and piv = graph.(source) in
-  data.(source) <- {id=source ; label=0. ; father=(-1)} ;
-  (* Loop *)
-  let rec loop fixed piv data k =
-    if k = n-1 then data else
-      let new_data = update data piv fixed
-      in
-      let piv = graph.(argmin_notfixed new_data fixed)
-      in
-      loop (piv.id :: fixed) piv new_data (k+1)
-  in
-  loop id_fixed piv data 0
+let dijkstra (graph : (int * float) list IMap.t) sid =
+  let initdata = IMap.fold (fun id _ ndmap ->
+      IMap.add id { dist = infinity ; prev = None } ndmap) graph IMap.empty in
+  let almostready = IMap.remove sid initdata in
+  let ndata = IMap.add sid { dist = 0. ; prev = None } almostready
+  and notvisited = IMap.fold (fun id _ nvset -> ISet.add id nvset) graph
+      ISet.empty in
+  let rec loop nvset dmap =
+    Printf.printf "Lengths: notvis/data: %d/%d\n%!" (ISet.cardinal nvset)
+      (IMap.cardinal dmap) ;
+    if nvset = ISet.empty then dmap else
+      let tmpid = ISet.choose nvset in
+      let tmpdist = (IMap.find tmpid dmap).dist in
+      let mid = fst @@ ISet.fold (fun id acc ->
+          let d = (IMap.find id dmap).dist in if d < snd acc then id, d else
+            acc) nvset (tmpid , tmpdist) in
+      let reducednvset = ISet.remove mid nvset in
+      let newdmap = List.fold_left (fun acc (id, cost) ->
+          let alt = (IMap.find mid acc).dist +. cost
+          and distneigh = (IMap.find id acc).dist in
+          if alt > distneigh then
+            let newdata = { dist = alt ; prev = Some mid } in
+            let racc = IMap.remove id acc in IMap.add id newdata racc
+          else acc) dmap (IMap.find mid graph) in
+      loop reducednvset newdmap in
+  loop notvisited ndata
 
 let () =
   let tree = build_tree Support.init in
   fillrel tree ; fillcost tree ;
   let graph = build_graph () in
-  Printf.printf "Graph of %d nodes\n" (Array.length graph) ;
-  print_arr print_node graph ; print_newline () ;
-  let sol = dijkstra graph 0
-  in
-  Printf.printf "Array of (cost, father): " ;
-  print_arr print_naux sol
+  print_endline "Graph built, seeking paths..." ;
+  let sol = dijkstra graph 0 in
+  IMap.iter (fun id { dist = d ; prev = _ } ->
+      Printf.printf "Node %d: %f\n" id d) sol
