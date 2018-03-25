@@ -65,12 +65,21 @@ let build_graph () =
       let edges = List.map (fun id -> id, Hashtbl.find costtable id) elt in
       { id = key ; edges = edges } :: acc) reltable []
 
-let print_data_lengths data =
-  Printf.printf "[|" ;
-  for i=0 to (Array.length data) - 1 do
-    Printf.printf "(%f, %d); " data.(i).label data.(i).father
+let print_arr print_elt arr =
+  print_string "[|" ;
+  for i = 0 to (Array.length arr) - 1 do
+    print_string "; " ;
+    print_elt arr.(i)
   done ;
-  Printf.printf "|]\n"
+  print_string "|]"
+
+let print_id_cost ic = Printf.printf "(%d, %f)" (fst ic) (snd ic)
+
+let print_node n = Printf.printf "{id=%d;edges=" n.id ; print_arr print_id_cost
+    (Array.of_list n.edges) ; print_string "}"
+
+let print_naux (na : node_aux) = Printf.printf "{id=%d;label=%f;father=%d}"
+    na.id na.label na.father
 
 let update data_orig (piv: node) id_fixed =
   let data = Array.copy data_orig
@@ -131,7 +140,8 @@ let () =
   fillrel tree ; fillcost tree ;
   let graph = build_graph () in
   Printf.printf "Graph of %d nodes\n" (Array.length graph) ;
+  print_arr print_node graph ; print_newline () ;
   let sol = dijkstra graph 0
   in
   Printf.printf "Array of (cost, father): " ;
-  print_data_lengths sol
+  print_arr print_naux sol
