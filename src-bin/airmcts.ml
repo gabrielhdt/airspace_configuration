@@ -41,7 +41,8 @@ let () =
   print_string "\n=========\n" ;
   Printf.printf "final cost: %f (for a length of %d)\n" pathcost (List.length path);
   if !Options.verbose then
-      Partitions.print_partitions
-        (List.map (fun s -> Support.get_partitions s)
-                 (List.map (fun tree -> Airmcts.get_state tree) path)
-              )
+    Partitions.print_partitions (List.map (fun s ->
+        Support.get_partitions s) (List.map (fun tree ->
+        Airmcts.get_state tree)
+      path)
+    )

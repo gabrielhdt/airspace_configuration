@@ -204,7 +204,7 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
       let path = treepolicy root in
       let sim = simulate (List.hd path) in
       assert (sim > 0.);
-      let reward = 1. /. sim in
+      let reward = 1. /. (1. +. sim) in
       backpropagate path reward ;
       Cldisp.mctsinfo !_nodecount reward
     done

@@ -111,16 +111,18 @@ let () =
   let shortest = IMap.fold (fun key nd acc ->
       if nd.dist < acc.dist then nd else acc) leavesol
       { dist = infinity ; prev = None } in
-  Printf.printf "shortest path: %f\n" shortest.dist ;
-  if !Options.verbose then
-    begin
       let smap = statemap IMap.empty tree in
       let rec build_path { dist = _ ; prev = pid } =
         match pid
         with None -> []
            | Some i -> i :: build_path (IMap.find i sol)
       in let path = List.rev @@ build_path shortest in
-      let parts = List.map (fun id -> let st = IMap.find id smap in
-                             Support.get_partitions st) path in
-      Partitions.print_partitions parts
-    end
+      let p = List.map (fun id -> IMap.find id smap) path in
+      let pathcost = List.fold_left (fun acc elt ->
+          acc +. (Support.cost elt)) 0. p in
+      let n = List.length p in
+      Printf.printf "path cost : %f path length %d \n" (pathcost) n;
+
+      if !Options.verbose then
+        Partitions.print_partitions (List.map (fun s ->
+            Support.get_partitions s) (List.map (fun tree -> tree) p) )
