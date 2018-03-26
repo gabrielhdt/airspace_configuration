@@ -31,11 +31,6 @@ type status = Support.t
 type tree = Node of int * status * tree list
           | Leaf of int * status
 
-let _size = int_of_float @@ 6. ** (float Env.tmax)
-
-let reltable : (int, int list) Hashtbl.t = Hashtbl.create _size
-let costtable : (int, float) Hashtbl.t = Hashtbl.create _size
-
 let build_tree root =
   let rec loop st id =
     let cid = succ id in
@@ -69,27 +64,10 @@ let rec relmap tree =
            List.fold_left loop amap children
   in loop IMap.empty tree
 
-let rec fillcost = function
-  | Leaf (id, st) -> Hashtbl.add costtable id (Support.cost st)
-  | Node (id, st, children) -> Hashtbl.add costtable id (Support.cost st) ;
-      List.iter (fun c -> fillcost c) children
-
-let rec fillrel = function
-  | Leaf (id, _) -> Hashtbl.add reltable id []
-  | Node (id, _, children) -> let cids = List.map (fun elt ->
-      match elt with Leaf (id, _) | Node (id, _, _) -> id) children in
-      Hashtbl.add reltable id cids ;
-      List.iter fillrel children
-
-let build_graph () =
-  Hashtbl.fold (fun key elt acc ->
-      let edges = List.map (fun id -> id, Hashtbl.find costtable id) elt in
-      IMap.add key edges acc) reltable IMap.empty
-
 let build_graph costs relations =
   IMap.fold (fun id neigh gr ->
       let edges = List.map (fun nid -> nid, IMap.find nid costs) neigh in
-      IMap.add id edges gr) IMap.empty IMap.empty
+      IMap.add id edges gr) relations IMap.empty
 
 let dijkstra (graph : (int * float) list IMap.t) sid =
   let initdata = IMap.fold (fun id _ ndmap ->
@@ -118,7 +96,6 @@ let dijkstra (graph : (int * float) list IMap.t) sid =
 
 let () =
   let tree = build_tree Support.init in
-  fillrel tree ; fillcost tree ;
   let relations = relmap tree
   and costs = costmap tree in
   let graph = build_graph costs relations in
