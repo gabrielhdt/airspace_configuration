@@ -36,10 +36,16 @@ let _size = int_of_float @@ 6. ** (float Env.tmax)
 let reltable : (int, int list) Hashtbl.t = Hashtbl.create _size
 let costtable : (int, float) Hashtbl.t = Hashtbl.create _size
 
+let leaves = ref ISet.empty
+
 let build_tree root =
   let rec loop st id =
     let cid = succ id in
-    if Support.terminal st then cid, Leaf (cid, st)
+    if Support.terminal st then
+      begin
+        leaves := ISet.add cid !leaves ;
+        cid, Leaf (cid, st)
+      end
     else
       let mrid, children = List.fold_left (fun (lid, sib) elt ->
           let nid, nnode = loop elt lid in
@@ -96,5 +102,11 @@ let () =
   let graph = build_graph () in
   print_endline "Graph built, seeking paths..." ;
   let sol = dijkstra graph 0 in
+  let leavesol = IMap.filter (fun id _ -> ISet.mem id !leaves) sol in
+  let shortest = IMap.fold (fun key {dist = d ; prev = _ } acc ->
+      if d < acc then d else acc) leavesol infinity in
+  Printf.printf "shortest path: %f\n" shortest
+    (*
   IMap.iter (fun id { dist = d ; prev = _ } ->
       Printf.printf "Node %d: %f\n" id d) sol
+       *)
