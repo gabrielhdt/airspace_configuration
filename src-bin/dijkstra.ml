@@ -48,6 +48,27 @@ let build_tree root =
       mrid, (Node (cid, st, children))
   in snd @@ loop root ~-1
 
+let rec fold_tree f acc tree = match tree
+  with Leaf (id, st) as l -> f acc l
+     | Node (id, st, children) as n -> let aacc = f acc n
+         in List.fold_left f aacc children
+
+let rec costmap tree =
+  let rec loop acc node = match node with
+    | Leaf (id, st) -> IMap.add id (Support.cost st) acc
+    | Node (id, st, children) -> let amap = IMap.add id (Support.cost st) acc
+        in List.fold_left loop amap children
+  in loop IMap.empty tree
+
+let rec relmap tree =
+  let rec loop acc node = match node
+    with Leaf (id, _) -> IMap.add id [] acc
+       | Node (id, _, children) -> let cids = List.map (fun elt ->
+           match elt with Leaf (id, _) | Node (id, _, _) -> id) children in
+           let amap = IMap.add id cids acc in
+           List.fold_left loop amap children
+  in loop IMap.empty tree
+
 let rec fillcost = function
   | Leaf (id, st) -> Hashtbl.add costtable id (Support.cost st)
   | Node (id, st, children) -> Hashtbl.add costtable id (Support.cost st) ;
@@ -64,6 +85,11 @@ let build_graph () =
   Hashtbl.fold (fun key elt acc ->
       let edges = List.map (fun id -> id, Hashtbl.find costtable id) elt in
       IMap.add key edges acc) reltable IMap.empty
+
+let build_graph costs relations =
+  IMap.fold (fun id neigh gr ->
+      let edges = List.map (fun nid -> nid, IMap.find nid costs) neigh in
+      IMap.add id edges gr) IMap.empty IMap.empty
 
 let dijkstra (graph : (int * float) list IMap.t) sid =
   let initdata = IMap.fold (fun id _ ndmap ->
@@ -93,7 +119,9 @@ let dijkstra (graph : (int * float) list IMap.t) sid =
 let () =
   let tree = build_tree Support.init in
   fillrel tree ; fillcost tree ;
-  let graph = build_graph () in
+  let relations = relmap tree
+  and costs = costmap tree in
+  let graph = build_graph costs relations in
   print_endline "Graph built, seeking paths..." ;
   let sol = dijkstra graph 0 in
   IMap.iter (fun id { dist = d ; prev = _ } ->
