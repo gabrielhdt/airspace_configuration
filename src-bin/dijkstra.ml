@@ -9,7 +9,7 @@ let initial_partition = [
 ]
 
 module Env = struct
-  let tmax = !Options.maxsearch
+  let tmax = !Options.horizon
   let alpha = !Options.alpha
   let beta = !Options.beta
   let gamma = !Options.gamma
