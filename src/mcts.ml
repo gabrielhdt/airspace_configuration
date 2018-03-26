@@ -5,11 +5,13 @@ module type S = sig
   type state
   type tree
   val root : tree
-  val best_path_max : tree -> float -> tree list
-  val best_path_secure : tree -> float -> tree list
-  val best_path_robust : tree -> float -> tree list
+  val mcts : tree -> unit
+  val select_max : tree -> tree
+  val select_robust : tree -> tree
+  val select_secure : tree -> tree
 
   (********************************* DEBUG ***********************************)
+  val print_children : tree -> unit
   val get_state : tree -> state
 end
 
@@ -24,15 +26,12 @@ end
 
 module type MctsParameters = sig
   val expvexp : float
+  val lapse : float
 end
 
 module Make (Supp : Support) (MctsParam : MctsParameters) = struct
 
   type state = Supp.t
-
-  (* Single player constant, ensures that rarely explored nodes are still
-   * considered promising *)
-  let _spmctsc = 2.
 
   type tree = {
     state : state ;
@@ -95,6 +94,10 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
     Printf.printf "%f/%d/%f" node.q node.n lcb ;
     print_newline ()
 
+  let print_children node =
+    List.iter (fun n -> Printf.printf "{q=%f;n=%d}" n.q n.n) node.children ;
+    print_newline ()
+
   let get_state n = n.state
   (*******************************************************************)
 
@@ -114,8 +117,8 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
         ) father.children
   end
 
-  (* [stop p] returns whether the mcts should stop on this path *)
-  let stop maxtime = Sys.time () >= maxtime
+  (* [stop t] returns whether the mcts should stop given start time [t] *)
+  let stop timestart = Sys.time () -. timestart >= MctsParam.lapse
 
 
   (* [produce t] creates the list of reachable nodes from [t] *)
@@ -194,37 +197,27 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
         e.n <- e.n + 1
       ) ancestors
 
-  (** [mcts r] updates tree of root [t] with monte carlo *)
-  let mcts root maxtime =
-    while not (stop maxtime) do
+  (** [mcts r] updates tree of root [r] with monte carlo *)
+  let mcts root =
+    let start = Sys.time () in
+    while not (stop start) do
       let path = treepolicy root in
       let sim = simulate (List.hd path) in
       assert (sim > 0.);
       let reward = 1. /. sim in
-      backpropagate path reward;
+      backpropagate path reward ;
       Cldisp.mctsinfo !_nodecount reward
-    done ; Printf.printf "%d nodes deployed\nmean branch factor: %f\n"
-      !_nodecount (float !_branchfactor /. float !_nodecount)
+    done
 
-  let best_path root criterion =
-    let rec aux current_node accu =
-      match current_node.children with
-      | [] -> accu
-      | children ->
-        let best_ch = criterion children in
-        aux best_ch (best_ch :: accu)
-    in
-    aux root [root]
+  let select criterion root =
+    match root.children with
+    | [] -> failwith ("no node to select, the tree is either not developped " ^
+                      "or the root is terminal")
+    | children -> criterion children
 
-  let best_path_max root maxtime =
-    mcts root maxtime ;
-    best_path root WinPol.max
+  let select_max = select WinPol.max
 
-  let best_path_secure root maxtime =
-    mcts root maxtime ;
-    best_path root WinPol.secure
+  let select_robust = select WinPol.robust
 
-  let best_path_robust root maxtime =
-    mcts root maxtime;
-    best_path root WinPol.robust
+  let select_secure = select WinPol.secure
 end

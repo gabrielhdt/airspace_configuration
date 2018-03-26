@@ -27,6 +27,9 @@ module type MctsParameters = sig
       the more not visited nodes are considered promising. See bandit
       algorithms for more information *)
   val expvexp : float
+
+  (** Amount of time during which the mcts develops the tree *)
+  val lapse : float
 end
 
 
@@ -42,17 +45,23 @@ module type S = sig
   (** The root of the tree *)
   val root : tree
 
-  (** [best_path_max t n] returns a path of nodes from the root of [t] to a
-      terminal leaf. The selection is based on the reward in each node. *)
-  val best_path_max : tree -> float -> tree list
+  (** [mcts t] develops the tree [t] thanks to production rules *)
+  val mcts : tree -> unit
 
-  (** Selects nodes which have the highest visit count *)
-  val best_path_secure : tree -> float -> tree list
+  (** [select_max t] returns the child of tree [t] maximising the reward
+      expectancy *)
+  val select_max : tree -> tree
 
-  (** Selects nodes which minimise a lower confidence bound *)
-  val best_path_robust : tree -> float -> tree list
+  (** [select_secure t] returns the child of tree [t] maximising the number
+      of visits *)
+  val select_robust : tree -> tree
+
+  (** [select_robust t] returns the child of tree [t] maximising a lower
+      confidence bound *)
+  val select_secure : tree -> tree
 
   (********************************* DEBUG ***********************************)
+  val print_children : tree -> unit
   val get_state : tree -> state
 end
 

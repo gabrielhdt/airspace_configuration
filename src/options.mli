@@ -10,12 +10,15 @@ val speclist : (string * Arg.spec * string) list
 val anon_fun : string -> 'a
 
 val scpath : string ref
-val maxsearch : int ref
-val maxtime : float ref
+val horizon : int ref
+val timeperstep : float ref
+val nsteps : int ref
+
 val alpha : float ref
 val beta : float ref
 val gamma : float ref
 val lambda : float ref
 val theta : float ref
 val expvexp : float ref
+
 val verbose : bool ref
