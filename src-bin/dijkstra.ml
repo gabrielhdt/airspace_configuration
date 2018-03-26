@@ -66,6 +66,11 @@ let rec fillrel = function
       Hashtbl.add reltable id cids ;
       List.iter fillrel children
 
+let rec statemap accmap node = match node
+  with Leaf (id, st) -> IMap.add id st accmap
+     | Node (id, st, children) -> let nmap = IMap.add id st accmap in
+       List.fold_left statemap nmap children
+
 let build_graph () =
   Hashtbl.fold (fun key elt acc ->
       let edges = List.map (fun id -> id, Hashtbl.find costtable id) elt in
@@ -103,10 +108,19 @@ let () =
   print_endline "Graph built, seeking paths..." ;
   let sol = dijkstra graph 0 in
   let leavesol = IMap.filter (fun id _ -> ISet.mem id !leaves) sol in
-  let shortest = IMap.fold (fun key {dist = d ; prev = _ } acc ->
-      if d < acc then d else acc) leavesol infinity in
-  Printf.printf "shortest path: %f\n" shortest
-    (*
-  IMap.iter (fun id { dist = d ; prev = _ } ->
-      Printf.printf "Node %d: %f\n" id d) sol
-       *)
+  let shortest = IMap.fold (fun key nd acc ->
+      if nd.dist < acc.dist then nd else acc) leavesol
+      { dist = infinity ; prev = None } in
+  Printf.printf "shortest path: %f\n" shortest.dist ;
+  if !Options.verbose then
+    begin
+      let smap = statemap IMap.empty tree in
+      let rec build_path { dist = _ ; prev = pid } =
+        match pid
+        with None -> []
+           | Some i -> i :: build_path (IMap.find i sol)
+      in let path = List.rev @@ build_path shortest in
+      let parts = List.map (fun id -> let st = IMap.find id smap in
+                             Support.get_partitions st) path in
+      Partitions.print_partitions parts
+    end
