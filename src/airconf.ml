@@ -98,16 +98,20 @@ module Make (Env : Environment) = struct
     in "[" ^ List.fold_left (fun acc elt -> acc ^ ", " ^ elt) "" sidlst ^ "]"
 
   let workload_costs time part =
-    List.fold_left (fun accu sec ->
-        let (a, b, c) = accu in
-        let (ph, pn, pl) = Env.workload time (Util.Sset.elements (fst sec)) in
-        let status = e_wl ph pn pl in
-        let card = Util.Sset.cardinal (fst sec) in
-        match status with
-        | High -> (a +. ph *. (float card) ** 2., b, c)
-        | Normal -> (a, b +. pn *. (float card) ** (-2.), c)
-        | Low -> (a, b, c +. pl *. (float card) ** (-2.))
-      ) (0., 0., 0.) part
+    let hc, nc, lc =
+      List.fold_left (fun accu sec ->
+          let (a, b, c) = accu in
+          let (ph, pn, pl) = Env.workload time (Util.Sset.elements (fst sec)) in
+          let status = e_wl ph pn pl in
+          let card = Util.Sset.cardinal (fst sec) in
+          match status with
+          | High -> (a +. ph *. (float card) ** 2., b, c)
+          | Normal -> (a, b +. pn *. (float card) ** (-2.), c)
+          | Low -> (a, b, c +. pl *. (float card) ** (-2.))
+        ) (0., 0., 0.) part in
+    (* Normalising factors *)
+    let hdenom = float _nsec ** 3. and nldenom = float _nsec in
+    hc /. hdenom, nc /. nldenom, lc /. nldenom
 
   let trans_cost p_father p_child =
     if p_father = p_child then 0. else 1.
@@ -115,10 +119,17 @@ module Make (Env : Environment) = struct
   let compute_cost time part p_father =
     let highcost, normalcost, lowcost = workload_costs time part
     and transcost = trans_cost p_father part
-    and sizefac = float @@ List.length part in
-    Env.alpha *. highcost +. Env.beta *. normalcost *. Env.gamma *. lowcost +.
-    Env.lambda *. sizefac +.
-    Env.theta *. transcost
+    and sizefac = (float @@ List.length part) /. float _nsec in
+    assert (highcost <= 1. && normalcost <= 1. && lowcost <= 1. &&
+            transcost <= 1. && sizefac <= 1.) ;
+    (* Now that factors are weighted, the sum lie in [0, 'a + 'b + ...] *)
+    let weighted_sum =
+      Env.alpha *. highcost +. Env.beta *. (1. -. normalcost) +.
+      Env.gamma *. lowcost +. Env.lambda *. sizefac +. Env.theta *. transcost
+    and denom = float Env.tmax *. (Env.alpha +. Env.beta +. Env.gamma +.
+                                   Env.lambda +. Env.theta) in
+    let normalised = weighted_sum /. denom in
+    assert (normalised <= 1.) ; normalised
 
   let cost conf = conf.cost
 

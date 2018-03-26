@@ -197,14 +197,17 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
         e.n <- e.n + 1
       ) ancestors
 
+  let g x = 1. /. (1. +. x) (* g : [0, 1] -> [1/2, 1] *)
+  let h x = 2. *. x -. 1. (* h : [1/2, 1] -> [0, 1] *)
+
   (** [mcts r] updates tree of root [r] with monte carlo *)
   let mcts root =
     let start = Sys.time () in
     while not (stop start) do
       let path = treepolicy root in
       let sim = simulate (List.hd path) in
-      assert (sim > 0.);
-      let reward = 1. /. sim in
+      let reward = h @@ g sim in
+      assert (reward >= 0. && reward <= 1.) ;
       backpropagate path reward ;
       Cldisp.mctsinfo !_nodecount reward
     done
