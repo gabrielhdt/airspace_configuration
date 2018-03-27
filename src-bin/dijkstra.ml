@@ -31,23 +31,18 @@ type status = Support.t
 type tree = Node of int * status * tree list
           | Leaf of int * status
 
-let leaves = ref ISet.empty
-
 let build_tree root =
-  let rec loop st id =
+  let rec loop st id leaves =
     let cid = succ id in
-    if Support.terminal st then
-      begin
-        leaves := ISet.add cid !leaves ;
-        cid, Leaf (cid, st)
-      end
+    if Support.terminal st then cid, ISet.add cid leaves, Leaf (cid, st)
     else
-      let mrid, children = List.fold_left (fun (lid, sib) elt ->
-          let nid, nnode = loop elt lid in
-          nid, nnode :: sib) (cid, []) (Support.produce st)
+      let mrid, mrls, children = List.fold_left (fun (lid, lls, sib) elt ->
+          let nid, nls, nnode = loop elt lid lls in
+          nid, nls, nnode :: sib) (cid, leaves, []) (Support.produce st)
       in
-      mrid, (Node (cid, st, children))
-  in snd @@ loop root ~-1
+      mrid, mrls, (Node (cid, st, children))
+  in let _, l, t = loop root ~-1 ISet.empty in
+  t, l
 
 let rec fold_tree f acc tree = match tree
   with Leaf (id, st) as l -> f acc l
@@ -106,13 +101,13 @@ let dijkstra (graph : (int * float) list IMap.t) sid =
   loop notvisited ndata
 
 let () =
-  let tree = build_tree Support.init in
+  let tree, leaves = build_tree Support.init in
   let relations = relmap tree
   and costs = costmap tree in
   let graph = build_graph costs relations in
   print_endline "Graph built, seeking paths..." ;
   let sol = dijkstra graph 0 in
-  let leavesol = IMap.filter (fun id _ -> ISet.mem id !leaves) sol in
+  let leavesol = IMap.filter (fun id _ -> ISet.mem id leaves) sol in
   let shortest = IMap.fold (fun key nd acc ->
       if nd.dist < acc.dist then nd else acc) leavesol
       { dist = infinity ; prev = None } in
