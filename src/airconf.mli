@@ -2,7 +2,7 @@
     a traffic forecasting module *)
 
 (** A type alias, for convenience *)
-type partition = (Util.Sset.t * Util.Smap.key list) list
+type partition = Partitions.partition
 
 (** Type of the traffic forecasting module *)
 module type Environment = sig
@@ -18,6 +18,9 @@ module type Environment = sig
 
   (** Initial partition of the airspace *)
   val init : partition
+
+  (** the context associated with the scenario played *)
+  val ctx : Partitions.context
 
   (** [workload t m] returns a forecasted load for control sector [m] at
       time [t] *)
@@ -48,7 +51,7 @@ module type S = sig
   val terminal : t -> bool
 
   (****************************** DEBUG **************************************)
-  val get_partitions : t -> (Util.Sset.t * Util.Smap.key list) list
+  val get_partitions : t -> partition
   val get_time : t -> int
 end
 

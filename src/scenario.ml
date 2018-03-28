@@ -1,3 +1,20 @@
+(* creation of the context needed for  our scenario *)
+let l =
+    [ ("s1",["1"]);
+      ("s2",["2"]);
+      ("s3",["3"]);
+      ("s4",["4"]);
+      ("s5",["5"]);
+      ("a",["2";"3"]);
+      ("b",["3";"4"]);
+      ("c",["4";"5"]);
+      ("d",["1";"5"]);
+      ("e",["1";"2";"3"]);
+      ("f",["1";"2";"3";"4";"5"]);
+      ("g",["1";"2"])  ]
+
+let ctx = Partitions.make_context l
+
 (* Profile of a sector over time *)
 type t = (
   string * (* Name of sector *)
