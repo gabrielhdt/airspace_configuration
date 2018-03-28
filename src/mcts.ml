@@ -206,8 +206,7 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
       let sim = simulate (List.hd path) in
       assert (sim > 0.);
       let reward = 1. /. (1. +. sim) in
-      backpropagate path reward ;
-      Cldisp.mctsinfo !_nodecount reward
+      backpropagate path reward
     done
 
   let select criterion root =
@@ -224,11 +223,11 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
 
   let buildpath root nsteps policy =
     let rec inner cnt accu current_tree =
+      Printf.printf "node : %d/%d\r%!" cnt !Options.horizon;
       if cnt >= nsteps then accu else
         begin
           let newtree = List.hd accu in
           mcts newtree ;
-          print_children newtree ;
           inner (cnt + 1) (policy newtree :: accu) newtree
         end
     in
