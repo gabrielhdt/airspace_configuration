@@ -9,6 +9,7 @@ module type S = sig
   val select_max : tree -> tree
   val select_robust : tree -> tree
   val select_secure : tree -> tree
+  val buildpath : tree -> int -> (tree -> tree) -> tree list
 
   (********************************* DEBUG ***********************************)
   val print_children : tree -> unit
@@ -205,8 +206,7 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
       let sim = simulate (List.hd path) in
       assert (sim > 0.);
       let reward = 1. /. (1. +. sim) in
-      backpropagate path reward ;
-      Cldisp.mctsinfo !_nodecount reward
+      backpropagate path reward
     done
 
   let select criterion root =
@@ -220,4 +220,16 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
   let select_robust = select WinPol.robust
 
   let select_secure = select WinPol.secure
+
+  let buildpath root nsteps policy =
+    let rec inner cnt accu current_tree =
+      Printf.printf "node : %d/%d\r%!" cnt !Options.horizon;
+      if cnt >= nsteps then accu else
+        begin
+          let newtree = List.hd accu in
+          mcts newtree ;
+          inner (cnt + 1) (policy newtree :: accu) newtree
+        end
+    in
+    inner 0 [root] root
 end

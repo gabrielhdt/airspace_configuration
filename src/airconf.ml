@@ -1,23 +1,5 @@
 type partition = (Util.Sset.t * Util.Smap.key list) list
 
-let l =
-    [ ("s1",["1"]);
-      ("s2",["2"]);
-      ("s3",["3"]);
-      ("s4",["4"]);
-      ("s5",["5"]);
-      ("a",["2";"3"]);
-      ("b",["3";"4"]);
-      ("c",["4";"5"]);
-      ("d",["1";"5"]);
-      ("e",["1";"2";"3"]);
-      ("f",["1";"2";"3";"4";"5"]);
-      ("g",["1";"2"])  ]
-
-let _nsec = 5
-
-let _ctx = Partitions.make_context l
-
 module type Environment = sig
   val tmax : int
   val alpha : float
@@ -26,6 +8,8 @@ module type Environment = sig
   val lambda : float
   val theta : float
   val init : partition
+  val ctx : Partitions.context
+  val sectors : string list
   val workload : int -> string list -> float * float * float
 end
 
@@ -123,16 +107,11 @@ module Make (Env : Environment) = struct
     let partcost = part_cost time part
     and transcost = trans_cost p_father part in
     partcost +. Env.theta *. transcost
-                (*
-    Env.alpha *. highcost +. Env.beta *. normalcost *. Env.gamma *. lowcost +.
-    Env.lambda *. sizefac +.
-    Env.theta *. transcost
-                   *)
 
   let cost conf = conf.cost
 
   (* Partition production, i.e. generation of children partitions *)
-  let prod_parts_nomem part = part :: Partitions.recombine _ctx part
+  let prod_parts_nomem part = part :: Partitions.recombine Env.ctx part
 
   (* [prod_parts p] generates all reachable partitions from partition [p].
    * Uses memoization, see nomem version for the original function *)
@@ -144,7 +123,7 @@ module Make (Env : Environment) = struct
 
   (* [produce c] produces all children states of config *)
       (* No mem version here *)
-  let produce config =
+  let produce_nomem config =
     let reachable_partitions = prod_parts_nomem config.partition in
     List.map (fun p ->
         { partition = p ; time = config.time + 1 ;
@@ -152,13 +131,13 @@ module Make (Env : Environment) = struct
       ) reachable_partitions
 
   (* Memoized version of the above *)
-  (* let produce config =
+  let produce config =
     if StatMem.mem config
     then StatMem.find config
     else
       let newconfs = produce_nomem config in
       StatMem.add config newconfs ;
-      newconfs *)
+      newconfs
 
 
   let terminal conf = conf.time >= Env.tmax

@@ -1,6 +1,10 @@
 (** Basic scenario generator, uses a json file.
     Each sector has a workload defined by the number of aircraft in it. *)
 
+(** context of the secotors related to he scenario played *)
+val ctx : Partitions.context
+val sectors : string list
+
 (** A scenario *)
 type t
 

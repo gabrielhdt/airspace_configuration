@@ -16,6 +16,8 @@ let () =
     let lambda = !Options.lambda
     let theta = !Options.theta
     let init = initial_partition
+    let ctx = Scenario.ctx
+    let sectors = Scenario.sectors
     let workload = Scenario.workload sc
   end in
 
@@ -26,16 +28,8 @@ let () =
 
   let module Support = Airconf.Make(Env) in
   let module Airmcts = Mcts.Make(Support)(MctsParam) in
-  let rec buildpath cnt acc =
-    if cnt >= !Options.nsteps then acc else
-      begin
-        let newtree = List.hd acc in
-        Airmcts.mcts newtree ;
-        Airmcts.print_children newtree ;
-        buildpath (cnt + 1) (Airmcts.select_robust newtree :: acc)
-      end
-  in
-  let path = buildpath 0 [Airmcts.root] in
+  let path = Airmcts.buildpath Airmcts.root !Options.nsteps
+      Airmcts.select_robust in
   let pathcost = List.fold_left (fun acc elt ->
       acc +. (Support.cost @@ Airmcts.get_state elt)) 0. path in
   print_string "\n=========\n" ;

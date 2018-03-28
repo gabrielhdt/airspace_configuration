@@ -16,6 +16,8 @@ module Env = struct
   let lambda = !Options.lambda
   let theta = !Options.theta
   let init = initial_partition
+  let ctx = Scenario.ctx
+  let sectors = Scenario.sectors
   let workload = Scenario.workload sc
 end
 
