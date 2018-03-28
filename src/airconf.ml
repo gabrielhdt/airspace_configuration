@@ -118,7 +118,7 @@ module Make (Env : Environment) = struct
 
   (* [produce c] produces all children states of config *)
       (* No mem version here *)
-  let produce config =
+  let produce_nomem config =
     let reachable_partitions = prod_parts_nomem config.partition in
     List.map (fun p ->
         { partition = p ; time = config.time + 1 ;
@@ -126,13 +126,13 @@ module Make (Env : Environment) = struct
       ) reachable_partitions
 
   (* Memoized version of the above *)
-  (* let produce config =
+  let produce config =
     if StatMem.mem config
     then StatMem.find config
     else
       let newconfs = produce_nomem config in
       StatMem.add config newconfs ;
-      newconfs *)
+      newconfs
 
 
   let terminal conf = conf.time >= Env.tmax
