@@ -7,7 +7,7 @@ module type Environment = sig
   val theta : float
   val init : Partitions.partition
   val workload : int -> string list -> float * float * float
-  val context : Partitions.context
+  val ctx : Partitions.context
   val sectors : string list
 end
 
@@ -22,13 +22,12 @@ module type Support = sig
 end
 
 module type S = sig
-  type t
-  val h : t -> float
+  val h : int -> float
 end
 
 module Make (Env : Environment)(AirSupp : Support) = struct
 
-  let allparts = Partitions.partitions Env.context (fun _ -> true) Env.sectors
+  let allparts = Partitions.partitions Env.ctx (fun _ -> true) Env.sectors
 
   let best time = Auxfct.argmax (fun p1 p2 ->
       if AirSupp.part_cost time p1 < AirSupp.part_cost time p2 then p1 else p2)
