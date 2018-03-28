@@ -48,6 +48,7 @@ module type S = sig
   val terminal : t -> bool
 
   (****************************** DEBUG **************************************)
+  val part_cost : int -> Partitions.partition -> float
   val get_partitions : t -> (Util.Sset.t * Util.Smap.key list) list
   val get_time : t -> int
 end

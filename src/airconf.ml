@@ -38,6 +38,7 @@ module type S = sig
   val terminal : t -> bool
 
   (****************************** DEBUG **************************************)
+  val part_cost : int -> Partitions.partition -> float
   val get_partitions : t -> partition
   val get_time : t -> int
 end
@@ -112,13 +113,21 @@ module Make (Env : Environment) = struct
   let trans_cost p_father p_child =
     if p_father = p_child then 0. else 1.
 
-  let compute_cost time part p_father =
+  let part_cost time part =
     let highcost, normalcost, lowcost = workload_costs time part
-    and transcost = trans_cost p_father part
     and sizefac = float @@ List.length part in
+    Env.alpha *. highcost +. Env.beta *. normalcost +. Env.gamma *. lowcost +.
+    Env.lambda *. sizefac
+
+  let compute_cost time part p_father =
+    let partcost = part_cost time part
+    and transcost = trans_cost p_father part in
+    partcost +. Env.theta *. transcost
+                (*
     Env.alpha *. highcost +. Env.beta *. normalcost *. Env.gamma *. lowcost +.
     Env.lambda *. sizefac +.
     Env.theta *. transcost
+                   *)
 
   let cost conf = conf.cost
 
