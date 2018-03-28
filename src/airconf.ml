@@ -99,7 +99,7 @@ module Make (Env : Environment) = struct
     let highcost, normalcost, lowcost = workload_costs time part
     and transcost = trans_cost p_father part
     and sizefac = float @@ List.length part in
-    Env.alpha *. highcost +. Env.beta *. normalcost *. Env.gamma *. lowcost +.
+    Env.alpha *. highcost +. Env.beta *. normalcost +. Env.gamma *. lowcost +.
     Env.lambda *. sizefac +.
     Env.theta *. transcost
 
