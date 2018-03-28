@@ -60,6 +60,10 @@ module type S = sig
       confidence bound *)
   val select_secure : tree -> tree
 
+(** [buildpath r t cmp] return the best path from the root [r] with a length
+    of nstep [t] according to the policy [cmp]*)
+  val buildpath : tree -> int -> (tree -> tree) -> tree list
+
   (********************************* DEBUG ***********************************)
   val print_children : tree -> unit
   val get_state : tree -> state

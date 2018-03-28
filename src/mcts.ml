@@ -9,6 +9,7 @@ module type S = sig
   val select_max : tree -> tree
   val select_robust : tree -> tree
   val select_secure : tree -> tree
+  val buildpath : tree -> int -> (tree -> tree) -> tree list
 
   (********************************* DEBUG ***********************************)
   val print_children : tree -> unit
@@ -220,4 +221,16 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
   let select_robust = select WinPol.robust
 
   let select_secure = select WinPol.secure
+
+  let buildpath root nsteps policy =
+    let rec inner cnt accu current_tree =
+      if cnt >= nsteps then accu else
+        begin
+          let newtree = List.hd accu in
+          mcts newtree ;
+          print_children newtree ;
+          inner (cnt + 1) (policy newtree :: accu) newtree
+        end
+    in
+    inner 0 [root] root
 end
