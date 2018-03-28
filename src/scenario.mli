@@ -3,6 +3,7 @@
 
 (** context of the secotors related to he scenario played *)
 val ctx : Partitions.context
+val sectors : string list
 
 (** A scenario *)
 type t

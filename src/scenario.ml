@@ -13,6 +13,8 @@ let l =
       ("f",["1";"2";"3";"4";"5"]);
       ("g",["1";"2"])  ]
 
+let sectors = ["1"; "2"; "3"; "4"; "5"]
+
 let ctx = Partitions.make_context l
 
 (* Profile of a sector over time *)

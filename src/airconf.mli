@@ -21,6 +21,7 @@ module type Environment = sig
 
   (** the context associated with the scenario played *)
   val ctx : Partitions.context
+  val sectors : string list
 
   (** [workload t m] returns a forecasted load for control sector [m] at
       time [t] *)

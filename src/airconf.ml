@@ -9,6 +9,7 @@ module type Environment = sig
   val theta : float
   val init : partition
   val ctx : Partitions.context
+  val sectors : string list
   val workload : int -> string list -> float * float * float
 end
 
