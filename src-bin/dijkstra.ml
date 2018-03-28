@@ -24,13 +24,13 @@ module Support = Airconf.Make(Env)
 module IMap = Map.Make(struct type t = int let compare = compare end)
 module ISet = Set.Make(struct type t = int let compare = compare end)
 
-(* Mind the init_data default label value! *)
 type node_data = { dist : float ; prev : int option }
 
 type status = Support.t
 type tree = Node of int * status * tree list
           | Leaf of int * status
 
+(* Build a tree from the production rule of the functor *)
 let build_tree root =
   let rec loop st id leaves =
     let cid = succ id in
@@ -49,6 +49,7 @@ let rec fold_tree f acc tree = match tree
      | Node (id, st, children) as n -> let aacc = f acc n
          in List.fold_left f aacc children
 
+(* [costmapt t] builds a map from nodes id to cost of associated status *)
 let rec costmap tree =
   let rec loop acc node = match node with
     | Leaf (id, st) -> IMap.add id (Support.cost st) acc
@@ -56,6 +57,7 @@ let rec costmap tree =
         in List.fold_left loop amap children
   in loop IMap.empty tree
 
+(* [relmap t] builds a map from id to id of children *)
 let rec relmap tree =
   let rec loop acc node = match node
     with Leaf (id, _) -> IMap.add id [] acc
@@ -65,16 +67,21 @@ let rec relmap tree =
            List.fold_left loop amap children
   in loop IMap.empty tree
 
+(* [statemap a t] builds a map from id to status *)
 let rec statemap accmap node = match node
   with Leaf (id, st) -> IMap.add id st accmap
      | Node (id, st, children) -> let nmap = IMap.add id st accmap in
        List.fold_left statemap nmap children
 
+(* [build_graph c r] builds a graph from a costmap and a relmap *)
 let build_graph costs relations =
   IMap.fold (fun id neigh gr ->
       let edges = List.map (fun nid -> nid, IMap.find nid costs) neigh in
       IMap.add id edges gr) relations IMap.empty
 
+(* The famous dijkstra algorithm.
+ * [dijkstra g s] computes distance of all nodes in graph [g] from the source of
+ * id [sid] *)
 let dijkstra (graph : (int * float) list IMap.t) sid =
   let initdata = IMap.fold (fun id _ ndmap ->
       IMap.add id { dist = infinity ; prev = None } ndmap) graph IMap.empty in
@@ -106,7 +113,7 @@ let () =
   and costs = costmap tree in
   let graph = build_graph costs relations in
   print_endline "Graph built, seeking paths..." ;
-  let sol = dijkstra graph 0 in
+  let sol = dijkstra graph 0 in (* The root has id 0 *)
   let leavesol = IMap.filter (fun id _ -> ISet.mem id leaves) sol in
   let shortest = IMap.fold (fun key nd acc ->
       if nd.dist < acc.dist then nd else acc) leavesol
