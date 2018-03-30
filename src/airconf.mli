@@ -43,9 +43,12 @@ module type S = sig
       miscellaneous parameters such as number of flights *)
   val cost : t -> float
 
-(** [produce t] returns all feasible configurations from configuration [t]
-    Two versions are available in source code: with or without memoization *)
+  (** [produce t] returns all feasible configurations from configuration [t]
+      Two versions are available in source code: with or without memoization *)
   val produce : t -> t list
+
+  (** [equal s1 s2] asserts whether two states are considered equal *)
+  val equal : t -> t -> bool
 
   (** [terminal t] asserts whether a configuration [t] is the last to be
       considered *)

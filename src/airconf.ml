@@ -19,6 +19,7 @@ module type S = sig
   val print : t -> unit
   val cost : t -> float
   val produce : t -> t list
+  val equal : t -> t -> bool
   val terminal : t -> bool
 
   (****************************** DEBUG **************************************)
@@ -109,6 +110,8 @@ module Make (Env : Environment) = struct
     partcost +. Env.theta *. transcost
 
   let cost conf = conf.cost
+
+  let equal s1 s2 = s1.cost = s2.cost && s1.partition = s2.partition
 
   (* Partition production, i.e. generation of children partitions *)
   let prod_parts_nomem part = part :: Partitions.recombine Env.ctx part
