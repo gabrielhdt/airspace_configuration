@@ -10,6 +10,8 @@ complete -c airmcts -o horizon --description \
 "Max depth of tree considered for simulation"
 complete -c airmcts -o expvexp --description \
 "Tradeoff between exploration and exploitation"
+complete -c airmcts -o ravebias --description \
+"Constant used to compute RAVE reward expectancy"
 complete -c airmcts -o alpha --description \
 "Controls influence of overload when choosing a partition"
 complete -c airmcts -o beta --description \

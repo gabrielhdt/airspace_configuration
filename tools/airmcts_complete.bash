@@ -6,7 +6,7 @@ _comp_airmcts ()
 	prev="${COMP_WORDS[COMP_CWORD - 1]}"
 
 	options="-scenario -verbose -alpha -beta -gamma -delta -theta -timeperstep \
-		-nsteps -horizon"
+		-nsteps -horizon -ravebias"
 	case "$prev" in
 		"-scenario")
 			COMPREPLY=( $(compgen -f -- ${cur}) )

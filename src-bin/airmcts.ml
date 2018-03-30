@@ -24,6 +24,7 @@ let () =
   let module MctsParam = struct
     let lapse = !Options.timeperstep
     let expvexp = !Options.expvexp
+    let ravebias = !Options.ravebias
   end in
 
   let module Support = Airconf.Make(Env) in

@@ -15,6 +15,7 @@ let gamma = ref 1.
 let lambda = ref 1.
 let theta = ref 1.
 let expvexp = ref 2.
+let ravebias = ref 1.
 
 let verbose = ref false
 
@@ -43,4 +44,6 @@ let speclist = [
    "Verbose mode: print final path") ;
   ("-expvexp", Arg.Set_float expvexp,
    "Sets tradeoff between exploration and exploitation") ;
+  ("-ravebias", Arg.Set_float ravebias,
+   "Constant used in the computation of the rave reward expectancy") ;
 ]
