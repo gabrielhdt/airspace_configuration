@@ -27,7 +27,9 @@ end
 
 module Make (Env : Environment)(AirSupp : Support) = struct
 
-  let allparts = Partitions.partitions Env.ctx (fun _ -> true) Env.sectors
+  let allparts = Partitions.partitions Env.ctx (fun _ -> true) Env.sectors;;
+
+  Printf.printf "nb allparts : %d\n%!" (List.length allparts)
 
   let best time = Auxfct.argmax (fun p1 p2 ->
       if AirSupp.part_cost time p1 < AirSupp.part_cost time p2 then p1 else p2)

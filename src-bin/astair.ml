@@ -6,11 +6,23 @@ let () =
   Arg.parse Options.speclist Options.anon_fun (Options.usage Sys.argv.(0)) ;
   let sc = Scenario.load !Options.scpath in
   (* Inital state *)
-  let s15 = Util.Sset.add "1" (Util.Sset.add "5" Util.Sset.empty)
+  let s =  (Util.Sset.add "AP"
+              (Util.Sset.add "OG"
+                 (Util.Sset.add "OT"
+                    (Util.Sset.add "OY"
+                       (Util.Sset.add "RT"
+                          (Util.Sset.add "TB"
+                            (Util.Sset.add "TE"
+                              (Util.Sset.add "TH"
+                                (Util.Sset.add "TN"
+                                   (Util.Sset.add "TP"
+                                      (Util.Sset.add "UK"
+                                         (Util.Sset.add "UZ" Util.Sset.empty)))))))))))) in
+  (* let s15 = Util.Sset.add "1" (Util.Sset.add "5" Util.Sset.empty)
   and s32 = Util.Sset.add "3" (Util.Sset.add "2" Util.Sset.empty)
-  and s4 = Util.Sset.add "4" Util.Sset.empty in
+  and s4 = Util.Sset.add "4" Util.Sset.empty in *)
   let initial_partition = [
-    (s15, [("d") ]) ; (s32, [("a") ]) ; (s4, [("s4") ])
+    (s, [("RPW") ])
   ] in
   let module Env = struct
     let tmax = !Options.horizon
@@ -36,10 +48,13 @@ let () =
     let is_goal _ st = AirSupp.terminal st
     let next _ = AirSupp.produce
     let k _ st1 st2 = AirSupp.cost st2
-    let h _ st = Heuri.h (AirSupp.get_time st)
+    (* let h _ st = Heuri.h (AirSupp.get_time st) *)
+    let h _ _ = 0.
     let do_at_insertion _ _ _ = user ()
     let do_at_extraction _ _ _ _ = ()
   end in
+  Printf.printf "path : %s\n%!" (!Options.scpath);
+        Printf.printf "nb sectors : %d\n%!" (List.length Env.sectors);
   let module AstarForAir = A_star.Make(AstAir) in
   let b_path = AstarForAir.search () in
 

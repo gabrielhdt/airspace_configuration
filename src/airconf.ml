@@ -100,8 +100,8 @@ module Make (Env : Environment) = struct
   let part_cost time part =
     let highcost, normalcost, lowcost = workload_costs time part
     and sizefac = float @@ List.length part in
-    Env.alpha *. highcost +. Env.beta *. normalcost +. Env.gamma *. lowcost +.
-    Env.lambda *. sizefac
+    Env.alpha *. highcost +. Env.beta /. (1. +. normalcost) +.
+    Env.gamma *. lowcost +. Env.lambda *. sizefac
 
   let compute_cost time part p_father =
     let partcost = part_cost time part
