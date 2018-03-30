@@ -20,6 +20,7 @@ module type Support = sig
   type t
   val init : t
   val produce : t -> t list
+  val equal : t -> t -> bool
   val cost : t -> float
   val terminal : t -> bool
   val print : t -> unit
@@ -27,6 +28,7 @@ end
 
 module type MctsParameters = sig
   val expvexp : float
+  val ravebias : float
   val lapse : float
 end
 
@@ -39,6 +41,9 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
     mutable q : float ; (* Reward expectancy *)
     mutable n : int ; (* Number of times the node has been selected *)
     mutable m2 : float ; (* Used to compute standard deviation *)
+    mutable aq : float ; (* [a] for amaf, see MC-RAVE *)
+    mutable an : int ;
+    mutable am2 : float ;
     mutable children : tree list
   }
 
@@ -48,7 +53,10 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
     | Term
     | All_visited
 
-  let root = { state = Supp.init ; q = 0. ; n = 0 ; m2 = 0. ; children = [] }
+  let root = { state = Supp.init ;
+               q = 0. ; n = 0 ; m2 = 0. ;
+               aq = 0. ; an = 0 ; am2 = 0. ;
+               children = [] }
 
   (* Contains ways to select final best path *)
   module WinPol = struct
@@ -105,12 +113,22 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
   (* Selection policy *)
   module SelPol = struct
 
+    (* See *Monte-Carlo Tree Search and Rapid Action Value Estimation in
+     * Computer Go*, 2011, S. Gelly & D. Silver for the formula *)
+    let beta node =
+      let denom = float node.n +.
+                  float node.an +.
+                  4. *. float node.n *. float node.an *. MctsParam.ravebias in
+      float node.an /. denom
+
     let ucb father child =
       assert (child.n > 0) ;
-      let log_over_armcount = (log (float father.n)) /. float child.n
+      let cbeta = beta child in
+      let qstar = (1. -. cbeta) *. child.q +. cbeta *. child.aq
+      and log_over_armcount = (log (float father.n)) /. float child.n
       and sdsq = child.m2 /. float child.n in
       let tuning = min 0.25 (sdsq +. sqrt (2. *. log_over_armcount))
-      in child.q +. sqrt (MctsParam.expvexp *. log_over_armcount *. tuning)
+      in qstar +. sqrt (MctsParam.expvexp *. log_over_armcount *. tuning)
 
     let best_child father =
       Auxfct.argmax (fun ch1 ch2 ->
@@ -125,7 +143,10 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
   (* [produce t] creates the list of reachable nodes from [t] *)
   let produce node =
     let next_states = Supp.produce node.state in
-    List.map (fun s -> { state = s ; q = 0. ; n = 0 ; m2 = 0. ; children = [] })
+    List.map (fun s -> { state = s ;
+                         q = 0. ; n = 0 ; m2 = 0. ;
+                         aq = 0. ; an = 0 ; am2 = 0. ;
+                         children = [] })
       next_states
 
   (** [force_deploy t] tries to add children from a production rule and saves
@@ -173,29 +194,43 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
 
   (* [simulate n] also called default policy or random walk selects children
    * randomly from node [n] up to a terminal node and returns the associated
-   * cost *)
+   * cost and the list of states encountered *)
   let simulate node =
     let rec loop next_node accu =
       let cost = Supp.cost next_node.state in
-      if Supp.terminal next_node.state then cost +. accu
+      let accost, simpath = accu in
+      if Supp.terminal next_node.state
+      then cost +. accost, next_node.state :: simpath
       else
         begin
           let children = produce next_node in
           let randchild = Auxfct.random_elt children in
-          loop randchild (accu +. cost)
+          loop randchild (accost +. cost, next_node.state :: simpath)
         end
     in
-    loop node 0.
+    loop node (0., [])
 
-  (** [backpropagate a r] updates ancestors [a] with the cost [r] *)
-  let rec backpropagate ancestors cost =
+  (* [backpropagate a s z] updates ancestors [a] with the reward [z] obtained
+   * from the simulation path [s]. The simulation path is used by the MC-RAVE
+   * heuristic *)
+  let rec backpropagate ancestors simpath reward =
     List.iter (fun e ->
-        let delta = cost -. e.q in
+        let delta = reward -. e.q in
         let newmean = e.q +. delta /. (float e.n +. 1.) in
-        let delta2 = cost -. newmean in
+        let delta2 = reward -. newmean in
         e.q <- e.q +. delta /. (float e.n +. 1.) ;
         e.m2 <- e.m2 +. delta *. delta2;
-        e.n <- e.n + 1
+        e.n <- e.n + 1 ;
+        (* RAVE update *)
+        List.iter (fun s ->
+            if Supp.equal e.state s then
+              let adelta = reward -. e.aq in
+              let newamean = e.aq +. delta /. (float e.an +. 1.) in
+              let adelta2 = reward -. newamean in
+              e.aq <- e.aq +. adelta /. (float e.an +. 1.) ;
+              e.am2 <- e.am2 +. adelta *. adelta2 ;
+              e.an <- e.an + 1
+          ) simpath
       ) ancestors
 
   (** [mcts r] updates tree of root [r] with monte carlo *)
@@ -203,10 +238,9 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
     let start = Sys.time () in
     while not (stop start) do
       let path = treepolicy root in
-      let sim = simulate (List.hd path) in
-      assert (sim > 0.);
-      let reward = 1. /. (1. +. sim) in
-      backpropagate path reward
+      let outcome, simpath = simulate (List.hd path) in
+      let reward = 1. /. (1. +. outcome) in
+      backpropagate path simpath reward
     done
 
   let select criterion root =

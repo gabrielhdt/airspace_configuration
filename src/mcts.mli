@@ -11,6 +11,9 @@ module type Support = sig
   (** [produce s] returns new states reachable from [s] *)
   val produce : t -> t list
 
+  (** [equal s t] asserts whether two states [s] and [t] are considered equal *)
+  val equal : t -> t -> bool
+
   (** [cost s] returns the cost of a state *)
   val cost : t -> float
 
@@ -27,6 +30,11 @@ module type MctsParameters = sig
       the more not visited nodes are considered promising. See bandit
       algorithms for more information *)
   val expvexp : float
+
+  (** Used in MC-RAVE algorithm, can be determined empirically,
+   * see *Monte-Carlo Tree Search and Rapid Action Value Estimation in
+   * Computer Go*, 2011, S. Gelly & D. Silver *)
+  val ravebias : float
 
   (** Amount of time during which the mcts develops the tree *)
   val lapse : float
@@ -60,7 +68,7 @@ module type S = sig
       confidence bound *)
   val select_secure : tree -> tree
 
-(** [buildpath r t cmp] return the best path from the root [r] with a length
+  (** [buildpath r t cmp] return the best path from the root [r] with a length
     of nstep [t] according to the policy [cmp]*)
   val buildpath : tree -> int -> (tree -> tree) -> tree list
 
