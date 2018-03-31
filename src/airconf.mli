@@ -1,9 +1,6 @@
 (** Functorial interface to manipulate airspace configuration. Takes as input
     a traffic forecasting module *)
 
-(** A type alias, for convenience *)
-type partition = Partitions.partition
-
 (** Type of the traffic forecasting module *)
 module type Environment = sig
 
@@ -17,7 +14,7 @@ module type Environment = sig
   val theta : float
 
   (** Initial partition of the airspace *)
-  val init : partition
+  val init : Partitions.partition
 
   (** the context associated with the scenario played *)
   val ctx : Partitions.context
@@ -56,7 +53,7 @@ module type S = sig
   val terminal : t -> bool
 
   (****************************** DEBUG **************************************)
-  val get_partitions : t -> partition
+  val get_partitions : t -> Partitions.partition
   val get_time : t -> int
 end
 
