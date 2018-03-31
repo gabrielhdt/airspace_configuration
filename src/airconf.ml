@@ -1,5 +1,7 @@
+(* vim: set foldmethod=marker: *)
 type partition = (Util.Sset.t * Util.Smap.key list) list
 
+(* {{{ Modules signatures *)
 module type Environment = sig
   val tmax : int
   val alpha : float
@@ -18,15 +20,16 @@ module type S = sig
   val init : t
   val print : t -> unit
   val cost : t -> float
+  val h : t -> float
   val produce : t -> t list
   val equal : t -> t -> bool
   val terminal : t -> bool
 
   (****************************** DEBUG **************************************)
-  val part_cost : int -> Partitions.partition -> float
   val get_partitions : t -> partition
   val get_time : t -> int
 end
+(* }}} *)
 
 module Make (Env : Environment) = struct
 
@@ -40,6 +43,8 @@ module Make (Env : Environment) = struct
     | Low
     | Normal
     | High
+
+  (* {{{ Memories utils *)
 
   module type Memoize = sig
     type key
@@ -70,10 +75,14 @@ module Make (Env : Environment) = struct
   module PartMem = Memoize.Make(PartitionTools)
   module StatMem = Memoize.Make(StatusTools)
 
+  (* }}} *)
+
   let print s = Printf.printf "time/length/cost:\t" ;
     Printf.printf "%d/%d/%f" s.time (List.length s.partition)
       s.cost ;
     print_newline ()
+
+  (* {{{ Workload computation *)
 
   let e_wl a b c =
     if a > b && a > c then High else if b > a && b > c then Normal else Low
@@ -111,7 +120,30 @@ module Make (Env : Environment) = struct
 
   let cost conf = conf.cost
 
-  let equal s1 s2 = s1.cost = s2.cost && s1.partition = s2.partition
+  (* }}} *)
+
+  (* {{{ Heuristics *)
+
+  let allparts = Partitions.partitions Env.ctx (fun _ -> true) Env.sectors
+
+  let best time = Auxfct.argmax (fun p1 p2 ->
+      if part_cost time p1 < part_cost time p2 then p1 else p2) allparts
+
+  let bestof_parts horizon =
+    let rec loop acc cnt =
+      if cnt >= horizon then acc else loop (best cnt :: acc) (cnt + 1) in
+    loop [] 0
+
+  let bestparts = bestof_parts Env.tmax
+
+  let h conf =
+    let rec loop b =
+      if b >= Env.tmax then 0. else
+        part_cost b (List.nth bestparts b) +. loop (b + 1) in
+    loop conf.time
+
+  (* }}} *)
+  (* {{{ States production *)
 
   (* Partition production, i.e. generation of children partitions *)
   let prod_parts_nomem part = part :: Partitions.recombine Env.ctx part
@@ -142,6 +174,9 @@ module Make (Env : Environment) = struct
       StatMem.add config newconfs ;
       newconfs
 
+  (* }}} *)
+
+  let equal s1 s2 = s1.cost = s2.cost && s1.partition = s2.partition
 
   let terminal conf = conf.time >= Env.tmax
 

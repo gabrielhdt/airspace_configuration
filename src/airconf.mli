@@ -43,6 +43,10 @@ module type S = sig
       miscellaneous parameters such as number of flights *)
   val cost : t -> float
 
+  (** [h c] gives a minoring path cost from the config to the end of the
+      simulation (heuristic used for instance in A* *)
+  val h : t -> float
+
   (** [produce t] returns all feasible configurations from configuration [t]
       Two versions are available in source code: with or without memoization *)
   val produce : t -> t list
@@ -55,7 +59,6 @@ module type S = sig
   val terminal : t -> bool
 
   (****************************** DEBUG **************************************)
-  val part_cost : int -> partition -> float
   val get_partitions : t -> partition
   val get_time : t -> int
 end
