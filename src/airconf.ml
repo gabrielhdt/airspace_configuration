@@ -1,5 +1,4 @@
 (* vim: set foldmethod=marker: *)
-type partition = (Util.Sset.t * Util.Smap.key list) list
 
 (* {{{ Modules signatures *)
 module type Environment = sig
@@ -9,7 +8,7 @@ module type Environment = sig
   val gamma : float
   val lambda : float
   val theta : float
-  val init : partition
+  val init : Partitions.partition
   val ctx : Partitions.context
   val sectors : string list
   val workload : int -> string list -> float * float * float
@@ -26,7 +25,7 @@ module type S = sig
   val terminal : t -> bool
 
   (****************************** DEBUG **************************************)
-  val get_partitions : t -> partition
+  val get_partitions : t -> Partitions.partition
   val get_time : t -> int
 end
 (* }}} *)
@@ -35,7 +34,7 @@ module Make (Env : Environment) = struct
 
   type t = {
     time : int; (* Used to determine whether the node is terminal *)
-    partition : partition;
+    partition : Partitions.partition;
     cost : float
   }
 
@@ -55,7 +54,7 @@ module Make (Env : Environment) = struct
   end
 
   module PartitionTools = struct
-    type s = partition
+    type s = Partitions.partition
     type d = s list
     let length = 25
     let normalise =
