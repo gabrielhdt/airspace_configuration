@@ -3,7 +3,7 @@ type partition = (Util.Sset.t * Util.Smap.key list) list
 
 (* {{{ Modules signatures *)
 module type Environment = sig
-  val tmax : int
+  val horizon : int
   val alpha : float
   val beta : float
   val gamma : float
@@ -134,11 +134,11 @@ module Make (Env : Environment) = struct
       if cnt >= horizon then acc else loop (best cnt :: acc) (cnt + 1) in
     loop [] 0
 
-  let bestparts = bestof_parts Env.tmax
+  let bestparts = bestof_parts Env.horizon
 
   let h conf =
     let rec loop b =
-      if b >= Env.tmax then 0. else
+      if b >= Env.horizon then 0. else
         part_cost b (List.nth bestparts b) +. loop (b + 1) in
     loop conf.time
 
@@ -178,7 +178,7 @@ module Make (Env : Environment) = struct
 
   let equal s1 s2 = s1.cost = s2.cost && s1.partition = s2.partition
 
-  let terminal conf = conf.time >= Env.tmax
+  let terminal conf = conf.time >= Env.horizon
 
   let init =
     { time = 0 ; partition = Env.init ;

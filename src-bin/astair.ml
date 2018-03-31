@@ -13,7 +13,7 @@ let () =
     (s15, [("d") ]) ; (s32, [("a") ]) ; (s4, [("s4") ])
   ] in
   let module Env = struct
-    let tmax = !Options.horizon
+    let horizon = !Options.horizon
     let alpha = !Options.alpha
     let beta = !Options.beta
     let gamma = !Options.gamma
