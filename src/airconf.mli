@@ -8,7 +8,7 @@ type partition = Partitions.partition
 module type Environment = sig
 
   (** Horizon of the forecast, will determine the depth of the tree *)
-  val tmax : int
+  val horizon : int
 
   val alpha : float
   val beta : float
