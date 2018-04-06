@@ -18,4 +18,9 @@ _comp_airmcts ()
 			;;
 	esac
 }
-complete -o bashdefault -o filenames -F _comp_airmcts airmcts
+complete -o bashdefault -o filenames -F _comp_airmcts airmcts.native
+complete -o bashdefault -o filenames -F _comp_airmcts astair.native
+complete -o bashdefault -o filenames -F _comp_airmcts dijkstra.native
+complete -o bashdefault -o filenames -F _comp_airmcts airmcts.byte
+complete -o bashdefault -o filenames -F _comp_airmcts astair.byte
+complete -o bashdefault -o filenames -F _comp_airmcts dijkstra.byte
