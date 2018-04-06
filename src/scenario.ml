@@ -14,18 +14,17 @@ let l = [ ("s1",["1"]);
   ("f",["1";"2";"3";"4";"5"]);
   ("g",["1";"2"])  ]
 let sectors = ["1"; "2"; "3"; "4"; "5"] *)
-let centres = "data/centre"
+let centres = "data/centres"
 let name = "PW"
 let cmap = Atcc_data.read_centres centres;;
 let region = Util.Smap.find name cmap;;
-let le = region.Atcc_data.c_sectors;;
-Printf.printf "length le : %d\n%!" (List.length le);;
-let sectors = List.append (List.map (fun x ->
+let sectors = region.Atcc_data.c_sectors;;
+let all_sectors = List.append (List.map (fun x ->
     (x,[x])
-  ) le
+  ) sectors
   ) region.Atcc_data.c_groups;;
 
-let ctx = Partitions.make_context sectors
+let ctx = Partitions.make_context all_sectors
 
 (* Profile of a sector over time *)
 type t = (
