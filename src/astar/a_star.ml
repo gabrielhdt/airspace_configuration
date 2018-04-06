@@ -16,7 +16,7 @@ type prio= float
 
 type 'a user_fun = {
   do_at_extraction:
-      (prio, 'a) Pqueue.t -> 'a Memory.t -> 'a state -> unit;
+    (prio, 'a) Pqueue.t -> 'a Memory.t -> 'a state -> unit;
   do_at_insertion: 'a state -> 'a state -> unit;
 }
 
@@ -75,22 +75,22 @@ let search user_fun u0 is_goal next k h =
       let (c,u,new_q) = Pqueue.extract !q in
       q := new_q;
       if is_goal u then (path := Memory.get_path m u; Printf.printf "nb node vi : %d\n%!" !count;
-         raise Eureka)
+                         raise Eureka)
       else
-    if (not (Memory.already_expanded m u)) then
-      (Memory.tag_as_expanded m u;
-      let ls = next u in
-      incr count;
-      List.iter (fun v ->
-        let cv = k u v +. h v in
-        (* let cv = Cost_functions.cost_full_partition
-        v.State.partition v.t u_p.data u_p.nnet in *)
-        (* let cv = Utils.add_tuple (Memory.get_cost m u) cv in *)
-        if ((not (Memory.mem m v))|| (Memory.get_cost m v > cv)) then
-        (Memory.store_state m v cv u;
-         q := Pqueue.insert ( cv +. (h v)) v !q;)
-      ) ls)
-      done;
+      if (not (Memory.already_expanded m u)) then
+        (Memory.tag_as_expanded m u;
+         let ls = next u in
+         incr count;
+         List.iter (fun v ->
+             let cv = k u v +. h v in
+             (* let cv = Cost_functions.cost_full_partition
+                v.State.partition v.t u_p.data u_p.nnet in *)
+             (* let cv = Utils.add_tuple (Memory.get_cost m u) cv in *)
+             if ((not (Memory.mem m v))|| (Memory.get_cost m v > cv)) then
+               (Memory.store_state m v cv u;
+                q := Pqueue.insert ( cv +. (h v)) v !q;)
+           ) ls)
+    done;
     Printf.printf "Empty priority queue";
     []
   with Eureka -> !path;;
@@ -112,10 +112,10 @@ module type Model= sig
   val h: user_param -> state -> float
 
   val do_at_insertion:
-      user_param -> state -> state -> unit
+    user_param -> state -> state -> unit
 
   val do_at_extraction:
-      user_param -> (prio, state) Pqueue.t -> state Memory.t -> state -> unit
+    user_param -> (prio, state) Pqueue.t -> state Memory.t -> state -> unit
 end
 
 module type Astar = sig
@@ -125,7 +125,7 @@ end
 
 
 module Make (M:Model):(Astar with type state=M.state
-and type user_param= M.user_param) = struct
+                              and type user_param= M.user_param) = struct
   include M
 
   let search user_param =
