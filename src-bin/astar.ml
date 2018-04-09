@@ -58,10 +58,12 @@ let astar start =
               let a_came_from, a_g_score, a_f_score, a_open_set = acc in
               let u_open_set = NSet.add neighbour a_open_set
               and curr_g_score = if NMap.mem current a_g_score then
-                  NMap.find current a_g_score else infinity in
+                  NMap.find current a_g_score else infinity
+              and neigh_g_score = if NMap.mem neighbour a_g_score then
+                  NMap.find neighbour a_g_score else infinity in
               let tentative_g_score = curr_g_score +.
                                       cost neighbour in
-              if tentative_g_score >= NMap.find neighbour a_g_score then
+              if tentative_g_score >= neigh_g_score then
                 a_came_from, a_g_score, a_f_score, u_open_set
               else
                 let u_came_from = NMap.add neighbour current a_came_from
@@ -75,4 +77,4 @@ let astar start =
     (NMap.add start 0. NMap.empty) (NMap.add start (h start) NMap.empty)
 
 let () =
-  let came_from = astar Support.init in ()
+  ignore (astar Support.init)
