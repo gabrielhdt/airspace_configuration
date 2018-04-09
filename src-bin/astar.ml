@@ -44,12 +44,20 @@ let argmin (defset : NSet.t) f =
 
 let h = Support.h
 
+let reconstruct_path came_from current =
+  let rec loop total_path currnode =
+    if NMap.mem currnode came_from then
+      let next = NMap.find currnode came_from in
+      loop (next :: total_path) next
+    else total_path in
+  loop [current] current
+
 let astar start =
   let rec loop open_set closed_set came_from g_score f_score =
-    if open_set = NSet.empty then came_from else
+    if open_set = NSet.empty then failwith "no path" else
       let current = argmin open_set (fun elt ->
           if NMap.mem elt f_score then NMap.find elt f_score else infinity) in
-      if terminal current then came_from else
+      if terminal current then reconstruct_path came_from current else
         let u_open_set = NSet.remove current open_set
         and u_closed_set = NSet.add current closed_set in
         let neighbours = produce current in
@@ -77,4 +85,8 @@ let astar start =
     (NMap.add start 0. NMap.empty) (NMap.add start (h start) NMap.empty)
 
 let () =
-  ignore (astar Support.init)
+  let path = astar Support.init in
+  let pathcost = List.fold_left (fun acc elt ->
+      acc +. (Support.cost elt)) 0. path in
+  let n = List.length path in
+  Printf.printf "path cost : %f path length %d \n" (pathcost) n;
