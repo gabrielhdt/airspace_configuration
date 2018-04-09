@@ -33,14 +33,22 @@ let cost = Support.cost
 
 let terminal = Support.terminal
 
-let argmin (set : NSet.t) = Support.init
+let argmin (defset : NSet.t) f =
+  let chosen = NSet.choose defset in
+  let minelt, minscore = NSet.fold (fun elt acc ->
+      let minelt, minscore = acc
+      and eltscore = f elt in
+      if eltscore < minscore then elt, eltscore else minelt, minscore)
+      defset (chosen, f chosen)
+  in minelt
 
 let h = Support.h
 
 let astar start =
   let rec loop open_set closed_set came_from g_score f_score =
     if open_set = NSet.empty then came_from else
-      let current = argmin open_set in
+      let current = argmin open_set (fun elt ->
+          if NMap.mem elt f_score then NMap.find elt f_score else infinity) in
       if terminal current then came_from else
         let u_open_set = NSet.remove current open_set
         and u_closed_set = NSet.add current closed_set in
