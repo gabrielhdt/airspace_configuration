@@ -42,7 +42,8 @@ let argmin (defset : NSet.t) f =
       defset (chosen, f chosen)
   in minelt
 
-let h = Support.h
+(*let h = Support.h*)
+let h node = 0.
 
 let reconstruct_path came_from current =
   let rec loop total_path currnode =
@@ -63,22 +64,22 @@ let astar start =
         let neighbours = produce current in
         let u_came_from, u_g_score, u_f_score, uu_open_set =
           List.fold_left (fun acc neighbour ->
-              let a_came_from, a_g_score, a_f_score, a_open_set = acc in
-              let u_open_set = NSet.add neighbour a_open_set
-              and curr_g_score = if NMap.mem current a_g_score then
-                  NMap.find current a_g_score else infinity
-              and neigh_g_score = if NMap.mem neighbour a_g_score then
-                  NMap.find neighbour a_g_score else infinity in
-              let tentative_g_score = curr_g_score +.
-                                      cost neighbour in
-              if tentative_g_score >= neigh_g_score then
-                a_came_from, a_g_score, a_f_score, u_open_set
-              else
-                let u_came_from = NMap.add neighbour current a_came_from
-                and u_g_score = NMap.add neighbour tentative_g_score a_g_score
-                and u_f_score = NMap.add neighbour (tentative_g_score +.
-                                                    h neighbour) a_f_score in
-                u_came_from, u_g_score, u_f_score, u_open_set
+              if NSet.mem neighbour u_closed_set then acc else
+                let a_came_from, a_g_score, a_f_score, a_open_set = acc in
+                let u_open_set = NSet.add neighbour a_open_set
+                and curr_g_score = if NMap.mem current a_g_score then
+                    NMap.find current a_g_score else infinity
+                and neigh_g_score = if NMap.mem neighbour a_g_score then
+                    NMap.find neighbour a_g_score else infinity in
+                let tentative_g_score = curr_g_score +. cost neighbour in
+                if tentative_g_score >= neigh_g_score then
+                  a_came_from, a_g_score, a_f_score, u_open_set
+                else
+                  let u_came_from = NMap.add neighbour current a_came_from
+                  and u_g_score = NMap.add neighbour tentative_g_score a_g_score
+                  and u_f_score = NMap.add neighbour (tentative_g_score +.
+                                                      h neighbour) a_f_score in
+                  u_came_from, u_g_score, u_f_score, u_open_set
             ) (came_from, g_score, f_score, u_open_set) neighbours in
         loop uu_open_set u_closed_set u_came_from u_g_score u_f_score
   in loop (NSet.add start NSet.empty) NSet.empty NMap.empty
