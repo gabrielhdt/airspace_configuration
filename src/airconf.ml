@@ -137,7 +137,7 @@ module Make (Env : Environment) = struct
     let rec loop b =
       if b >= Env.horizon then 0. else
         part_cost b (List.nth bestparts b) +. loop (b + 1) in
-    loop conf.time
+    loop (conf.time + 1)
 
   (* }}} *)
   (* {{{ States production *)

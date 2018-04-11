@@ -1,11 +1,24 @@
 Arg.parse Options.speclist Options.anon_fun (Options.usage Sys.argv.(0)) ;;
 
 let sc = Scenario.load !Options.scpath
-let s15 = Util.Sset.add "1" (Util.Sset.add "5" Util.Sset.empty)
-let s32 = Util.Sset.add "3" (Util.Sset.add "2" Util.Sset.empty)
-let s4 = Util.Sset.add "4" Util.Sset.empty
+(* Inital state *)
+let s =  (Util.Sset.add "AP"
+            (Util.Sset.add "OG"
+               (Util.Sset.add "OT"
+                  (Util.Sset.add "OY"
+                     (Util.Sset.add "RT"
+                        (Util.Sset.add "TB"
+                          (Util.Sset.add "TE"
+                            (Util.Sset.add "TH"
+                              (Util.Sset.add "TN"
+                                 (Util.Sset.add "TP"
+                                    (Util.Sset.add "UK"
+                                       (Util.Sset.add "UZ" Util.Sset.empty))))))))))))
+(* let s15 = Util.Sset.add "1" (Util.Sset.add "5" Util.Sset.empty)
+and s32 = Util.Sset.add "3" (Util.Sset.add "2" Util.Sset.empty)
+and s4 = Util.Sset.add "4" Util.Sset.empty in *)
 let initial_partition = [
-  (s15, [("d") ]) ; (s32, [("a") ]) ; (s4, [("s4") ])
+  (s, [("RPW") ])
 ]
 
 module Env = struct
@@ -42,8 +55,8 @@ let argmin (defset : NSet.t) f =
       defset (chosen, f chosen)
   in minelt
 
-(*let h = Support.h*)
-let h node = 0.
+let h = Support.h
+(* let h node = 0. *)
 
 let reconstruct_path came_from current =
   let rec loop total_path currnode =
