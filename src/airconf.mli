@@ -1,14 +1,11 @@
 (** Functorial interface to manipulate airspace configuration. Takes as input
     a traffic forecasting module *)
 
-(** A type alias, for convenience *)
-type partition = Partitions.partition
-
 (** Type of the traffic forecasting module *)
 module type Environment = sig
 
   (** Horizon of the forecast, will determine the depth of the tree *)
-  val tmax : int
+  val horizon : int
 
   val alpha : float
   val beta : float
@@ -17,7 +14,7 @@ module type Environment = sig
   val theta : float
 
   (** Initial partition of the airspace *)
-  val init : partition
+  val init : Partitions.partition
 
   (** the context associated with the scenario played *)
   val ctx : Partitions.context
@@ -43,8 +40,12 @@ module type S = sig
       miscellaneous parameters such as number of flights *)
   val cost : t -> float
 
-(** [produce t] returns all feasible configurations from configuration [t]
-    Two versions are available in source code: with or without memoization *)
+  (** [h c] gives a minoring path cost from the config to the end of the
+      simulation (heuristic used for instance in A* *)
+  val h : t -> float
+
+  (** [produce t] returns all feasible configurations from configuration [t]
+      Two versions are available in source code: with or without memoization *)
   val produce : t -> t list
 
   (** [terminal t] asserts whether a configuration [t] is the last to be
@@ -52,8 +53,7 @@ module type S = sig
   val terminal : t -> bool
 
   (****************************** DEBUG **************************************)
-  val part_cost : int -> partition -> float
-  val get_partitions : t -> partition
+  val get_partitions : t -> Partitions.partition
   val get_time : t -> int
 end
 

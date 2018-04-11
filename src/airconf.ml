@@ -1,13 +1,14 @@
-type partition = (Util.Sset.t * Util.Smap.key list) list
+(* vim: set foldmethod=marker: *)
 
+(* {{{ Modules signatures *)
 module type Environment = sig
-  val tmax : int
+  val horizon : int
   val alpha : float
   val beta : float
   val gamma : float
   val lambda : float
   val theta : float
-  val init : partition
+  val init : Partitions.partition
   val ctx : Partitions.context
   val sectors : string list
   val workload : int -> string list -> float * float * float
@@ -18,20 +19,21 @@ module type S = sig
   val init : t
   val print : t -> unit
   val cost : t -> float
+  val h : t -> float
   val produce : t -> t list
   val terminal : t -> bool
 
   (****************************** DEBUG **************************************)
-  val part_cost : int -> Partitions.partition -> float
-  val get_partitions : t -> partition
+  val get_partitions : t -> Partitions.partition
   val get_time : t -> int
 end
+(* }}} *)
 
 module Make (Env : Environment) = struct
 
   type t = {
     time : int; (* Used to determine whether the node is terminal *)
-    partition : partition;
+    partition : Partitions.partition;
     cost : float
   }
 
@@ -39,6 +41,8 @@ module Make (Env : Environment) = struct
     | Low
     | Normal
     | High
+
+  (* {{{ Memories utils *)
 
   module type Memoize = sig
     type key
@@ -49,7 +53,7 @@ module Make (Env : Environment) = struct
   end
 
   module PartitionTools = struct
-    type s = partition
+    type s = Partitions.partition
     type d = s list
     let length = 25
     let normalise =
@@ -69,10 +73,14 @@ module Make (Env : Environment) = struct
   module PartMem = Memoize.Make(PartitionTools)
   module StatMem = Memoize.Make(StatusTools)
 
+  (* }}} *)
+
   let print s = Printf.printf "time/length/cost:\t" ;
     Printf.printf "%d/%d/%f" s.time (List.length s.partition)
       s.cost ;
     print_newline ()
+
+  (* {{{ Workload computation *)
 
   let e_wl a b c =
     if a > b && a > c then High else if b > a && b > c then Normal else Low
@@ -110,6 +118,30 @@ module Make (Env : Environment) = struct
 
   let cost conf = conf.cost
 
+  (* }}} *)
+  (* {{{ Heuristics *)
+
+  let allparts = Partitions.partitions Env.ctx (fun _ -> true) Env.sectors
+
+  let best time = Auxfct.argmax (fun p1 p2 ->
+      if part_cost time p1 < part_cost time p2 then p1 else p2) allparts
+
+  let bestof_parts horizon =
+    let rec loop acc cnt =
+      if cnt >= horizon then acc else loop (best cnt :: acc) (cnt + 1) in
+    loop [] 0
+
+  let bestparts = bestof_parts Env.horizon
+
+  let h conf =
+    let rec loop b =
+      if b >= Env.horizon then 0. else
+        part_cost b (List.nth bestparts b) +. loop (b + 1) in
+    loop conf.time
+
+  (* }}} *)
+  (* {{{ States production *)
+
   (* Partition production, i.e. generation of children partitions *)
   let prod_parts_nomem part = part :: Partitions.recombine Env.ctx part
 
@@ -139,8 +171,9 @@ module Make (Env : Environment) = struct
       StatMem.add config newconfs ;
       newconfs
 
+  (* }}} *)
 
-  let terminal conf = conf.time >= Env.tmax
+  let terminal conf = conf.time >= Env.horizon
 
   let init =
     { time = 0 ; partition = Env.init ;

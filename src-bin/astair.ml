@@ -25,7 +25,7 @@ let () =
     (s, [("RPW") ])
   ] in
   let module Env = struct
-    let tmax = !Options.horizon
+    let horizon = !Options.horizon
     let alpha = !Options.alpha
     let beta = !Options.beta
     let gamma = !Options.gamma
@@ -38,8 +38,6 @@ let () =
   end in
   let module AirSupp = Airconf.Make(Env) in
 
-  let module Heuri = Heuristic.Make(Env)(AirSupp) in
-
   let module AstAir = struct
     type state = AirSupp.t
     type user_param = unit
@@ -48,8 +46,7 @@ let () =
     let is_goal _ st = AirSupp.terminal st
     let next _ = AirSupp.produce
     let k _ st1 st2 = AirSupp.cost st2
-    let h _ st = Heuri.h (AirSupp.get_time st)
-    (* let h _ _ = 0. *)
+    let h _ st = AirSupp.h st
     let do_at_insertion _ _ _ = user ()
     let do_at_extraction _ _ _ _ = ()
   end in

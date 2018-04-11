@@ -21,7 +21,7 @@ let () =
   ] in
 
   let module Env = struct
-    let tmax = !Options.horizon
+    let horizon = !Options.horizon
     let alpha = !Options.alpha
     let beta = !Options.beta
     let gamma = !Options.gamma
