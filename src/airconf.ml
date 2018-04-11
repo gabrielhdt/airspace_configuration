@@ -156,7 +156,7 @@ module Make (Env : Environment) = struct
   (* [produce c] produces all children states of config *)
       (* No mem version here *)
   let produce_nomem config =
-    let reachable_partitions = prod_parts_nomem config.partition in
+    let reachable_partitions = prod_parts config.partition in
     List.map (fun p ->
         { partition = p ; time = config.time + 1 ;
           cost = compute_cost (config.time + 1) p config.partition }
