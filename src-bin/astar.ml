@@ -42,8 +42,8 @@ let argmin (defset : NSet.t) f =
       defset (chosen, f chosen)
   in minelt
 
-(*let h = Support.h*)
-let h node = 0.
+let h = Support.h
+(*let h node = 0.*)
 
 let reconstruct_path came_from current =
   let rec loop total_path currnode =
