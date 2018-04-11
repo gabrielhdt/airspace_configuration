@@ -4,6 +4,9 @@
 \usepackage{polyglossia}
 \usepackage{cite}
 \usepackage{hyperref}
+\usepackage{unicode-math}
+\usepackage{amsmath,amsthm,stmaryrd}
+\usepackage{algorithm,algpseudocode}
 
 
 \usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry}
@@ -149,6 +152,24 @@ is evaluated. This can be used in a cost function aimed to be minimised
 (in~\cite{bedouet2016}).
 
 
+\section{Model}
+
+\section{Algorithm}
+\subsection{Monte Carlo tree search overview}
+\begin{algorithm}
+  \caption{General MCTS~\cite{browne2012survey}}
+  \begin{algorithmic}
+    \Procedure{MctsSearch}{$v_0$}
+    \While{within computational budget}
+    \State{} \(v_l \gets\) \Call{TreePolicy}{$v_0$}
+    \State{} \(\Delta \gets\) \Call{DefaultPolicy}{$s(v_l)$}
+    \State{} \Call{Backup}{$v_l$, $\Delta$}
+    \EndWhile{}
+    \Return{\(a(\)\Call{BestChild}{$v_0$}\()\)}
+    \EndProcedure{}
+  \end{algorithmic}
+
+\end{algorithm}
 
 
 \bibliography{article}
