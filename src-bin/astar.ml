@@ -21,17 +21,24 @@ module Env = struct
   let workload = Scenario.workload sc
 end
 
+let gnodecount = ref 0
+let glabel = ref 0
+
 module Support = Airconf.Make(Env)
 
-type node = Support.t
+type node = int * Support.t
 module NMap = Map.Make(struct type t = node let compare = compare end)
 module NSet = Set.Make(struct type t = node let compare = compare end)
 
-let produce = Support.produce
+let produce node =
+  let init_label = fst node
+  and new_states = Support.produce @@ snd node in
+  List.mapi (fun _ elt ->
+      incr glabel ; (init_label + !glabel, elt)) new_states
 
-let cost = Support.cost
+let cost n = Support.cost @@ snd n
 
-let terminal = Support.terminal
+let terminal n = Support.terminal @@ snd n
 
 let argmin (defset : NSet.t) f =
   let chosen = NSet.choose defset in
@@ -42,7 +49,7 @@ let argmin (defset : NSet.t) f =
       defset (chosen, f chosen)
   in minelt
 
-let h = Support.h
+let h n = Support.h @@ snd n
 (*let h node = 0.*)
 
 let reconstruct_path came_from current =
@@ -58,6 +65,7 @@ let astar start =
     if open_set = NSet.empty then failwith "no path" else
       let current = argmin open_set (fun elt ->
           if NMap.mem elt f_score then NMap.find elt f_score else infinity) in
+      incr gnodecount ;
       if terminal current then reconstruct_path came_from current else
         let u_open_set = NSet.remove current open_set
         and u_closed_set = NSet.add current closed_set in
@@ -86,8 +94,9 @@ let astar start =
     (NMap.add start 0. NMap.empty) (NMap.add start (h start) NMap.empty)
 
 let () =
-  let path = astar Support.init in
+  let path = astar (0, Support.init) in
   let pathcost = List.fold_left (fun acc elt ->
-      acc +. (Support.cost elt)) 0. path in
+      acc +. (Support.cost @@ snd elt)) 0. path in
   let n = List.length path in
   Printf.printf "path cost : %f path length %d \n" (pathcost) n;
+  Printf.printf "Node count: %d\n" !gnodecount
