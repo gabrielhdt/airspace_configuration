@@ -67,11 +67,13 @@ let reconstruct_path came_from current =
   loop [current] current
 
 let astar start =
+  let count = ref 0 in
   let rec loop open_set closed_set came_from g_score f_score =
     if open_set = NSet.empty then failwith "no path" else
       let current = argmin open_set (fun elt ->
           if NMap.mem elt f_score then NMap.find elt f_score else infinity) in
-      if terminal current then reconstruct_path came_from current else
+      incr count;
+      if terminal current then (Printf.printf "nb node vi : %d\n%!" !count;reconstruct_path came_from current) else
         let u_open_set = NSet.remove current open_set
         and u_closed_set = NSet.add current closed_set in
         let neighbours = produce current in

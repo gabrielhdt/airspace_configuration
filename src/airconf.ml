@@ -55,9 +55,9 @@ module Make (Env : Environment) = struct
   module PartitionTools = struct
     type s = Partitions.partition
     type d = s list
-    let length = 25
+    let length = 1000
     let normalise =
-      List.sort (fun p1 p2 -> compare (List.hd @@ snd p1) (List.hd @@ snd p2))
+      List.sort (fun p1 p2 -> compare p1 p2)
   end
 
   module StatusTools = struct
@@ -67,7 +67,7 @@ module Make (Env : Environment) = struct
     let normalise c =
       { c with
         partition = List.sort (fun p1 p2 ->
-            compare (List.hd @@ snd p1) (List.hd @@ snd p2)) c.partition }
+            compare p1 p2) c.partition }
   end
 
   module PartMem = Memoize.Make(PartitionTools)
@@ -137,7 +137,7 @@ module Make (Env : Environment) = struct
     let rec loop b =
       if b >= Env.horizon then 0. else
         part_cost b (List.nth bestparts b) +. loop (b + 1) in
-    loop (conf.time + 1)
+    loop conf.time
 
   (* }}} *)
   (* {{{ States production *)
