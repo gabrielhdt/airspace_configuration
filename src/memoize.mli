@@ -34,6 +34,10 @@ module type DataTools = sig
   (** Supposed length of the table *)
   val length : int
 
+  (** [copy d] forces a copy of data to avoid using directly objects of the
+      memory *)
+  val copy : d -> d
+
   (** [normalise s] returns a modified form of source [s] to avoid having
       several sources carrying the same data *)
   val normalise : s -> s

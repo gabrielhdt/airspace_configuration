@@ -43,7 +43,6 @@ module Make (Env : Environment) = struct
     | High
 
   (* {{{ Memories utils *)
-
   module type Memoize = sig
     type key
     type element
@@ -56,6 +55,7 @@ module Make (Env : Environment) = struct
     type s = Partitions.partition
     type d = s list
     let length = 25
+    let copy = List.map (fun x -> x)
     let normalise =
       List.sort (fun p1 p2 -> compare (List.hd @@ snd p1) (List.hd @@ snd p2))
   end
@@ -64,6 +64,7 @@ module Make (Env : Environment) = struct
     type s = t
     type d = s list
     let length = 500
+    let copy = List.map (fun x -> x)
     let normalise c =
       { c with
         partition = List.sort (fun p1 p2 ->
@@ -72,7 +73,6 @@ module Make (Env : Environment) = struct
 
   module PartMem = Memoize.Make(PartitionTools)
   module StatMem = Memoize.Make(StatusTools)
-
   (* }}} *)
 
   let print s = Printf.printf "time/length/cost:\t" ;
@@ -81,7 +81,6 @@ module Make (Env : Environment) = struct
     print_newline ()
 
   (* {{{ Workload computation *)
-
   let e_wl a b c =
     if a > b && a > c then High else if b > a && b > c then Normal else Low
 
@@ -117,7 +116,6 @@ module Make (Env : Environment) = struct
     partcost +. Env.theta *. transcost
 
   let cost conf = conf.cost
-
   (* }}} *)
   (* {{{ Heuristics *)
 
@@ -141,7 +139,6 @@ module Make (Env : Environment) = struct
 
   (* }}} *)
   (* {{{ States production *)
-
   (* Partition production, i.e. generation of children partitions *)
   let prod_parts_nomem part = part :: Partitions.recombine Env.ctx part
 
@@ -156,7 +153,7 @@ module Make (Env : Environment) = struct
   (* [produce c] produces all children states of config *)
       (* No mem version here *)
   let produce_nomem config =
-    let reachable_partitions = prod_parts_nomem config.partition in
+    let reachable_partitions = prod_parts config.partition in
     List.map (fun p ->
         { partition = p ; time = config.time + 1 ;
           cost = compute_cost (config.time + 1) p config.partition }
@@ -170,7 +167,6 @@ module Make (Env : Environment) = struct
       let newconfs = produce_nomem config in
       StatMem.add config newconfs ;
       newconfs
-
   (* }}} *)
 
   let terminal conf = conf.time >= Env.horizon
