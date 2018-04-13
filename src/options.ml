@@ -13,7 +13,7 @@ let alpha = ref 1.
 let beta = ref 1.
 let gamma = ref 1.
 let lambda = ref 1.
-let theta = ref 0.
+let theta = ref 1.
 let expvexp = ref 2.
 
 let verbose = ref false
