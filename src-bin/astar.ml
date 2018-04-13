@@ -106,3 +106,9 @@ let () =
       acc +. (Support.cost elt)) 0. path in
   let n = List.length path in
   Printf.printf "path cost : %f path length %d \n" (pathcost) n;
+  if !Options.verbose then
+    Partitions.print_partitions (List.map (fun s ->
+        Support.get_partitions s) (List.map (fun tree ->
+        tree)
+        (List.rev path))
+      )
