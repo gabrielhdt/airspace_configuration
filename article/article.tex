@@ -134,10 +134,11 @@ In most cases the cost of a configuration is based on the workload. Each
 approach seems to give their own representation of the workload. For instance,
 ~\cite{bedouet2016} determined workload density proportionally to the time
 spent by aircraft in each sector. A simpler version~\cite{sergeeva2017dynamic}
-only uses the number of aircraft. On the other hand, more complex method,
-involving many more inputs are also available, such as a neural network
-forecasting the workload~\cite{gianazza2010forecasting}. This is the method we
-are going to use in this paper.
+only uses the number of aircraft. On the other hand, more complex methods,
+involving many more inputs are also available. For instance
+,~\cite{gianazza2010forecasting} used several indicators, such as sector
+volume, or vertical incoming flows in the next 15 and 60 minutes. Those
+indicators ease the training of a neural network forecasting the workload.
 
 Other soft constraints appear to be relevant to have a better model of
 the problem. For instance in~\cite{sergeeva2017dynamic} and~\cite{bedouet2016} a
