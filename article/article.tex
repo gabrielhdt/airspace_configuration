@@ -8,6 +8,8 @@
 \usepackage{amsmath,amsthm,stmaryrd}
 \usepackage{algorithm,algpseudocode}
 
+\DeclareMathOperator{\argmax}{argmax}
+
 
 \usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry}
 \usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption}
@@ -159,16 +161,48 @@ is evaluated. This can be used in a cost function aimed to be minimised
 \begin{algorithm}
   \caption{General MCTS~\cite{browne2012survey}}
   \begin{algorithmic}
-    \Procedure{MctsSearch}{$v_0$}
+    \Procedure{MctsSearchTree}{$v_0$}
     \While{within computational budget}
-    \State{} \(v_l \gets\) \Call{TreePolicy}{$v_0$}
-    \State{} \(\Delta \gets\) \Call{DefaultPolicy}{$s(v_l)$}
-    \State{} \Call{Backup}{$v_l$, $\Delta$}
+	\State{} \([v^l_1, \dots, v^l_i] \gets\) \Call{TreePolicy}{$v_0$}
+    \State{} \(\Delta \gets\) \Call{DefaultPolicy}{$v^l_i$}
+	\State{} \(\rho \gets\) \Call{Reward}{$\Delta$}
+	\State{} \Call{Backup}{$[v^l_1, \dots, v^l_i]$, $\rho$}
     \EndWhile{}
-    \Return{\(a(\)\Call{BestChild}{$v_0$}\()\)}
     \EndProcedure{}
   \end{algorithmic}
+\end{algorithm}
 
+\subsection{UCT selection}
+\begin{algorithm}
+	\caption{Extending the search tree}
+	\begin{algorithmic}
+		\Function{TreePolicy}{$v$}
+		\State{} \([v_1, \dots, v_n] \gets\) \Call{Select}{$v$}
+		\If{$v_n$ is terminal}
+		\State{} \Return{$[v_1, \dots, v_n]$}
+		\Else{}
+		\State{} \([v_1, \dots, v_{n+1}] \gets\)
+		\Call{Expand}{$[v_1, \dots, v_n]$}
+		\State{} \Return{$[v_1, \dots, v_{n+1}]$}
+		\EndIf{}
+		\EndFunction{}
+	\end{algorithmic}
+	\begin{algorithmic}
+		\Function{Select}{$v, a$}
+		\If{$v$ is terminal or fully expanded}
+		\State{} \Return{$[v, a]$}
+		\Else{}
+		\State{} fav\(\gets\) \Call{BestChild}{$v$}
+		\State{} \Return{\Call{Select}{fav, $[v, a]$}}
+		\EndIf{}
+		\EndFunction{}
+	\end{algorithmic}
+	\begin{algorithmic}
+		\Function{BestChild}{$v$}
+		\State{} \Return{$\argmax\{\Call{UCB}{v'} |
+		v' \text{\,children of\,} v\}$}
+		\EndFunction{}
+	\end{algorithmic}
 \end{algorithm}
 
 
