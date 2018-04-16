@@ -7,6 +7,9 @@
 \usepackage{unicode-math}
 \usepackage{amsmath,amsthm,stmaryrd}
 \usepackage{algorithm,algpseudocode}
+\usepackage{paralist}
+
+\DeclareMathOperator{\argmax}{argmax}
 
 
 \usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry}
@@ -135,8 +138,8 @@ approach seems to give their own representation of the workload. For instance,
 ~\cite{bedouet2016} determined workload density proportionally to the time
 spent by aircraft in each sector. A simpler version~\cite{sergeeva2017dynamic}
 only uses the number of aircraft. On the other hand, more complex methods,
-involving many more inputs are also available. For instance
-,~\cite{gianazza2010forecasting} used several indicators, such as sector
+involving many more inputs are also available. For
+instance,~\cite{gianazza2010forecasting} used several indicators, such as sector
 volume, or vertical incoming flows in the next 15 and 60 minutes. Those
 indicators ease the training of a neural network forecasting the workload.
 
@@ -153,25 +156,73 @@ is evaluated. This can be used in a cost function aimed to be minimised
 (in~\cite{bedouet2016}).
 
 
-\section{Model}
 
 \section{Algorithm}
-\subsection{Monte Carlo tree search overview}
-\begin{algorithm}
-  \caption{General MCTS~\cite{browne2012survey}}
-  \begin{algorithmic}
-    \Procedure{MctsSearch}{$v_0$}
-    \While{within computational budget}
-    \State{} \(v_l \gets\) \Call{TreePolicy}{$v_0$}
-    \State{} \(\Delta \gets\) \Call{DefaultPolicy}{$s(v_l)$}
-    \State{} \Call{Backup}{$v_l$, $\Delta$}
-    \EndWhile{}
-    \Return{\(a(\)\Call{BestChild}{$v_0$}\()\)}
-    \EndProcedure{}
-  \end{algorithmic}
 
+The task of building an optimal sequence of partitions (lowering
+as much as possible the workload of each controller) is fulfilled by a
+stochastic tree search method, namely the Monte Carlo tree search. To assess the
+exactness of the results, an exact method (here A\(^*\)) is used.
+
+\subsection{Monte Carlo tree search overview}
+Monte-Carlo is a best-first search method using stochastic simulations. It is
+composed of four phases, namely
+\begin{compactenum}
+	\item selection,
+	\item expansion,
+	\item simulation,
+	\item backpropagation.
+\end{compactenum}
+Those phases are repeated until a stopping criterium is reached,
+see\ref{alg:gen_mcts} (memory usage or time).
+\begin{algorithm}
+	\caption{General MCTS~\cite{browne2012survey}}\label{alg:gen_mcts}
+	\begin{algorithmic}
+		\Procedure{MctsSearchTree}{$v_0$}
+		\While{within computational budget}
+		\State{} \([v^l_1, \dots, v^l_i] \gets\) \Call{TreePolicy}{$v_0$}
+		\State{} \(\Delta \gets\) \Call{DefaultPolicy}{$v^l_i$}
+		\State{} \(r \gets\) \Call{Reward}{$\Delta$}
+		\State{} \Call{Backup}{$[v^l_1, \dots, v^l_i]$, $r$}
+		\EndWhile{}
+		\EndProcedure{}
+	\end{algorithmic}
 \end{algorithm}
 
+\subsection{UCT selection}
+\begin{algorithm}
+	\caption{Extending the search tree}
+	\begin{algorithmic}
+		\Function{TreePolicy}{$v$}
+		\State{} \([v_1, \dots, v_n] \gets\) \Call{Select}{$v$}
+		\If{$v_n$ is terminal}
+		\State{} \Return{$[v_1, \dots, v_n]$}
+		\Else{}
+		\State{} \([v_1, \dots, v_{n+1}] \gets\)
+		\Call{Expand}{$[v_1, \dots, v_n]$}
+		\State{} \Return{$[v_1, \dots, v_{n+1}]$}
+		\EndIf{}
+		\EndFunction{}
+	\end{algorithmic}
+	\begin{algorithmic}
+		\Function{Select}{$v, a$}
+		\If{$v$ is terminal or fully expanded}
+		\State{} \Return{$[v, a]$}
+		\Else{}
+		\State{} fav\(\gets\) \Call{BestChild}{$v$}
+		\State{} \Return{\Call{Select}{fav, $[v, a]$}}
+		\EndIf{}
+		\EndFunction{}
+	\end{algorithmic}
+	\begin{algorithmic}
+		\Function{BestChild}{$v$}
+		\State{} \Return{$\argmax\{\Call{UCB}{v'} |
+		v' \text{\,children of\,} v\}$}
+		\EndFunction{}
+	\end{algorithmic}
+\end{algorithm}
+
+\section{Model}
 
 \bibliography{article}
 \bibliographystyle{plain}
