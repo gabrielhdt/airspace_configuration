@@ -175,29 +175,58 @@ search tree is reached, a new node coming from the model tree is added to the
 leaf. A simulation is then run from this newly added node to evaluate the
 outcome of a path starting from it. The result of the simulation is eventually
 backpropagated to the consecutive fathers of the new node.
+
+The above mentioned steps are denoted
 \begin{compactenum}
-	\item selection,
-	\item expansion,
-	\item simulation,
-	\item backpropagation.
+	\item selection (or tree walk): choosing successively most promising nodes,
+	\item expansion: adding new nodes to the search tree,
+	\item simulation (or random walk): choosing quickly actions from the model
+		tree,
+	\item backpropagation (or backup): applying the result of the simulation to
+		the search tree.
 \end{compactenum}
-Those phases are repeated until a stopping criterium is reached,
-see\ref{alg:gen_mcts} (memory usage or time).
+Those phases are repeated until a stopping criterium (e.g.\ memory or time) is
+reached, resulting in algorithm~\ref{alg:gen_mcts}.
 \begin{algorithm}
 	\caption{General MCTS~\cite{browne2012survey}}\label{alg:gen_mcts}
 	\begin{algorithmic}
 		\Procedure{MctsSearchTree}{$v_0$}
 		\While{within computational budget}
-		\State{} \([v^l_1, \dots, v^l_i] \gets\) \Call{TreePolicy}{$v_0$}
-		\State{} \(\Delta \gets\) \Call{DefaultPolicy}{$v^l_i$}
-		\State{} \(r \gets\) \Call{Reward}{$\Delta$}
-		\State{} \Call{Backup}{$[v^l_1, \dots, v^l_i]$, $r$}
+		\State{} \([v_0, \dots, v_n] \gets\) \Call{TreePolicy}{$v_0$}
+		\State{} \(\Delta \gets\) \Call{DefaultPolicy}{$v_n$}
+		\State{} \Call{Backup}{$[v_0, \dots, v_n]$, $\Delta$}
 		\EndWhile{}
 		\EndProcedure{}
 	\end{algorithmic}
 \end{algorithm}
 
-\subsection{UCT selection}
+\subsubsection{Extending the search tree}
+\paragraph{Selection}
+The aim of the selection is to choose from a set of actions, the most promising
+one\footnote{i.e.\ possibly leading to the best evaluation} according to a
+\emph{tree policy}. This type of problem is addressed by bandits methods where
+a multi armed bandit aims to always activate the slot machine giving the highest
+reward.
+
+The bandit problem is applied to MCTS via the Upper Confidence Tree algorithm.
+It uses the UCB for Upper Confidence Bound as tree policy (introduced
+in~\cite{kocsis2006bandit}). Let \(F\) be the node from which an action must be
+selected to go deeper in the tree, \(a\) an action available from \(F\),
+\(\mu_{F,a}\) the expected outcome from the node obtained by applying action
+\(a\) on \(F\), \(T_F\) the number of simulations carried out from node \(F\)
+(which includes any simulation from nodes in any subtree of \(F\)) and
+\(T_{F,a}\) the number of simulations carried out from the node resulting from
+the action \(a\) applied to node \(F\), \(\beta\) a constant. The selected node
+is thus the one maximising
+\begin{equation}
+	\text{UCB} = \mu_{F,a} + 2 \beta \sqrt{\frac{2 \log T_f}{T_{F,a}}}
+\end{equation}
+
+\paragraph{Expansion}
+The above step is carried out only if, considering a node \(F\), a simulation
+has been run through each child available from \(F\). In the case where one or
+more children haven't been explored yet, one of the unexplored children is
+chosen and a simulation is started from it.
 \begin{algorithm}
 	\caption{Extending the search tree}
 	\begin{algorithmic}
