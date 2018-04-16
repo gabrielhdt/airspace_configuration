@@ -1,21 +1,30 @@
 (* creation of the context needed for  our scenario *)
-let l =
-    [ ("s1",["1"]);
-      ("s2",["2"]);
-      ("s3",["3"]);
-      ("s4",["4"]);
-      ("s5",["5"]);
-      ("a",["2";"3"]);
-      ("b",["3";"4"]);
-      ("c",["4";"5"]);
-      ("d",["1";"5"]);
-      ("e",["1";"2";"3"]);
-      ("f",["1";"2";"3";"4";"5"]);
-      ("g",["1";"2"])  ]
 
-let sectors = ["1"; "2"; "3"; "4"; "5"]
+(*
+let l = [ ("s1",["1"]);
+  ("s2",["2"]);
+  ("s3",["3"]);
+  ("s4",["4"]);
+  ("s5",["5"]);
+  ("a",["2";"3"]);
+  ("b",["3";"4"]);
+  ("c",["4";"5"]);
+  ("d",["1";"5"]);
+  ("e",["1";"2";"3"]);
+  ("f",["1";"2";"3";"4";"5"]);
+  ("g",["1";"2"])  ]
+let sectors = ["1"; "2"; "3"; "4"; "5"] *)
+let centres = "data/centres"
+let name = "PW"
+let cmap = Atcc_data.read_centres centres;;
+let region = Util.Smap.find name cmap;;
+let sectors = region.Atcc_data.c_sectors;;
+let all_sectors = List.append (List.map (fun x ->
+    (x,[x])
+  ) sectors
+  ) region.Atcc_data.c_groups;;
 
-let ctx = Partitions.make_context l
+let ctx = Partitions.make_context all_sectors
 
 (* Profile of a sector over time *)
 type t = (

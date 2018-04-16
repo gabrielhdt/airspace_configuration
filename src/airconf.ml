@@ -54,10 +54,9 @@ module Make (Env : Environment) = struct
   module PartitionTools = struct
     type s = Partitions.partition
     type d = s list
-    let length = 25
-    let copy = List.map (fun x -> x)
+    let length = 1000
     let normalise =
-      List.sort (fun p1 p2 -> compare (List.hd @@ snd p1) (List.hd @@ snd p2))
+      List.sort (fun p1 p2 -> compare p1 p2)
   end
 
   module StatusTools = struct
@@ -68,7 +67,7 @@ module Make (Env : Environment) = struct
     let normalise c =
       { c with
         partition = List.sort (fun p1 p2 ->
-            compare (List.hd @@ snd p1) (List.hd @@ snd p2)) c.partition }
+            compare p1 p2) c.partition }
   end
 
   module PartMem = Memoize.Make(PartitionTools)
@@ -107,8 +106,8 @@ module Make (Env : Environment) = struct
   let part_cost time part =
     let highcost, normalcost, lowcost = workload_costs time part
     and sizefac = float @@ List.length part in
-    Env.alpha *. highcost +. Env.beta *. normalcost +. Env.gamma *. lowcost +.
-    Env.lambda *. sizefac
+    Env.alpha *. highcost +. Env.beta /. (1. +. normalcost) +.
+    Env.gamma *. lowcost +. Env.lambda *. sizefac
 
   let compute_cost time part p_father =
     let partcost = part_cost time part
