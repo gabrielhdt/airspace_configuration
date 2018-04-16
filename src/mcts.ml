@@ -203,9 +203,11 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
     let start = Sys.time () in
     while not (stop start) do
       let path = treepolicy root in
-      let sim = simulate (List.hd path) in
-      assert (sim > 0.);
-      let reward = 1. /. (1. +. sim) in
+      let simpostpath = simulate (List.hd path)
+      and simantepath = List.fold_left (fun acc elt ->
+          acc +. (Supp.cost elt.state)) 0. (List.tl path) in
+      assert (simpostpath > 0.); (* Tail to avoid counting twice new node *)
+      let reward = 1. /. (1. +. (simpostpath +. simantepath)) in
       backpropagate path reward
     done
 

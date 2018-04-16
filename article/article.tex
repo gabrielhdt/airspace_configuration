@@ -164,9 +164,17 @@ as much as possible the workload of each controller) is fulfilled by a
 stochastic tree search method, namely the Monte Carlo tree search. To assess the
 exactness of the results, an exact method (here A\(^*\)) is used.
 
-\subsection{Monte Carlo tree search overview}
-Monte-Carlo is a best-first search method using stochastic simulations. It is
-composed of four phases, namely
+\subsection{Monte Carlo tree search}
+\subsubsection{Overview}
+Monte-Carlo is a best-first search method using stochastic simulations. The
+algorithm actually uses two trees, an underlying tree associated to the model
+(e.g.\ a game tree) and a search tree. The latter is built incrementally by the
+algorithm the following way, at each step, starting from the root, the most
+promising nodes towards the bottom of the tree are selected. Once a leaf of the
+search tree is reached, a new node coming from the model tree is added to the
+leaf. A simulation is then run from this newly added node to evaluate the
+outcome of a path starting from it. The result of the simulation is eventually
+backpropagated to the consecutive fathers of the new node.
 \begin{compactenum}
     \item selection,
     \item expansion,
