@@ -54,21 +54,19 @@ module Make (Env : Environment) = struct
   module PartitionTools = struct
     type s = Partitions.partition
     type d = s list
-    let length = 25
-    let copy = List.map (fun x -> x)
+    let length = 1000
     let normalise =
-      List.sort (fun p1 p2 -> compare (List.hd @@ snd p1) (List.hd @@ snd p2))
+      List.sort (fun p1 p2 -> compare p1 p2)
   end
 
   module StatusTools = struct
     type s = t
     type d = s list
     let length = 500
-    let copy = List.map (fun x -> x)
     let normalise c =
       { c with
         partition = List.sort (fun p1 p2 ->
-            compare (List.hd @@ snd p1) (List.hd @@ snd p2)) c.partition }
+            compare p1 p2) c.partition }
   end
 
   module PartMem = Memoize.Make(PartitionTools)
@@ -107,8 +105,8 @@ module Make (Env : Environment) = struct
   let part_cost time part =
     let highcost, normalcost, lowcost = workload_costs time part
     and sizefac = float @@ List.length part in
-    Env.alpha *. highcost +. Env.beta *. normalcost +. Env.gamma *. lowcost +.
-    Env.lambda *. sizefac
+    Env.alpha *. highcost +. Env.beta /. (1. +. normalcost) +.
+    Env.gamma *. lowcost +. Env.lambda *. sizefac
 
   let compute_cost time part p_father =
     let partcost = part_cost time part
@@ -144,29 +142,29 @@ module Make (Env : Environment) = struct
 
   (* [prod_parts p] generates all reachable partitions from partition [p].
    * Uses memoization, see nomem version for the original function *)
-  let prod_parts part =
+  (* let prod_parts part =
     if PartMem.mem part then PartMem.find part else
       let new_parts = prod_parts_nomem part in
       PartMem.add part new_parts ;
-      new_parts
+      new_parts *)
 
   (* [produce c] produces all children states of config *)
       (* No mem version here *)
-  let produce_nomem config =
-    let reachable_partitions = prod_parts config.partition in
+  let produce config =
+    let reachable_partitions = prod_parts_nomem config.partition in
     List.map (fun p ->
         { partition = p ; time = config.time + 1 ;
           cost = compute_cost (config.time + 1) p config.partition }
       ) reachable_partitions
 
   (* Memoized version of the above *)
-  let produce config =
+  (* let produce config =
     if StatMem.mem config
     then StatMem.find config
     else
       let newconfs = produce_nomem config in
       StatMem.add config newconfs ;
-      newconfs
+      newconfs *)
   (* }}} *)
 
   let terminal conf = conf.time >= Env.horizon

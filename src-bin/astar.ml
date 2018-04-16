@@ -1,11 +1,24 @@
 Arg.parse Options.speclist Options.anon_fun (Options.usage Sys.argv.(0)) ;;
 
 let sc = Scenario.load !Options.scpath
-let s15 = Util.Sset.add "1" (Util.Sset.add "5" Util.Sset.empty)
-let s32 = Util.Sset.add "3" (Util.Sset.add "2" Util.Sset.empty)
-let s4 = Util.Sset.add "4" Util.Sset.empty
+(* Inital state *)
+let s =  (Util.Sset.add "AP"
+            (Util.Sset.add "OG"
+               (Util.Sset.add "OT"
+                  (Util.Sset.add "OY"
+                     (Util.Sset.add "RT"
+                        (Util.Sset.add "TB"
+                          (Util.Sset.add "TE"
+                            (Util.Sset.add "TH"
+                              (Util.Sset.add "TN"
+                                 (Util.Sset.add "TP"
+                                    (Util.Sset.add "UK"
+                                       (Util.Sset.add "UZ" Util.Sset.empty))))))))))))
+(* let s15 = Util.Sset.add "1" (Util.Sset.add "5" Util.Sset.empty)
+and s32 = Util.Sset.add "3" (Util.Sset.add "2" Util.Sset.empty)
+and s4 = Util.Sset.add "4" Util.Sset.empty in *)
 let initial_partition = [
-  (s15, [("d") ]) ; (s32, [("a") ]) ; (s4, [("s4") ])
+  (s, [("RPW") ])
 ]
 
 module Env = struct
@@ -21,13 +34,16 @@ module Env = struct
   let workload = Scenario.workload sc
 end
 
+
 module Support = Airconf.Make(Env)
 
 type node = Support.t
 module NMap = Map.Make(struct type t = node let compare = compare end)
 module NSet = Set.Make(struct type t = node let compare = compare end)
 
-let produce = Support.produce
+let produce node =
+  let new_states = Support.produce node in
+  List.mapi (fun _ elt -> elt) new_states
 
 let cost = Support.cost
 
@@ -54,11 +70,14 @@ let reconstruct_path came_from current =
   loop [current] current
 
 let astar start =
+  let count = ref 0 in
   let rec loop open_set closed_set came_from g_score f_score =
     if open_set = NSet.empty then failwith "no path" else
       let current = argmin open_set (fun elt ->
           if NMap.mem elt f_score then NMap.find elt f_score else infinity) in
-      if terminal current then reconstruct_path came_from current else
+      incr count;
+      if terminal current then (Printf.printf "nb node vi : %d\n%!" !count;
+                                reconstruct_path came_from current) else
         let u_open_set = NSet.remove current open_set
         and u_closed_set = NSet.add current closed_set in
         let neighbours = produce current in
@@ -88,6 +107,12 @@ let astar start =
 let () =
   let path = astar Support.init in
   let pathcost = List.fold_left (fun acc elt ->
-      acc +. (Support.cost elt)) 0. path in
+      acc +. Support.cost elt) 0. path in
   let n = List.length path in
   Printf.printf "path cost : %f path length %d \n" (pathcost) n;
+  if !Options.verbose then
+    Partitions.print_partitions (List.map (fun s ->
+        Support.get_partitions s) (List.map (fun tree ->
+        tree)
+        (List.rev path))
+      )

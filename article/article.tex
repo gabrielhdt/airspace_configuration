@@ -178,26 +178,26 @@ backpropagated to the consecutive fathers of the new node.
 
 The above mentioned steps are denoted
 \begin{compactenum}
-	\item selection (or tree walk): choosing successively most promising nodes,
-	\item expansion: adding new nodes to the search tree,
-	\item simulation (or random walk): choosing quickly actions from the model
-		tree,
-	\item backpropagation (or backup): applying the result of the simulation to
-		the search tree.
+  \item selection (or tree walk): choosing successively most promising nodes,
+  \item expansion: adding new nodes to the search tree,
+  \item simulation (or random walk): choosing quickly actions from the model
+    tree,
+  \item backpropagation (or backup): applying the result of the simulation to
+    the search tree.
 \end{compactenum}
 Those phases are repeated until a stopping criterium (e.g.\ memory or time) is
 reached, resulting in algorithm~\ref{alg:gen_mcts}.
 \begin{algorithm}
-	\caption{General MCTS~\cite{browne2012survey}}\label{alg:gen_mcts}
-	\begin{algorithmic}
-		\Procedure{MctsSearchTree}{$v_0$}
-		\While{within computational budget}
-		\State{} \([v_0, \dots, v_n] \gets\) \Call{TreePolicy}{$v_0$}
-		\State{} \(\Delta \gets\) \Call{DefaultPolicy}{$v_n$}
-		\State{} \Call{Backup}{$[v_0, \dots, v_n]$, $\Delta$}
-		\EndWhile{}
-		\EndProcedure{}
-	\end{algorithmic}
+  \caption{General MCTS~\cite{browne2012survey}}\label{alg:gen_mcts}
+  \begin{algorithmic}
+    \Procedure{MctsSearchTree}{$v_0$}
+    \While{within computational budget}
+    \State{} \([v_0, \dots, v_n] \gets\) \Call{TreePolicy}{$v_0$}
+    \State{} \(\Delta \gets\) \Call{DefaultPolicy}{$v_n$}
+    \State{} \Call{Backup}{$[v_0, \dots, v_n]$, $\Delta$}
+    \EndWhile{}
+    \EndProcedure{}
+  \end{algorithmic}
 \end{algorithm}
 
 \subsubsection{Extending the search tree}
@@ -219,7 +219,7 @@ selected to go deeper in the tree, \(a\) an action available from \(F\),
 the action \(a\) applied to node \(F\), \(\beta\) a constant. The selected node
 is thus the one maximising
 \begin{equation}
-	\text{UCB} = \mu_{F,a} + 2 \beta \sqrt{\frac{2 \log T_f}{T_{F,a}}}
+  \text{UCB} = \mu_{F,a} + 2 \beta \sqrt{\frac{2 \log T_f}{T_{F,a}}}
 \end{equation}
 
 \paragraph{Expansion}
@@ -228,38 +228,88 @@ has been run through each child available from \(F\). In the case where one or
 more children haven't been explored yet, one of the unexplored children is
 chosen and a simulation is started from it.
 \begin{algorithm}
-	\caption{Extending the search tree}
-	\begin{algorithmic}
-		\Function{TreePolicy}{$v$}
-		\State{} \([v_1, \dots, v_n] \gets\) \Call{Select}{$v$}
-		\If{$v_n$ is terminal}
-		\State{} \Return{$[v_1, \dots, v_n]$}
-		\Else{}
-		\State{} \([v_1, \dots, v_{n+1}] \gets\)
-		\Call{Expand}{$[v_1, \dots, v_n]$}
-		\State{} \Return{$[v_1, \dots, v_{n+1}]$}
-		\EndIf{}
-		\EndFunction{}
-	\end{algorithmic}
-	\begin{algorithmic}
-		\Function{Select}{$v, a$}
-		\If{$v$ is terminal or fully expanded}
-		\State{} \Return{$[v, a]$}
-		\Else{}
-		\State{} fav\(\gets\) \Call{BestChild}{$v$}
-		\State{} \Return{\Call{Select}{fav, $[v, a]$}}
-		\EndIf{}
-		\EndFunction{}
-	\end{algorithmic}
-	\begin{algorithmic}
-		\Function{BestChild}{$v$}
-		\State{} \Return{$\argmax\{\Call{UCB}{v'} |
-		v' \text{\,children of\,} v\}$}
-		\EndFunction{}
-	\end{algorithmic}
+  \caption{Extending the search tree}
+  \begin{algorithmic}
+    \Function{TreePolicy}{$v$}
+    \State{} \([v_1, \dots, v_n] \gets\) \Call{Select}{$v$}
+    \If{$v_n$ is terminal}
+    \State{} \Return{$[v_1, \dots, v_n]$}
+    \Else{}
+    \State{} \([v_1, \dots, v_{n+1}] \gets\)
+    \Call{Expand}{$[v_1, \dots, v_n]$}
+    \State{} \Return{$[v_1, \dots, v_{n+1}]$}
+    \EndIf{}
+    \EndFunction{}
+  \end{algorithmic}
+  \begin{algorithmic}
+    \Function{Select}{$v, a$}
+    \If{$v$ is terminal or fully expanded}
+    \State{} \Return{$[v, a]$}
+    \Else{}
+    \State{} fav\(\gets\) \Call{BestChild}{$v$}
+    \State{} \Return{\Call{Select}{fav, $[v, a]$}}
+    \EndIf{}
+    \EndFunction{}
+  \end{algorithmic}
+  \begin{algorithmic}
+    \Function{BestChild}{$v$}
+    \State{} \Return{$\argmax\{\Call{UCB}{v'} |
+    v' \text{\,children of\,} v\}$}
+    \EndFunction{}
+  \end{algorithmic}
 \end{algorithm}
 
 \section{Model}
+
+In this section, we discuss the model established to approach this configuration
+problem. First we defined a structure for a controled sector and all possible
+transitions through time. Then a workload model is defined. And finally we
+determined a cost per partition and a cost function aimed to be minimized.
+
+\subsection{State}
+
+
+
+\subsection{workload}
+
+$p_{low}$
+$p_{normal}$
+$p_{high}$
+
+\subsection{Partition cost and cost function}
+
+In order to evaluate a given partition $P$ at time $t$, a cost $C(P, t)$ needs
+to be defined. This cost depend on the workload in each the sector. We give the
+following definitions~\cite{Ferrari2017} to represent a high
+(respectively normal and low) cost for the partition:
+\begin{itemize}
+  \item $c_+(P, t) = \sum_{S \in P_t} \delta_{h}(S, t) * p_{high}^{S, t} * |S|^2$
+  \item $c_=(P, t) = \sum_{S \in P_t} \delta_{n}(S, t) * p_{norm}^{S} * |S|^{-2}$
+  \item $c_-(P, t) = \sum_{S \in P_t} \delta_{l}(S, t) * p_{low}^{S, t} * |S|^{-2}$
+\end{itemize}
+with $\delta_{h}(P, t)$ (resp. $\delta_{n}(P_t)$ and $\delta_{l}(P_t)$) equal 1
+if the probability $p_{high}$ (resp. $p_{normal}$ and $p_{low}$) is superior to
+the two others, and 0 otherwise.
+
+It is now possible to assign a cost to each partition. This cost is linear
+regarding
+
+\section*{Notations}
+
+\begin{itemize}
+  \item $m$: elementary module
+  \item $S$: sector control position, group of modules
+  \item $P$: partition of the airspace, group of sectors
+  \item $t$: current time
+  \item $C(P, t)$: cost of a given partition $P$ at time $t$
+  \item $s$: state, in this article a partition $P$ and a time $t$
+  \item $h(s)$: heuristic that gives for a state $s$ an estimation of the cost
+  \item $\mu_{F, a}$: mean of all reward comming from node $F$ with action $a$
+  \item $T_F$: number of simuation where the final path include the node $F$
+  \item $T_{F, a}$: number of simuation where the final path include the
+    node $F$ with action $a$
+\end{itemize}
+
 
 \bibliography{article}
 \bibliographystyle{plain}
