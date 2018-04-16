@@ -251,7 +251,7 @@ $p_{high}$
 
 In order to evaluate a given partition $P$ at time $t$, a cost $C(P, t)$ needs
 to be defined. This cost depend on the workload in each the sector. We give the
-following intermediate definitions to represent a high (respectively normal
+following definitions~\cite{Ferrari2017} to represent a high (respectively normal
 and low) cost for the partition :
 \begin{itemize}
     \item $c_+(P, t) = \sum_{S \in P_t} \delta_{h}(S, t) * p_{high}^{S, t} * |S|^2$
@@ -260,9 +260,10 @@ and low) cost for the partition :
 \end{itemize}
 with $\delta_{h}(P, t)$ (resp. $\delta_{n}(P_t)$ and $\delta_{l}(P_t)$) equal 1
 if the probability $p_{high}$ (resp. $p_{normal}$ and $p_{low}$) is superior to
-the two other, and 0 otherwise.
+the two others, and 0 otherwise.
 
-With
+It is now possible to assign a cost to each partition. This cost is linear
+regarding
 
 \section*{Notations}
 
