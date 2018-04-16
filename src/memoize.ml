@@ -11,7 +11,6 @@ module type DataTools = sig
   type s
   type d
   val length : int
-  val copy : d -> d
   val normalise : s -> s
 end
 
@@ -24,7 +23,7 @@ module Make (DT : DataTools) = struct
 
   let add k e = let nelt = DT.normalise k in Hashtbl.add table nelt e
 
-  let find k = DT.copy @@ Hashtbl.find table (DT.normalise k)
+  let find k = Hashtbl.find table (DT.normalise k)
 
   let mem k = Hashtbl.mem table (DT.normalise k)
 

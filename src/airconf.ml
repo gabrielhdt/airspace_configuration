@@ -63,7 +63,6 @@ module Make (Env : Environment) = struct
     type s = t
     type d = s list
     let length = 500
-    let copy = List.map (fun x -> x)
     let normalise c =
       { c with
         partition = List.sort (fun p1 p2 ->
