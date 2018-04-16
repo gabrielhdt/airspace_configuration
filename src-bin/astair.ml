@@ -46,7 +46,8 @@ let () =
     let is_goal _ st = AirSupp.terminal st
     let next _ = AirSupp.produce
     let k _ st1 st2 = AirSupp.cost st2
-    let h _ st = AirSupp.h st
+let h _ st = AirSupp.h st
+(* let h _ _ = 0. *)
     let do_at_insertion _ _ _ = user ()
     let do_at_extraction _ _ _ _ = ()
   end in

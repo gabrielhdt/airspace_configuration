@@ -73,7 +73,6 @@ let search user_fun u0 is_goal next k h =
   try
     while not (Pqueue.is_empty !q) do
       let (c,u,new_q) = Pqueue.extract !q in
-      incr count;
       q := new_q;
       if is_goal u then (path := Memory.get_path m u; Printf.printf "nb node vi : %d\n%!" !count;
                          raise Eureka)
@@ -82,6 +81,7 @@ let search user_fun u0 is_goal next k h =
         (Memory.tag_as_expanded m u;
          let ls = next u in
          List.iter (fun v ->
+      incr count;
              let cv = k u v +. h v in
              (* let cv = Cost_functions.cost_full_partition
                 v.State.partition v.t u_p.data u_p.nnet in *)
