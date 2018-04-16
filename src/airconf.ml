@@ -144,29 +144,29 @@ module Make (Env : Environment) = struct
 
   (* [prod_parts p] generates all reachable partitions from partition [p].
    * Uses memoization, see nomem version for the original function *)
-  let prod_parts part =
+  (* let prod_parts part =
     if PartMem.mem part then PartMem.find part else
       let new_parts = prod_parts_nomem part in
       PartMem.add part new_parts ;
-      new_parts
+      new_parts *)
 
   (* [produce c] produces all children states of config *)
       (* No mem version here *)
-  let produce_nomem config =
-    let reachable_partitions = prod_parts config.partition in
+  let produce config =
+    let reachable_partitions = prod_parts_nomem config.partition in
     List.map (fun p ->
         { partition = p ; time = config.time + 1 ;
           cost = compute_cost (config.time + 1) p config.partition }
       ) reachable_partitions
 
   (* Memoized version of the above *)
-  let produce config =
+  (* let produce config =
     if StatMem.mem config
     then StatMem.find config
     else
       let newconfs = produce_nomem config in
       StatMem.add config newconfs ;
-      newconfs
+      newconfs *)
   (* }}} *)
 
   let terminal conf = conf.time >= Env.horizon
