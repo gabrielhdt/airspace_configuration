@@ -155,7 +155,20 @@ configurations, the work associated with the reallocation of one or more modules
 is evaluated. This can be used in a cost function aimed to be minimised
 (in~\cite{bedouet2016}).
 
-
+\section*{Notations}
+\begin{itemize}
+  \item $m$: elementary module
+  \item $S$: sector control position, group of modules
+  \item $P$: partition of the airspace, group of sectors
+  \item $t$: current time
+  \item $C(P, t)$: cost of a given partition $P$ at time $t$
+  \item $s$: state, in this article a partition $P$ and a time $t$
+  \item $h(s)$: heuristic that gives for a state $s$ an estimation of the cost
+  \item $\mu_{F, a}$: mean of all reward comming from node $F$ with action $a$
+  \item $T_F$: number of simuation where the final path include the node $F$
+  \item $T_{F, a}$: number of simuation where the final path include the
+    node $F$ with action $a$
+\end{itemize}
 
 \section{Algorithm}
 
@@ -293,22 +306,6 @@ the two others, and 0 otherwise.
 
 It is now possible to assign a cost to each partition. This cost is linear
 regarding
-
-\section*{Notations}
-
-\begin{itemize}
-  \item $m$: elementary module
-  \item $S$: sector control position, group of modules
-  \item $P$: partition of the airspace, group of sectors
-  \item $t$: current time
-  \item $C(P, t)$: cost of a given partition $P$ at time $t$
-  \item $s$: state, in this article a partition $P$ and a time $t$
-  \item $h(s)$: heuristic that gives for a state $s$ an estimation of the cost
-  \item $\mu_{F, a}$: mean of all reward comming from node $F$ with action $a$
-  \item $T_F$: number of simuation where the final path include the node $F$
-  \item $T_{F, a}$: number of simuation where the final path include the
-    node $F$ with action $a$
-\end{itemize}
 
 
 \bibliography{article}
