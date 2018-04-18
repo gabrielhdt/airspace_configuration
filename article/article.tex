@@ -68,12 +68,12 @@
 % Article title formatting
 \pretitle{\begin{center}\Huge\bfseries}
 % Article title closing formatting
-\posttitle{\end{center}}
+  \posttitle{\end{center}}
 
 \renewcommand{\maketitlehookd}{%
-\begin{abstract}
+  \begin{abstract}
 
-\end{abstract}
+  \end{abstract}
 }
 
 %-----------------------------------------------------------------------------
@@ -99,7 +99,7 @@ providing a method offering a smoother workload during the day.
 
 Several methods have been considered to solve the dynamic airspace configuration
 problem, for instance via genetic algorithms in~\cite{sergeeva2017dynamic},
-constraint local search in~\cite{jagare2013constraint}, integer linear
+constraint local search in~\cite{jagare2013airspace}, integer linear
 programming in~\cite{treimuth2016branch} or dynamic programming
 in~\cite{bloem2010dynamic}.
 
@@ -114,8 +114,8 @@ The sequence of configurations will be represented as a tree. The resulting
 sequence will therefore be a path from the root to a leaf of this tree. This
 problem is highly combinatorial (partitioning of the airspace). Knowing that a
 sochastic tree search algorithm has been honing from a good
-player~\cite{gelly2012go} to the best one with AlphaGo on one of the most highly
-combinatorial game wich is the game of Go entices us to use one for this
+player~\cite{gelly2012grand} to the best one with AlphaGo on one of the most
+highly combinatorial game wich is the game of Go entices us to use one for this
 problem. The Monte Carlo tree search~\cite{browne2012survey} algorithm will be
 used to fullfill this task.
 
@@ -136,7 +136,7 @@ qualified hard constraints.
 
 In most cases the cost of a configuration is based on the workload. Each
 approach seems to give their own representation of the workload. For instance,
-~\cite{bedouet2016} determined workload density proportionally to the time
+~\cite{bedouet2016towards} determined workload density proportionally to the time
 spent by aircraft in each sector. A simpler version~\cite{sergeeva2017dynamic}
 only uses the number of aircraft. On the other hand, more complex methods,
 involving many more inputs are also available. For
@@ -145,16 +145,17 @@ volume, or vertical incoming flows in the next 15 and 60 minutes. Those
 indicators ease the training of a neural network forecasting the workload.
 
 Other soft constraints appear to be relevant to have a better model of
-the problem. For instance in~\cite{sergeeva2017dynamic} and~\cite{bedouet2016} a
+the problem. For instance in~\cite{sergeeva2017dynamic}
+and~\cite{bedouet2016towards} a
 coordination cost is defined. It represents the surplus of work added by
 flights travelling from one sector to an other. The shape of the
 resulting sector is considered, as the simpler is
 the shape, the easier it is to manage. Complex shapes are therefore avoided,
-thanks to the notion of compactness in~\cite{jagare2013constraint} and balconies
+thanks to the notion of compactness in~\cite{jagare2013airspace} and balconies
 in~\cite{sergeeva2017dynamic}. To smooth the transition between two
 configurations, the work associated with the reallocation of one or more modules
 is evaluated. This can be used in a cost function aimed to be minimised
-(in~\cite{bedouet2016}).
+(in~\cite{bedouet2016towards}).
 
 \section*{Notations}
 \begin{itemize}
@@ -196,12 +197,12 @@ backpropagated to the consecutive fathers of the new node.
 
 The above mentioned steps are denoted
 \begin{compactenum}
-  \item selection (or tree walk): choosing successively most promising nodes,
-  \item expansion: adding new nodes to the search tree,
-  \item simulation (or random walk): choosing quickly actions from the model
-    tree,
-  \item backpropagation (or backup): applying the result of the simulation to
-    the search tree.
+\item selection (or tree walk): choosing successively most promising nodes,
+\item expansion: adding new nodes to the search tree,
+\item simulation (or random walk): choosing quickly actions from the model
+  tree,
+\item backpropagation (or backup): applying the result of the simulation to
+  the search tree.
 \end{compactenum}
 Those phases are repeated until a stopping criterium (e.g.\ memory or time) is
 reached, resulting in algorithm~\ref{alg:gen_mcts}.
@@ -259,16 +260,15 @@ called the \emph{UCB1-tuned} equation
   \begin{algorithmic}
     \Function{TreePolicy}{path of nodes $\pi$}
     \State{} $v \gets$ head of $\pi$
-    \State{} \Call{Deploy}{$v$}
     \If{$v$ is terminal}
     \State{}\Return{$\pi$}
     \Else{}
     \If{$v$ is not fully expanded}
-    \State{}\Return{\Call{Expand}{$v$} $\cons \pi$}
+    \State{}\Return{\Call{Expand}{$v$} $\cup \pi$}
     \Else{}
-    \State $f \gets$ \Call{BestChild}{$v$}
+    \State{}$f \gets$ \Call{BestChild}{$v$}
     \State{}\Return{%
-      \Call{TreePolicy}{$f \cons \pi$}
+      \Call{TreePolicy}{$f \cup \pi$}
     }
     \EndIf{}
     \EndIf{}
@@ -276,7 +276,7 @@ called the \emph{UCB1-tuned} equation
   \end{algorithmic}
   \begin{algorithmic}
     \Function{BestChild}{$v$}
-    \State{} \Return{$\argmax\{\Call{UCB1-tuned}{v'} |
+    \State{}\Return{$\argmax\{\Call{UCB}{v'} |
     v' \text{\,children of\,} v\}$}
     \EndFunction{}
   \end{algorithmic}
@@ -294,7 +294,7 @@ chosen and a simulation is started from it.
   }\label{alg:expansion}
   \begin{algorithmic}
     \Function{Expand}{node $v$}
-    \State{} $\ell \gets \{p(v, a) | a\in\mathcal{A}(v), T_{v,a} = 0\}$
+    \State{}$\ell \gets \{p(v, a) | a\in\mathcal{A}(v), T_{v,a} = 0\}$
     \State{}\Return{random element from $\ell$}
     \EndFunction{}
   \end{algorithmic}
@@ -320,18 +320,73 @@ and the total count are updated this way
 \begin{algorithm}
   \caption{UCB1 backpropagation}
   \begin{algorithmic}
-    \Procedure{Backpropagate}{path $\pi$, $r$}
-    \State{} \(\delta \gets\ r - \mu_v\)
-    \State{} \(\mu_v \gets \mu_v + \frac{\delta}{T_v + 1}\)
-    \State{} \(T_v \gets T_v + 1\)
+    \Procedure{Backpropagate}{$v$, $r$}
+    \State{}\(\delta \gets\ r - \mu_v\)
+    \State{}\(\mu_v \gets \mu_v + \frac{\delta}{T_v + 1}\)
+    \State{}\(T_v \gets T_v + 1\)
     \EndProcedure{}
   \end{algorithmic}
 \end{algorithm}
 
-For the UCB1-tuned, the standard deviation has to be computet. It results in
-algorithm~\ref{alg:backpropagate-tuned}
+For the UCB1-tuned, the standard deviation has to be computed. It results in
+algorithm~\ref{alg:backpropagate-tuned} which introduces the value \(m_v\)
+associated to a node \(v\) to compute the standard deviation via the formula
+\begin{equation}
+  \sigma^2_v = \frac{m_v}{T_v}.
+\end{equation}
 \begin{algorithm}
   \caption{UCB1-tuned backpropagation}\label{alg:backpropagate-tuned}
+  \begin{algorithmic}
+    \Procedure{Backpropagate}{$v, r$}
+    \State{}\(\delta \gets r - \mu_v\)
+    \State{}\(\mu_v \gets \mu_v + \frac{\delta}{T_v + 1}\)
+    \State{}\(\delta' \gets r - \mu_v\)
+    \State{}\(m_v \gets m_v + \delta \delta'\)
+    \State{}\(T_v \gets T_v + 1\)
+    \EndProcedure{}
+  \end{algorithmic}
+\end{algorithm}
+
+\subsection{Sequence building}
+\subsubsection{Node selection}\label{sssec:node_selection}
+The building of the final sequence of actions differs from the selection on the
+aim, the selection chooses the most promising actions while the final sequence
+must be composed of the best. This means that the final path build won't use the
+UCB equation. Chaslot \textit{et al.}~\cite{browne2012survey} propose several
+methods to select nodes,
+\begin{itemize}
+  \item max-child: select the child with highest reward;
+  \item robust child: select the most visited root child;
+  \item  secure child: select the child maximising a lower confidence bound.
+\end{itemize}
+
+\subsubsection{Iterative pathfinding}
+The path is built iteratively by calling successive Monte Carlo tree searches.
+Say an MCTS has been called on a node \(u\). Once a stopping criterium is
+matched, a node \(v\) among the ones reachable from \(u\) is selected via one of
+the previously mentioned policies. Then an mcts is called back with node \(u\)
+as the root node. The path is composed of the successive roots. The algorithm is
+described at~\ref{alg:path_building}.
+\begin{algorithm}
+  \caption{%
+    Path building. The {\sc NextNode} (here max-child) function is one among
+    those in~\ref{sssec:node_selection}.
+  }\label{alg:path_building}
+  \begin{algorithmic}
+    \Function{MctsSearch}{$u_0, n$}
+    \State{}\(u \gets u_0\)
+    \State{}\(\pi \gets \{u\}\)
+    \For{$i = 1$ to $n$}
+      \State{}\Call{MctsSearchTree}{$u$}
+      \State{}\(u \gets\)\Call{NextNode}{$u$}
+      \State{}\(\pi \gets \pi \cup \{u\}\)
+    \EndFor{}
+    \State{}\Return{$\pi$}
+    \EndFunction{}
+    \Function{NextNode}{$u$}
+    \State{}\Return{$\argmax\{\mu_{u,a} | a \in \mathcal{A}(v)\}$}
+    \EndFunction{}
+  \end{algorithmic}
 \end{algorithm}
 \section{Model}
 
