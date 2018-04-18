@@ -225,7 +225,6 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
 
   let buildpath root nsteps policy =
     let rec inner cnt accu current_tree =
-      Printf.printf "node : %d/%d\r%!" cnt !Options.horizon;
       if cnt >= nsteps then accu else
         begin
           let newtree = List.hd accu in
