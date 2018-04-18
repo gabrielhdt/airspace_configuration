@@ -237,14 +237,23 @@ selected to go deeper in the tree, \(a\) an action available from \(v\),
 the action \(a\) applied to node \(v\), \(\beta\) a constant. The selected node
 is thus the one maximising
 \begin{equation}
-  \text{UCB} = \mu_{v,a} + 2 \beta \sqrt{\frac{2 \log T_v}{T_{v,a}}}
+  \text{UCB1} = \mu_{v,a} + 2 \beta \sqrt{\frac{2 \log T_v}{T_{v,a}}}
 \end{equation}
 
-\paragraph{Expansion}
-The above step is carried out only if, considering a node \(F\), a simulation
-has been run through each child available from \(F\). In the case where one or
-more children haven't been explored yet, one of the unexplored children is
-chosen and a simulation is started from it.
+While the previous equation is well suited for two players games, it can be
+tweaked to improve its efficience in one player games or sequencing problems. An
+alternative using the standard deviation is proposed in~\cite{sebag2010fuse}
+called the \emph{UCB1-tuned} equation
+\begin{equation}
+  \mu_{v,a} +
+  \sqrt{%
+    \frac{\beta\log T_v}{t_{v,a}}
+    \min\left( \frac{1}{4}, \sigma^2_{v,a} +
+    \sqrt{%
+      \frac{2 \log T_v}{T_{v,a}}
+    }\right)
+  }
+\end{equation}
 \begin{algorithm}
   \caption{UCT algorithm}\label{alg:tree_pol}
   \begin{algorithmic}
@@ -267,16 +276,22 @@ chosen and a simulation is started from it.
   \end{algorithmic}
   \begin{algorithmic}
     \Function{BestChild}{$v$}
-    \State{} \Return{$\argmax\{\Call{UCB}{v'} |
+    \State{} \Return{$\argmax\{\Call{UCB1-tuned}{v'} |
     v' \text{\,children of\,} v\}$}
     \EndFunction{}
   \end{algorithmic}
 \end{algorithm}
+
+\paragraph{Expansion~\ref{alg:expansion}}
+The above step is carried out only if, considering a node \(v\), a simulation
+has been run through each child available from \(v\). In the case where one or
+more children haven't been explored yet, one of the unexplored children is
+chosen and a simulation is started from it.
 \begin{algorithm}
   \caption{%
     Expansion (\(p\colon \mathcal{S} \times \mathcal{A} \to \mathcal{S}\)
     is the transition function)
-  }
+  }\label{alg:expansion}
   \begin{algorithmic}
     \Function{Expand}{node $v$}
     \State{} $\ell \gets \{p(v, a) | a\in\mathcal{A}(v), T_{v,a} = 0\}$
@@ -285,6 +300,39 @@ chosen and a simulation is started from it.
   \end{algorithmic}
 \end{algorithm}
 
+\subsubsection{Simulation and backpropagation}
+\paragraph{Simulation}
+Once a node has been expanded, random nodes are chosen successively until a
+terminal state is found. The cost of the resulting path, from the root to the
+node is then evaluated and backpropagated to all the ancestors of the expanded
+node.
+
+\subparagraph{Heuristic} One might want to bias the randomness while choosing
+nodes. This would imply using a heuristic which has to be able to discriminate
+a node between its siblings.
+
+\paragraph{Backpropagation}
+The backpropagation consists in updating the values required to carry out the
+tree policy. The values must be updated incrementally since the backpropagation
+function has the current value of the parameters and the result of the
+simulation as parameters. Thus, for UCB1 equation, the expected reward (mean)
+and the total count are updated this way
+\begin{algorithm}
+  \caption{UCB1 backpropagation}
+  \begin{algorithmic}
+    \Procedure{Backpropagate}{path $\pi$, $r$}
+    \State{} \(\delta \gets\ r - \mu_v\)
+    \State{} \(\mu_v \gets \mu_v + \frac{\delta}{T_v + 1}\)
+    \State{} \(T_v \gets T_v + 1\)
+    \EndProcedure{}
+  \end{algorithmic}
+\end{algorithm}
+
+For the UCB1-tuned, the standard deviation has to be computet. It results in
+algorithm~\ref{alg:backpropagate-tuned}
+\begin{algorithm}
+  \caption{UCB1-tuned backpropagation}\label{alg:backpropagate-tuned}
+\end{algorithm}
 \section{Model}
 
 In this section, we discuss the model established to approach this configuration
