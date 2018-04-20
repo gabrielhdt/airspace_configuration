@@ -347,6 +347,7 @@ associated to a node \(v\) to compute the standard deviation via the formula
   \end{algorithmic}
 \end{algorithm}
 
+
 \subsection{Sequence building}
 \subsubsection{Node selection}\label{sssec:node_selection}
 The building of the final sequence of actions differs from the selection on the
@@ -388,6 +389,40 @@ described at~\ref{alg:path_building}.
     \EndFunction{}
   \end{algorithmic}
 \end{algorithm}
+\subsection{A\(^*\)}
+To evaluate the exactness of the paths given by the MCTS algoithm, the A\(^*\)
+algorithm is used. A\(^*\) is an exact depth first search pathfinding algorithm
+which uses a heuristic function to guide its search. The algorithm is given
+in~\ref{alg:astar} where \(u_0\) is the initial state, \(T\) the set of termial
+nodes, \(h\) a heuristic function estimating the cost from a state \(u\) given
+as argument to a final state, \(k \colon \mathcal{S}^2 \to \mathbb{R}\). The
+function \(\mathup{first(G)}\) returns the first element of \(G\) and
+\(f\mathup{-insert}(G, v)\) inserts \(v\) in \(G\) ordering first by \(f\)
+increasing then by \(g\) decreasing.
+\begin{algorithm}
+  \caption{A\(^*\) algorithm~\cite{alliotschiex2002ia&it}}\label{alg:astar}
+  \begin{algorithmic}
+    \Procedure{A$^*$}{$u_0$}
+    \State{}\(G \gets u_0; D \gets \emptyset; g(u_0) \gets 0; f(u_0) \gets 0\)
+    \State{}\(\mathup{father}(u_0) \gets \emptyset\)
+    \While{$G \neq \emptyset$}
+    \State{}\(u \gets \mathup{first}(G); G \gets G \backslash \{u\}\)
+    \State{}\(D \gets D \cup \{u\}\)
+    \If{$u \in T$}
+    \State{}\Return{father}
+    \EndIf{}
+    \For{$v$ in childen of $u$}
+    \If{$v \notin D \cup G$ or $[g(v) > g(u) + k(u, v)]$}
+    \State{}\(g(v) \gets g(u) + k(u, v)\)
+    \State{}\(f(v) \gets g(v) + h(v)\)
+    \State{}\(\mathup{father}(v) \gets u\)
+    \State{}\(f\mathup{-insert}(G, v)\)
+    \EndIf{}
+    \EndFor{}
+    \EndWhile{}
+    \EndProcedure{}
+  \end{algorithmic}
+\end{algorithm}
 \section{Model}
 
 In this section, we discuss the model established to approach this configuration
@@ -409,7 +444,7 @@ $p_{high}$
 
 In order to evaluate a given partition $P$ at time $t$, a cost $C(P, t)$ needs
 to be defined. This cost depend on the workload in each the sector. We give the
-following definitions~\cite{Ferrari2017} to represent a high
+following definitions~\cite{ferrari2017} to represent a high
 (respectively normal and low) cost for the partition:
 \begin{itemize}
   \item $c_+(P, t) = \sum_{S \in P_t} \delta_{h}(S, t) * p_{high}^{S, t} * |S|^2$
