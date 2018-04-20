@@ -442,13 +442,15 @@ $p_{high}$
 
 \subsection{Partition cost and cost function}
 
+\subsubsection{Partition cost}
+
 In order to evaluate a given partition $P$ at time $t$, a cost $C(P, t)$ needs
 to be defined. This cost depend on the workload in each the sector. We give the
 following definitions~\cite{ferrari2017} to represent a high
 (respectively normal and low) cost for the partition:
 \begin{itemize}
   \item $c_+(P, t) = \sum_{S \in P_t} \delta_{h}(S, t) * p_{high}^{S, t} * |S|^2$
-  \item $c_=(P, t) = \sum_{S \in P_t} \delta_{n}(S, t) * p_{norm}^{S} * |S|^{-2}$
+  \item $c_=(P, t) = 1 / (\sum_{S \in P_t} \delta_{n}(S, t) * p_{norm}^{S} * |S|^{-2}$)
   \item $c_-(P, t) = \sum_{S \in P_t} \delta_{l}(S, t) * p_{low}^{S, t} * |S|^{-2}$
 \end{itemize}
 with $\delta_{h}(P, t)$ (resp. $\delta_{n}(P_t)$ and $\delta_{l}(P_t)$) equal 1
@@ -456,7 +458,36 @@ if the probability $p_{high}$ (resp. $p_{normal}$ and $p_{low}$) is superior to
 the two others, and 0 otherwise.
 
 It is now possible to assign a cost to each partition. This cost is linear
-regarding
+regarding $c_+$, $c_=$, $c_-$ and $n$ (cardinal of the partition $P$). The
+partition cost is defined as follow:
+$$
+C(P, t) = \alpha c_+ + \beta c_= + \gamma c_- +\lambda n
+$$
+
+The parameters $\alpha$, $\beta$, $\gamma$ and $\lambda$ (all positive)
+determine a priority on which parameter to optimize. For instance, a high
+value $\alpha$ help to
+minimize $c_+$, hence the overall number of sectors with too much tafic.
+In a real application, it maybe interesting to order those parmaeters as
+follow : $\alpha > \lambda > \beta > \gamma$.
+
+\subsubsection{Transition cost}
+
+In an operational context, each reconfiguration raise the workload for
+controllers. This trend needs to be considered and a transition cost needs to
+be defined for this matter. A transition is (TODO), and the transition cost is
+then:
+$$
+C_{tr}(P_1, P_2) =
+\left\{
+\begin{array}{l}
+    0 \qquad if \qquad P_1 = P_2 \\
+    1 \qquad otherwise
+\end{array}
+\right.
+$$
+
+
 
 
 \bibliography{article}
