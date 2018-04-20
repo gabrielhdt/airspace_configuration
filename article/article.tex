@@ -10,7 +10,8 @@
 \usepackage{paralist}
 
 \DeclareMathOperator{\argmax}{argmax}
-\DeclareMathOperator{\cons}{::}
+\DeclareMathOperator{\first}{first}
+\DeclareMathOperator{\state}{state}
 
 
 \usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry}
@@ -81,6 +82,31 @@
 \begin{document}
 
 \maketitle
+
+\section*{Notations}
+\begin{itemize}
+  \item $m$: elementary module;
+  \item $S$: sector control position, group of modules;
+  \item $P$: partition of the airspace, group of sectors;
+  \item $t$: current time;
+  \item $C(P, t)$: cost of a given partition $P$ at time $t$;
+  \item \(\mathcal{S}\): the set of available states;
+  \item \(\mathcal{A}\): the set of all possible actions;
+  \item \(\mathcal{A}(s)\): the available actions from a state \(s\);
+  \item $s$: state;
+  \item \(f \colon \mathcal{S} \times \mathcal{A} \to \mathcal{S}\):
+    transition function giving the resulting states of action \(a\) executed
+    from a state \(s\).
+  \item $h \colon \mathcal{S} \to \mathbb{R}^+$: heuristic estimating the cost
+    from a state \(s \in \mathcal{S}\) to a final state;
+  \item \(\mathcal{N}\): the set of nodes
+  \item \(u, v \in \mathcal{N}^2\): nodes
+  \item \(Q \colon \mathcal{N} \to \mathbb{R}^+\): the reward expectancy of a
+    node;
+  \item \(N \colon \mathcal{N} \to \mathbb{N}\): number of simulations running
+    through or from a node;
+  \item \(\first(\ell)\): returns the first element of \(\ell\).
+\end{itemize}
 
 \section{Introduction}
 The airspace is divided into sectors, themselves divided into elementary
@@ -157,25 +183,6 @@ configurations, the work associated with the reallocation of one or more modules
 is evaluated. This can be used in a cost function aimed to be minimised
 (in~\cite{bedouet2016towards}).
 
-\section*{Notations}
-\begin{itemize}
-  \item $m$: elementary module
-  \item $S$: sector control position, group of modules
-  \item $P$: partition of the airspace, group of sectors
-  \item $t$: current time
-  \item $C(P, t)$: cost of a given partition $P$ at time $t$
-  \item $s$: state, in this article a partition $P$ and a time $t$
-  \item $h(s)$: heuristic that gives for a state $s$ an estimation of the cost
-  \item $\mu_{v, a}$: mean of all reward comming from node $v$ with action $a$
-  \item $T_v$: number of simulation where the final path include the node $v$
-  \item $T_{v, a}$: number of simulation where the final path include the
-    node $F$ with action $a$
-  \item \(\mathcal{A}(v)\) the available actions from a node \(v\)
-  \item \(p\colon \mathcal{S} \times \mathcal{A} \to \mathcal{S}\) the
-    production function, giving the resulting state of action \(a\) applied on a
-    state \(s\).
-\end{itemize}
-
 \section{Algorithm}
 
 The task of building an optimal sequence of partitions (lowering
@@ -193,7 +200,7 @@ promising nodes towards the bottom of the tree are selected. Once a leaf of the
 search tree is reached, a new node coming from the model tree is added to the
 leaf. A simulation is then run from this newly added node to evaluate the
 outcome of a path starting from it. The result of the simulation is eventually
-backpropagated to the consecutive fathers of the new node.
+backpropagated to the consecutive parents of the new node.
 
 The above mentioned steps are denoted
 \begin{compactenum}
@@ -205,7 +212,9 @@ The above mentioned steps are denoted
   the search tree.
 \end{compactenum}
 Those phases are repeated until a stopping criterium (e.g.\ memory or time) is
-reached, resulting in algorithm~\ref{alg:gen_mcts}.
+reached, resulting in algorithm~\ref{alg:gen_mcts} where the tree policy
+aggregates phases 1 and 2 to create a new node of the search tree and the
+default policy gives an evaluation of the newly added node.
 \begin{algorithm}
   \caption{General MCTS~\cite{browne2012survey}}\label{alg:gen_mcts}
   \begin{algorithmic}
@@ -220,7 +229,7 @@ reached, resulting in algorithm~\ref{alg:gen_mcts}.
 \end{algorithm}
 
 \subsubsection{Extending the search tree}
-\paragraph{Selection~\ref{alg:tree_pol}}
+\paragraph{Selection (algorithm~\ref{alg:tree_pol})}
 The aim of the selection is to choose from a set of actions, the most promising
 one\footnote{i.e.\ possibly leading to the best evaluation} according to a
 \emph{tree policy}. This type of problem is addressed by bandits methods where
@@ -228,7 +237,7 @@ a multi armed bandit aims to always activate the slot machine giving the highest
 reward.
 
 The bandit problem is applied to MCTS via the Upper Confidence Tree algorithm.
-It uses the UCB for Upper Confidence Bound as tree policy (introduced
+It uses the UCB (Upper Confidence Bound) as tree policy (introduced
 in~\cite{kocsis2006bandit}). Let \(v\) be the node from which an action must be
 selected to go deeper in the tree, \(a\) an action available from \(v\),
 \(\mu_{v,a}\) the expected outcome from the node obtained by applying action
@@ -236,15 +245,15 @@ selected to go deeper in the tree, \(a\) an action available from \(v\),
 (which includes any simulation from nodes in any subtree of \(v\)) and
 \(T_{v,a}\) the number of simulations carried out from the node resulting from
 the action \(a\) applied to node \(v\), \(\beta\) a constant. The selected node
-is thus the one maximising
+is thus the one maximising the \emph{UCB1} equation
 \begin{equation}
-  \text{UCB1} = \mu_{v,a} + 2 \beta \sqrt{\frac{2 \log T_v}{T_{v,a}}}
+  \mu_{v,a} + 2 \beta \sqrt{\frac{2 \log T_v}{T_{v,a}}}
 \end{equation}
 
 While the previous equation is well suited for two players games, it can be
 tweaked to improve its efficience in one player games or sequencing problems. An
-alternative using the standard deviation is proposed in~\cite{sebag2010fuse}
-called the \emph{UCB1-tuned} equation
+alternative using the standard deviation of the outcome of the simulations is
+proposed in~\cite{sebag2010fuse} called the \emph{UCB1-tuned} equation
 \begin{equation}
   \mu_{v,a} +
   \sqrt{%
@@ -258,8 +267,8 @@ called the \emph{UCB1-tuned} equation
 \begin{algorithm}
   \caption{UCT algorithm}\label{alg:tree_pol}
   \begin{algorithmic}
-    \Function{TreePolicy}{path of nodes $\pi$}
-    \State{} $v \gets$ head of $\pi$
+    \Function{TreePolicy}{$\pi$}
+    \State{}\(v \gets \first(\pi)\)
     \If{$v$ is terminal}
     \State{}\Return{$\pi$}
     \Else{}
@@ -276,25 +285,21 @@ called the \emph{UCB1-tuned} equation
   \end{algorithmic}
   \begin{algorithmic}
     \Function{BestChild}{$v$}
-    \State{}\Return{$\argmax\{\Call{UCB}{v'} |
-    v' \text{\,children of\,} v\}$}
+    \State{}\Return{$\argmax\{\Call{UCB}{v'} | v' \text{\,children of\,} v \}$}
     \EndFunction{}
   \end{algorithmic}
 \end{algorithm}
 
-\paragraph{Expansion~\ref{alg:expansion}}
+\paragraph{Expansion (algorithm~\ref{alg:expansion})}
 The above step is carried out only if, considering a node \(v\), a simulation
 has been run through each child available from \(v\). In the case where one or
 more children haven't been explored yet, one of the unexplored children is
 chosen and a simulation is started from it.
 \begin{algorithm}
-  \caption{%
-    Expansion (\(p\colon \mathcal{S} \times \mathcal{A} \to \mathcal{S}\)
-    is the transition function)
-  }\label{alg:expansion}
+  \caption{Expansion}\label{alg:expansion}
   \begin{algorithmic}
-    \Function{Expand}{node $v$}
-    \State{}$\ell \gets \{p(v, a) | a\in\mathcal{A}(v), T_{v,a} = 0\}$
+    \Function{Expand}{$v$}
+    \State{}$\ell \gets \{ v | v \text{\,children of\,} u, N(v) = 0 \}$
     \State{}\Return{random element from $\ell$}
     \EndFunction{}
   \end{algorithmic}
@@ -322,27 +327,27 @@ and the total count are updated this way
   \begin{algorithmic}
     \Procedure{Backpropagate}{$v$, $r$}
     \State{}\(\delta \gets\ r - \mu_v\)
-    \State{}\(\mu_v \gets \mu_v + \frac{\delta}{T_v + 1}\)
-    \State{}\(T_v \gets T_v + 1\)
+    \State{}\(Q(v) \gets Q(v) + \frac{\delta}{N(v) + 1}\)
+    \State{}\(N(v) \gets N(v) + 1\)
     \EndProcedure{}
   \end{algorithmic}
 \end{algorithm}
 
 For the UCB1-tuned, the standard deviation has to be computed. It results in
-algorithm~\ref{alg:backpropagate-tuned} which introduces the value \(m_v\)
+algorithm~\ref{alg:backpropagate-tuned} which introduces the value \(m_2(v)\)
 associated to a node \(v\) to compute the standard deviation via the formula
 \begin{equation}
-  \sigma^2_v = \frac{m_v}{T_v}.
+  \sigma^2_v = \frac{m_2(v)}{N(v)}.
 \end{equation}
 \begin{algorithm}
   \caption{UCB1-tuned backpropagation}\label{alg:backpropagate-tuned}
   \begin{algorithmic}
     \Procedure{Backpropagate}{$v, r$}
-    \State{}\(\delta \gets r - \mu_v\)
-    \State{}\(\mu_v \gets \mu_v + \frac{\delta}{T_v + 1}\)
-    \State{}\(\delta' \gets r - \mu_v\)
-    \State{}\(m_v \gets m_v + \delta \delta'\)
-    \State{}\(T_v \gets T_v + 1\)
+    \State{}\(\delta \gets r - Q(v)\)
+    \State{}\(Q(v) \gets Q(v) + \frac{\delta}{N(v) + 1}\)
+    \State{}\(\delta' \gets r - Q(v)\)
+    \State{}\(m_2(v) \gets m_2(v) + \delta \delta'\)
+    \State{}\(N(v) \gets N(v) + 1\)
     \EndProcedure{}
   \end{algorithmic}
 \end{algorithm}
@@ -355,11 +360,11 @@ aim, the selection chooses the most promising actions while the final sequence
 must be composed of the best. This means that the final path build won't use the
 UCB equation. Chaslot \textit{et al.}~\cite{browne2012survey} propose several
 methods to select nodes,
-\begin{itemize}
+\begin{compactitem}
   \item max-child: select the child with highest reward;
   \item robust child: select the most visited root child;
-  \item  secure child: select the child maximising a lower confidence bound.
-\end{itemize}
+  \item secure child: select the child maximising a lower confidence bound.
+\end{compactitem}
 
 \subsubsection{Iterative pathfinding}
 The path is built iteratively by calling successive Monte Carlo tree searches.
@@ -385,7 +390,7 @@ described at~\ref{alg:path_building}.
     \State{}\Return{$\pi$}
     \EndFunction{}
     \Function{NextNode}{$u$}
-    \State{}\Return{$\argmax\{\mu_{u,a} | a \in \mathcal{A}(v)\}$}
+    \State{}\Return{$\argmax\{Q(v) | v \text{\,children of\,} u\}$}
     \EndFunction{}
   \end{algorithmic}
 \end{algorithm}
