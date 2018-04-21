@@ -453,9 +453,11 @@ to be defined. This cost depend on the workload in each the sector. We give the
 following definitions~\cite{ferrari2017} to represent a high
 (respectively normal and low) cost for the partition:
 \begin{itemize}
-  \item $c_+(P, t) = \sum_{S \in P_t} \delta_{h}(S, t) * p_{high}^{S, t} * |S|^2$
-  \item $c_=(P, t) = 1 / (\sum_{S \in P_t} \delta_{n}(S, t) * p_{norm}^{S} * |S|^{-2}$)
-  \item $c_-(P, t) = \sum_{S \in P_t} \delta_{l}(S, t) * p_{low}^{S, t} * |S|^{-2}$
+  \item $c_+(P, t) = \sum_{S \in P_t} \delta_{h}(S, t) p_{high}^{S, t} |S|^2$
+  \item $c_=(P, t) = 1 / \left(
+      \sum_{S \in P_t} \delta_{n}(S, t) p_{norm}^{S} |S|^{-2}
+    \right)$
+  \item $c_-(P, t) = \sum_{S \in P_t} \delta_{l}(S, t) p_{low}^{S, t} |S|^{-2}$
 \end{itemize}
 with $\delta_{h}(P, t)$ (resp. $\delta_{n}(P_t)$ and $\delta_{l}(P_t)$) equal 1
 if the probability $p_{high}$ (resp. $p_{normal}$ and $p_{low}$) is superior to
@@ -463,9 +465,9 @@ the two others, and 0 otherwise.
 
 It is now possible to assign a cost to each partition. This cost is linear
 regarding $c_+$, $c_=$, $c_-$ and $n$ (cardinal of the partition $P$). The
-partition cost is defined as follow:
+partition cost is defined as follows:
 \begin{equation}
-C(P, t) = \alpha c_+ + \beta c_= + \gamma c_- +\lambda n  
+  C(P, t) = \alpha c_+ + \beta c_= + \gamma c_- +\lambda n
 \end{equation}
 
 The parameters $\alpha$, $\beta$, $\gamma$ and $\lambda$ (all positive)
@@ -473,7 +475,7 @@ determine a priority on which parameter to optimize. For instance, a high
 value $\alpha$ help to
 minimize $c_+$, hence the overall number of sectors with too much tafic.
 In a real application, it maybe interesting to order those parmaeters as
-follow : $\alpha > \gamma > \beta > \lambda$.
+follow: $\alpha > \gamma > \beta > \lambda$.
 
 \subsubsection{Transition cost}
 
@@ -483,35 +485,34 @@ be defined for this matter. A transition is (TODO), and the transition cost is
 then:
 \begin{equation}
   C_{tr}(P_1, P_2) =
-\left\{
-\begin{array}{l}
-    0 \qquad if \qquad P_1 = P_2 \\
-    1 \qquad otherwise
-\end{array}
-\right.
+  \begin{cases}
+    0 & \text{if\,} P_1 = P_2\\
+    1 & \text{otherwise}
+  \end{cases}
 \end{equation}
 
 \subsubsection{Objective function}
 
 With a cost defined for partition and transition, it is now possible to
 aggregate everything in order to build a cost function over an entire
-path. For a path ($path = [P_0, ..., P_n]$) with a time from $t_0$ to $t_n$,
+path. For a path $\pi = [P_0, \dots, P_n]$ with a time from $t_0$ to $t_n$,
 the cost function is given by:
 \begin{equation}
   \begin{split}
-  f(path) = C(P_0, t_0) + \sum_{i = 1}^{n} [C(P_i, t_i) +\\ \theta \times C_{tr}(P_{i-1}, P_i)]   
+    f(\pi) = C(P_0, t_0) + \sum_{i = 1}^{n} [C(P_i, t_i) +\\
+    \theta C_{tr}(P_{i-1}, P_i)]
   \end{split}
 \end{equation}
 
 with $\theta > 0$ a parameter to determine.
-This is the imediate function to minimize in the A$^*$ algorithm.
+This is the immediate function to minimize in the A$^*$ algorithm.
 
 The Monte Carlo Tree search algorithm maximize a objective function. This function
-represent a potential reward over a path, i.e. a list of partitions over time.
+represent a potential reward over a path, i.e.\ a list of partitions over time.
 Given the loss function defined previously, the target function can be
 construct as:
 \begin{equation}
-  \psi(path) = \frac{1}{f(path)}
+  \psi(\pi) = \frac{1}{f(\pi)}
 \end{equation}
 
 
