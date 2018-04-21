@@ -1,6 +1,3 @@
-let _nodecount = ref 0
-let _branchfactor = ref 0
-
 module type S = sig
   type state
   type tree
@@ -128,15 +125,6 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
     List.map (fun s -> { state = s ; q = 0. ; n = 0 ; m2 = 0. ; children = [] })
       next_states
 
-  (** [force_deploy t] tries to add children from a production rule and saves
-      them into the node *)
-  let force_deploy node =
-    match node.children with
-    | [] -> node.children <- produce node ;
-        incr _nodecount ;
-        _branchfactor := !_branchfactor + (List.length node.children)
-    | _ :: _ -> ()
-
   (* [expandable n] returns whether a node [n] can be expanded. A node is
    * expandable if it is non terminal and one of its children has never been
    * selected *)
@@ -156,7 +144,6 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
 
   (** [select t a] builds a path toward most urgent node to expand *)
   let rec select node ancestors =
-    force_deploy node ;
     match expandable node with
     | True | Term -> node :: ancestors
     | All_visited ->
@@ -169,6 +156,7 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
     let path = select root [] in
     if Supp.terminal (List.hd path).state then path else
       let exnode = expand (List.hd path) in
+      exnode.children <- produce exnode ;
       exnode :: path
 
   (* [simulate n] also called default policy or random walk selects children
@@ -187,12 +175,12 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
     in
     loop node 0.
 
-  (** [backpropagate a r] updates ancestors [a] with the cost [r] *)
-  let rec backpropagate ancestors cost =
+  (** [backpropagate a r] updates ancestors [a] with the reward [r] *)
+  let rec backpropagate ancestors reward =
     List.iter (fun e ->
-        let delta = cost -. e.q in
+        let delta = reward -. e.q in
         let newmean = e.q +. delta /. (float e.n +. 1.) in
-        let delta2 = cost -. newmean in
+        let delta2 = reward -. newmean in
         e.q <- e.q +. delta /. (float e.n +. 1.) ;
         e.m2 <- e.m2 +. delta *. delta2;
         e.n <- e.n + 1
@@ -200,6 +188,7 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
 
   (** [mcts r] updates tree of root [r] with monte carlo *)
   let mcts root =
+    root.children <- produce root ;
     let start = Sys.time () in
     while not (stop start) do
       let path = treepolicy root in
