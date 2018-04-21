@@ -114,9 +114,11 @@ controllers to manage the same airspace, and is therefore used when traffic
 becomes sparse.
 
 Currently, configuration is mainly decided on the fly by chief officer (TODO).
-This decision is based on the actual workload on each position. This intuitive
-approach does not take into account future traffic. This papers aims at
-providing a method offering a smoother workload during the day.
+This decision is based on the actual workload on each position. In this
+approach, future workload estimation is based on the controller's feelings and
+it therefore lacks a workload prediction tool.
+This papers aims at providing this tool as well as a method offering a smoother
+workload during the day.
 
 Several methods have been considered to solve the dynamic airspace configuration
 problem, for instance via genetic algorithms in~\cite{sergeeva2017dynamic},
@@ -124,26 +126,25 @@ constraint local search in~\cite{jagare2013airspace}, integer linear
 programming in~\cite{treimuth2016branch} or dynamic programming
 in~\cite{bloem2010dynamic}.
 
-As seen in~\cite{treimuth2016branch}
-or~\cite{sergeeva2017dynamic}, a temporal sequence of configurations will be
-provided. Two costs will be considered to create the sequence, namely the cost
-associated to each configuration and transition. The former is based on the
-workload estimated for one sector given a neural network
+In this paper, a temporal sequence of configuration is provided, as done
+in~\cite{treimuth2016branch} or~\cite{sergeeva2017dynamic}.
+Two costs are considered to create the sequence, namely the cost
+associated to each configuration and a transition cost. The former is based on
+the workload estimated for one sector given a neural network
 (see~\cite{gianazza2010forecasting}).
 
-The sequence of configurations will be represented as a tree. The resulting
+The sequence of configurations is represented as a tree. The resulting
 sequence will therefore be a path from the root to a leaf of this tree. This
-problem is highly combinatorial (partitioning of the airspace). Knowing that a
-sochastic tree search algorithm has been honing from a good
-player~\cite{gelly2012grand} to the best one with AlphaGo on one of the most
-highly combinatorial game wich is the game of Go entices us to use one for this
-problem. The Monte Carlo tree search~\cite{browne2012survey} algorithm will be
-used to fullfill this task.
+problem is highly combinatorial (partitioning of the airspace). Since stochastic
+tree search algorithms, combined with deep neural networks have proved
+themselves worthy by outranking the best human player of one of the most highly
+combinatorial game which is the game of Go, the Monte Carlo tree
+search~\cite{browne2012survey} algorithm is used in this paper to fullfill the
+previously mentioned task.
 
 
 
-\section{Previous related works}
-\label{sec:previous_related_works}
+\section{Previous related works}\label{sec:previous_related_works}
 
 The dynamic airspace configuration problem requires a model of the airspace. As
 done in~\cite{sergeeva2017dynamic} or~\cite{treimuth2016branch} the airspace
@@ -227,13 +228,15 @@ default policy gives an evaluation of the newly added node.
 \paragraph{Selection (algorithm~\ref{alg:tree_pol})}
 The aim of the selection is to choose from a set of actions, the most promising
 one\footnote{i.e.\ possibly leading to the best evaluation} according to a
-\emph{tree policy}. This type of problem is addressed by bandits methods where
-a multi armed bandit aims to always activate the slot machine giving the highest
-reward.
+\emph{tree policy}. This type of problem can be solved by bandits methods. Those
+methods consist in, given a bandit in front of several slot machines (multi
+armed bandit), decide which machine will bring the highest reward knowing the
+past result. The objective of bandits methods is thus to maximise the reward and
+minimise the regret of not playing the best machine.
 
-The bandit problem is applied to MCTS via the Upper Confidence Tree algorithm.
-It uses the UCB (Upper Confidence Bound) as tree policy (introduced
-in~\cite{kocsis2006bandit}). Let \(v\) be the node from which an action must be
+The bandit problem has been applied to MCTS via the Upper Confidence Tree
+algorithm in~\cite{kocsis2006bandit} using the UCB1 equation~\ref{eq:ucb1}.
+Let \(v\) be the node from which an action must be
 selected to go deeper in the tree, \(a\) an action available from \(v\),
 \(\mu_{v,a}\) the expected outcome from the node obtained by applying action
 \(a\) on \(v\), \(T_v\) the number of simulations carried out from node \(v\)
@@ -242,17 +245,18 @@ selected to go deeper in the tree, \(a\) an action available from \(v\),
 the action \(a\) applied to node \(v\), \(\beta\) a constant. The selected node
 is thus the one maximising the \emph{UCB1} equation
 \begin{equation}
+  \label{eq:ucb1}
   \mu_{v,a} + 2 \beta \sqrt{\frac{2 \log T_v}{T_{v,a}}}
 \end{equation}
 
 While the previous equation is well suited for two players games, it can be
-tweaked to improve its efficience in one player games or sequencing problems. An
+tweaked to improve its efficiency in one player games or sequencing problems. An
 alternative using the standard deviation of the outcome of the simulations is
 proposed in~\cite{sebag2010fuse} called the \emph{UCB1-tuned} equation
 \begin{equation}
   \mu_{v,a} +
   \sqrt{%
-    \frac{\beta\log T_v}{t_{v,a}}
+    \frac{\beta\log T_v}{T_{v,a}}
     \min\left( \frac{1}{4}, \sigma^2_{v,a} +
     \sqrt{%
       \frac{2 \log T_v}{T_{v,a}}
