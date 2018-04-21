@@ -1,4 +1,4 @@
-\documentclass[twoside,twocolumn]{article}
+\documentclass[oneside,twocolumn]{article}
 
 \usepackage{fontspec}
 \usepackage{polyglossia}
@@ -14,69 +14,72 @@
 \DeclareMathOperator{\state}{state}
 
 
-\usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry}
-\usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption}
-\usepackage{booktabs}
-
-\usepackage{lettrine}
-
-\usepackage{enumitem}
-\setlist[itemize]{noitemsep}
-
-\usepackage{abstract}
-% Set the "Abstract" text to bold
-\renewcommand{\abstractnamefont}{\normalfont\bfseries}
-% Set the abstract itself to small italic text
-\renewcommand{\abstracttextfont}{\normalfont\small\itshape}
-
-% Allows customization of titles
-\usepackage{titlesec}
-
-% Headers and footers
-\usepackage{fancyhdr}
-% All pages have headers and footers
-\pagestyle{fancy}
-% Blank out the default header
-% \fancyhead{}
-% Blank out the default footer
-\fancyfoot{}
-% Custom header text
-% \fancyhead[C]{Running title $\bullet$ May 2016 $\bullet$ Vol. XXI, No. 1}
-% Custom footer text
-\fancyfoot[RO,LE]{\thepage}
-\usepackage{titling} % Customizing the title section
-
-\usepackage{hyperref} % For hyperlinks in the PDF
+%\usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry}
+%\usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption}
+%\usepackage{booktabs}
+%
+%\usepackage{lettrine}
+%
+%\usepackage{enumitem}
+%\setlist[itemize]{noitemsep}
+%
+%\usepackage{abstract}
+%% Set the "Abstract" text to bold
+%\renewcommand{\abstractnamefont}{\normalfont\bfseries}
+%% Set the abstract itself to small italic text
+%\renewcommand{\abstracttextfont}{\normalfont\small\itshape}
+%
+%% Allows customization of titles
+%\usepackage{titlesec}
+%
+%% Headers and footers
+%\usepackage{fancyhdr}
+%% All pages have headers and footers
+%\pagestyle{fancy}
+%% Blank out the default header
+%% \fancyhead{}
+%% Blank out the default footer
+%\fancyfoot{}
+%% Custom header text
+%% \fancyhead[C]{Running title $\bullet$ May 2016 $\bullet$ Vol. XXI, No. 1}
+%% Custom footer text
+%\fancyfoot[RO,LE]{\thepage}
+%\usepackage{titling} % Customizing the title section
 
 \title{Airspace configuration decision based on Monte-Carlo tree search}
 \author{Gabriel~Hondet, Beno\^{\i}t Viry}
 \date{\today}
+\pagestyle{headings}
 
 %-----------------------------------------------------------------------------
 %	TITLE SECTION
 %-----------------------------------------------------------------------------
 
-% Move the title up
-\setlength{\droptitle}{-4\baselineskip}
-% Article title formatting
-\pretitle{\begin{center}\Huge\bfseries}
-% Article title closing formatting
-  \posttitle{\end{center}}
+%% Move the title up
+%\setlength{\droptitle}{-4\baselineskip}
+%% Article title formatting
+%\pretitle{\begin{center}\Huge\bfseries}
+%% Article title closing formatting
+%  \posttitle{\end{center}}
 
-\renewcommand{\maketitlehookd}{%
-  \begin{abstract}
-
-  \end{abstract}
-}
+%\renewcommand{\maketitlehookd}{%
+%  \begin{abstract}
+%
+%  \end{abstract}
+%}
 
 %-----------------------------------------------------------------------------
-
 \begin{document}
 
 \maketitle
 
+\begin{abstract}
+  A nice abstract
+\end{abstract}
+
+
 \section*{Notations}
-\begin{itemize}
+\begin{compactitem}
   \item $m$: elementary module;
   \item $S$: sector control position, group of modules;
   \item $P$: partition of the airspace, group of sectors;
@@ -98,7 +101,7 @@
   \item \(N \colon \mathcal{N} \to \mathbb{N}\): number of simulations running
     through or from a node;
   \item \(\first(\ell)\): returns the first element of \(\ell\).
-\end{itemize}
+\end{compactitem}
 
 \section{Introduction}
 The airspace is divided into sectors, themselves divided into elementary
