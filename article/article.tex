@@ -208,9 +208,10 @@ default policy gives an evaluation of the newly added node.
   \begin{algorithmic}
     \Procedure{MctsSearchTree}{$v_0$}
     \While{within computational budget}
-    \State{} \([v_0, \dots, v_n] \gets\) \Call{TreePolicy}{$v_0$}
-    \State{} \(\Delta \gets\) \Call{DefaultPolicy}{$v_n$}
-    \State{} \Call{Backup}{$[v_0, \dots, v_n]$, $\Delta$}
+    \State{}\(\pi \gets\) \Call{TreePolicy}{$v_0$}
+    \State{}\(v \gets \first(\pi)\)
+    \State{}\(\Delta \gets\) \Call{DefaultPolicy}{$v$}
+    \State{}\Call{Backup}{$\pi$, $\Delta$}
     \EndWhile{}
     \EndProcedure{}
   \end{algorithmic}
@@ -277,6 +278,13 @@ proposed in~\cite{sebag2010fuse} called the \emph{UCB1-tuned} equation
     \EndFunction{}
   \end{algorithmic}
 \end{algorithm}
+
+\subparagraph{Exploration exploitation tradeoff} The constant \(\beta\) answers
+to the exploration v exploitation dilemma. In the UCB1 equation~\ref{eq:ucb1},
+the left hand term increases the value of less explorated nodes to consider them
+as still promising. A high \(\beta\) value will therefore make the algorithm
+prone to try unvisited nodes while a low value will consider almost exclusively
+the results obtained so far, even if other paths are better.
 
 \paragraph{Expansion (algorithm~\ref{alg:expansion})}
 The above step is carried out only if, considering a node \(v\), a simulation
@@ -388,8 +396,8 @@ algorithm is used. A\(^*\) is an exact depth first search pathfinding algorithm
 which uses a heuristic function to guide its search. The algorithm is given
 in~\ref{alg:astar} where \(u_0\) is the initial state, \(T\) the set of termial
 nodes, \(h\) a heuristic function estimating the cost from a state \(u\) given
-as argument to a final state, \(k \colon \mathcal{S}^2 \to \mathbb{R}\). The
-function \(\mathup{first(G)}\) returns the first element of \(G\) and
+as argument to a final state, \(k \colon \mathcal{N}^2 \to \mathbb{R}\). The
+function \(\first(G)\) returns the first element of \(G\) and
 \(f\mathup{-insert}(G, v)\) inserts \(v\) in \(G\) ordering first by \(f\)
 increasing then by \(g\) decreasing.
 \begin{algorithm}
@@ -399,7 +407,7 @@ increasing then by \(g\) decreasing.
     \State{}\(G \gets u_0; D \gets \emptyset; g(u_0) \gets 0; f(u_0) \gets 0\)
     \State{}\(\mathup{father}(u_0) \gets \emptyset\)
     \While{$G \neq \emptyset$}
-    \State{}\(u \gets \mathup{first}(G); G \gets G \backslash \{u\}\)
+    \State{}\(u \gets \first(G); G \gets G \backslash \{u\}\)
     \State{}\(D \gets D \cup \{u\}\)
     \If{$u \in T$}
     \State{}\Return{father}
@@ -416,6 +424,14 @@ increasing then by \(g\) decreasing.
     \EndProcedure{}
   \end{algorithmic}
 \end{algorithm}
+
+\paragraph{Heuristic}
+To be sure to have the optimal solution, the heuristic \(h\) has to be
+\emph{minimal} i.e.\ let \(h^*\) be the optimal heuristic (the one giving the
+true distance from a node to a final state), then for any node \(u\), \(h(u)
+\leq h^*(u)\).
+
+
 \section{Model}
 
 In this section, we discuss the model established to approach this configuration
