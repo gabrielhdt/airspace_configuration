@@ -436,9 +436,33 @@ determined a cost per partition and a cost function aimed to be minimized.
 
 \subsection{State}
 
+\subsubsection{Partitions}
 
+In the configuration problem, the airspace needs to be devided into sectors. Each
+sector represent a area controlled by two officers and is composed of
+one or more elementary modules. A partition $P$ is a set of
+sectors covering all the airspace.
 
-\subsection{workload}
+\subsubsection{Transitions}
+
+During the day, and with the evolution of the trafic, the workload (rigorously
+defined in \ref{sub:workload}) vary. To help controllers to maintain a
+homogeneous level of workload, the airspace partitioning needs to be adapt
+and therefore make transition from an inital partition to a target partition.
+This maneuver requires coordination hence increase controller's workload.
+This is the reason why a full reconfiguration isn't doable in practice, and
+only a selection of transitions can be operate.
+
+In our model, three transistions are possible namely a merge, a transfer
+and a split. For an airspace composed of three modules $A$, $B$, and $C$,
+those actions represent:
+\begin{itemize}
+  \item merge: $\{\{A, B\}, \{C\}\} \quad \rightarrow \quad \{\{A, B, C\}\}$ 
+  \item split: $\{\{A, B, C\}\} \quad \rightarrow \quad \{\{A, B\}, \{C\}\}$ 
+  \item transfer: $\{\{A, B\}, \{C\}\} \quad \rightarrow \quad \{\{A\}, \{B, C\}\}$ 
+\end{itemize}
+
+\subsection{Workload}\label{sub:workload}
 
 $p_{low}$
 $p_{normal}$
@@ -508,11 +532,11 @@ with $\theta > 0$ a parameter to determine.
 This is the immediate function to minimize in the A$^*$ algorithm.
 
 The Monte Carlo Tree search algorithm maximize a objective function. This function
-represent a potential reward over a path, i.e.\ a list of partitions over time.
+represent the reward of a path, i.e.\ a list of partitions over time.
 Given the loss function defined previously, the target function can be
 construct as:
 \begin{equation}
-  \psi(\pi) = \frac{1}{f(\pi)}
+  Q(\pi) = \frac{1}{f(\pi)}
 \end{equation}
 
 
