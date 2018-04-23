@@ -521,9 +521,13 @@ construct as:
 \end{equation}
 
 
-
-
-
+\subsection{Heuristic}
+To use effectively the A\(^*\) algorithm, a heuristic is needed. Using the null
+heuristic (\(\forall u \in \mathcal{N}, h(u) = 0\)) revealed to be inefficient
+considering the branching factor. To build a minimal heuristic, the limitations
+introduced in~\ref{ssec:partitions} are not considered, neither those associated
+to the previous partition (split, merge or transfer). This allows to generate
+the sequence of the best partitions among all possible at each time step.
 
 \bibliography{article}
 \bibliographystyle{plain}
