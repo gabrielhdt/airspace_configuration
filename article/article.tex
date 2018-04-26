@@ -8,67 +8,23 @@
 \usepackage{amsmath,amsthm,stmaryrd}
 \usepackage{algorithm,algpseudocode}
 \usepackage{paralist}
+\usepackage{titlesec}
 
 \DeclareMathOperator{\argmax}{argmax}
 \DeclareMathOperator{\first}{first}
 \DeclareMathOperator{\state}{state}
 
+% Headings customisation
+\titleformat*{\section}{\Large\scshape\center}
+\renewcommand{\thesection}{\Roman{section}}
+\renewcommand{\thesubsection}{\Alph{subsection}}
 
-%\usepackage[hmarginratio=1:1,top=32mm,columnsep=20pt]{geometry}
-%\usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption}
-%\usepackage{booktabs}
-%
-%\usepackage{lettrine}
-%
-%\usepackage{enumitem}
-%\setlist[itemize]{noitemsep}
-%
-%\usepackage{abstract}
-%% Set the "Abstract" text to bold
-%\renewcommand{\abstractnamefont}{\normalfont\bfseries}
-%% Set the abstract itself to small italic text
-%\renewcommand{\abstracttextfont}{\normalfont\small\itshape}
-%
-%% Allows customization of titles
-%\usepackage{titlesec}
-%
-%% Headers and footers
-%\usepackage{fancyhdr}
-%% All pages have headers and footers
-%\pagestyle{fancy}
-%% Blank out the default header
-%% \fancyhead{}
-%% Blank out the default footer
-%\fancyfoot{}
-%% Custom header text
-%% \fancyhead[C]{Running title $\bullet$ May 2016 $\bullet$ Vol. XXI, No. 1}
-%% Custom footer text
-%\fancyfoot[RO,LE]{\thepage}
-%\usepackage{titling} % Customizing the title section
 
 \title{Airspace configuration decision based on Monte-Carlo tree search}
 \author{Gabriel~Hondet, Beno\^{\i}t Viry}
 \date{\today}
 \pagestyle{headings}
 
-%-----------------------------------------------------------------------------
-%	TITLE SECTION
-%-----------------------------------------------------------------------------
-
-%% Move the title up
-%\setlength{\droptitle}{-4\baselineskip}
-%% Article title formatting
-%\pretitle{\begin{center}\Huge\bfseries}
-%% Article title closing formatting
-%  \posttitle{\end{center}}
-
-%\renewcommand{\maketitlehookd}{%
-%  \begin{abstract}
-%
-%  \end{abstract}
-%}
-
-%-----------------------------------------------------------------------------
 \begin{document}
 
 \maketitle
