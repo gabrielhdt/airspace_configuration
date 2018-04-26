@@ -20,7 +20,8 @@
 \renewcommand{\thesubsection}{\Alph{subsection}}
 
 
-\title{Airspace configuration decision based on Monte-Carlo tree search}
+\title{Monte Carlo tree search compared to A\(^*\) in airspace configuration
+decision problem}
 \author{Gabriel~Hondet, Beno\^{\i}t Viry}
 \date{\today}
 \pagestyle{headings}
@@ -87,7 +88,7 @@ problem is highly combinatorial (partitioning of the airspace). Since stochastic
 tree search algorithms, combined with deep neural networks have proved
 themselves worthy by outranking the best human player of one of the most highly
 combinatorial game which is the game of Go, the Monte Carlo tree
-search~\cite{browne2012survey} algorithm is used in this paper to fullfill the
+search~\cite{browne2012survey} algorithm is used in this paper to fulfill the
 previously mentioned task.
 
 
@@ -131,7 +132,7 @@ In this paper, each partition scheme is based upon the number of aircraft in
 each
 elementary module and the cost of transition from the previous partitioning. The
 available partitions come from a predetermined set containing feasible
-partitionings.
+partitioning.
 
 \section{Algorithm}
 
@@ -161,7 +162,7 @@ The above mentioned steps are denoted
 \item backpropagation (or backup): applying the result of the simulation to
   the search tree.
 \end{compactenum}
-Those phases are repeated until a stopping criterium (e.g.\ memory or time) is
+Those phases are repeated until a stopping criterion (e.g.\ memory or time) is
 reached, resulting in algorithm~\ref{alg:gen_mcts} where the tree policy
 aggregates phases 1 and 2 to create a new node of the search tree and the
 default policy gives an evaluation of the newly added node.
@@ -241,9 +242,9 @@ proposed in~\cite{sebag2010fuse} called the \emph{UCB1-tuned} equation
   \end{algorithmic}
 \end{algorithm}
 
-\subparagraph{Exploration exploitation tradeoff} The constant \(\beta\) answers
+\subparagraph{Exploration exploitation trade-off} The constant \(\beta\) answers
 to the exploration v exploitation dilemma. In the UCB1 equation~\ref{eq:ucb1},
-the left hand term increases the value of less explorated nodes to consider them
+the left hand term increases the value of less explored nodes to consider them
 as still promising. A high \(\beta\) value will therefore make the algorithm
 prone to try unvisited nodes while a low value will consider almost exclusively
 the results obtained so far, even if other paths are better.
