@@ -448,7 +448,10 @@ sector represent a area controlled by two officers and is composed of
 one or more elementary modules. A partition $P$ is a set of
 sectors covering all the airspace.
 
-TODO : parler de la restriction des groupements de modules 
+A sector is a group of elementary modules, but in practice only a collection
+of sectors are allowed in this model. This collection is referred as the context.
+This restriction reflect the fact the shape of a sector needs have a relatively
+'nice' shape in order to be easely manageable for a controller. 
 
 \subsubsection{Transitions}
 
@@ -469,11 +472,44 @@ those actions represent:
   \item transfer: $\{\{A, B\}, \{C\}\} \quad \rightarrow \quad \{\{A\}, \{B, C\}\}$ 
 \end{itemize}
 
+TODO : meilleur explication des transition
+
 \subsection{Workload}\label{sub:workload}
 
-$p_{low}$
-$p_{normal}$
-$p_{high}$
+Let us now precise the model established to evaluate a workload metric. The
+workload depends on external criteria such as sector and trafic complexity
+or humain factors (e.g. controller fatigue, stress). In our model, we assum
+that the workload felt by a controller is directly and only related to the trafic
+complexity.
+
+The simplest approch considers only the number of aircraft per sector $Nb_{aircraft}$. We
+defined two arbitary thresholds, namely $th_{low}$ and $th_{high}$, defining
+three zones where the workload is low (resp. normal and high) if $Nb_{aircraft} < th_{low}$
+(resp. $th_{low} < Nb_{aircraft} < th_{high}$ and $th_{high} < Nb_{aircraft}$).
+Those workload levels are translated to probabilities $p_{low}$, $p_{normal}$ and
+$p_{high}$, where $p_{low}(S)$ is the probability that the sector $S$ is underloaded
+(resp. balanced and overloaded). In short, for a sector $S$ at time $t$ and $Nb_{aircraft}$:
+\begin{equation}
+  \begin{cases}
+    p_{low}^{S, t} = \mathbb{1}_{[0, th_{low}]}(Nb_{aircraft}) \\
+    p_{normal}^{S, t} = \mathbb{1}_{[th_{low}, th_{high}]}(Nb_{aircraft})\\
+    p_{high}^{S, t} = \mathbb{1}_{[th_{low}, \infty[}(Nb_{aircraft})
+  \end{cases}
+\end{equation}
+where $\mathbb{1}$ is the indicator function defined by:
+\begin{equation}
+  \mathbb{1}_{I}(x) = 
+  \begin{cases}
+    1 & \text{if\,} \quad x \in I\\
+    0 & \text{otherwise}
+  \end{cases}
+\end{equation}
+
+This expression of the workload, expressed in term of probabilities, allow us to
+use a more complex model for the workload such as a neural network
+(see~\cite{gianazza2010forecasting}). This method learn the probabilities $p_{low}$,
+$p_{normal}$ and $p_{high}$ based on parameters including trafic complexity and
+sector complexity (e.g. airspace volume).
 
 \subsection{Partition cost and cost function}
 
@@ -517,7 +553,7 @@ then:
 \begin{equation}
   C_{tr}(P_1, P_2) =
   \begin{cases}
-    0 & \text{if\,} P_1 = P_2\\
+    0 & \text{if\,} \quad P_1 = P_2\\
     1 & \text{otherwise}
   \end{cases}
 \end{equation}
