@@ -388,6 +388,22 @@ true distance from a node to a final state), then for any node \(u\), \(h(u)
 \leq h^*(u)\).
 
 
+\subsection{Theoretical performances}
+In this paper, we consider a high branching factor problem.
+
+Let \(M\) be the number of edges between the inital state and a final state and
+\(K\) the branching factor.
+Then, the complexity of the A\(^*\) is expected to be, in the worst case,
+exponential in \(M\) (see~\cite{alliotschiex2002ia&it}).
+
+Since the Monte carlo tree is a stochastic method, one must wait for a
+satisfactorily converging solution rather than the exact solution. It has
+however been proven in~\cite{kocsis2006bandit} that the bias of the expected
+payoff is \(O\left(\frac{\log n}{n}\right)\). Furthermore, the failure
+probability\footnote{probability of not selecting the best child} converges to
+zero at a polynomial rate.
+
+
 \section{Model}
 
 In this section, we discuss the model established to approach this configuration
