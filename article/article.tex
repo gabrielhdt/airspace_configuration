@@ -42,8 +42,13 @@ decision problem}
   \item $P$: partition of the airspace, group of sectors;
   \item $t$: current time;
   \item $C(P, t)$: cost of a given partition $P$ at time $t$;
-  \item \(u, v \in \mathcal{N}^2\): nodes
+  \item \(C_{tr}(P_1, P_2)\): cost of transition between partitions \(P_1\) and
+    \(P_2\);
+  \item \(\pi = [P_1, \dots, P_n]\): a sequence of partitions (called \emph{path}
+      in the tree search algorithms);
+  \item \(f(\pi)\): cost associated to sequence of partitions \(\pi\);
   \item \(\mathcal{N}\): the set of nodes;
+  \item \(u, v \in \mathcal{N}^2\): nodes
   \item $h \colon \mathcal{N} \to \mathbb{R}^+$: heuristic estimating the cost
     from a node \(u\) to a final node;
   \item \(\mu_v\): mean value of outcomes of simulations run through or from a
@@ -142,25 +147,23 @@ stochastic tree search method, namely the Monte Carlo tree search. To assess the
 exactness of the results, an exact method (here A\(^*\)) is used.
 
 \subsection{Monte Carlo tree search}
-\subsubsection{Overview}
+\subsubsection{Overview}\label{sssec:overview}
 Monte-Carlo is a best-first search method using stochastic simulations. The
+algorithm is based on the computation of the reward expectancy of paths which
+is estimated through Monte-Carlo simulations.
+The
 algorithm actually uses two trees, an underlying tree associated to the model
-(e.g.\ a game tree) and a search tree. The latter is built incrementally by the
-algorithm the following way, at each step, starting from the root, the most
-promising nodes towards the bottom of the tree are selected. Once a leaf of the
-search tree is reached, a new node coming from the model tree is added to the
-leaf. A simulation is then run from this newly added node to evaluate the
-outcome of a path starting from it. The result of the simulation is eventually
-backpropagated to the consecutive parents of the new node.
-
-The above mentioned steps are denoted
+(e.g.\ a game tree) and a search tree. The latter is built incrementally, each
+step being composed of four phases, namely
 \begin{compactenum}
-\item selection (or tree walk): choosing successively most promising nodes,
-\item expansion: adding new nodes to the search tree,
+\item\label{it:selection} selection (or tree walk): choosing successively
+  most promising nodes from the search tree,
+\item\label{it:expansion} expansion: adding new nodes to the search tree,
 \item simulation (or random walk): choosing successively nodes from the model
-  tree,
+  tree, from the expanded node to a leaf,
 \item backpropagation (or backup): applying the result of the simulation to
-  the search tree.
+  the previously selected nodes of the search tree (phases~\ref{it:selection}
+  and~\ref{it:expansion}).
 \end{compactenum}
 Those phases are repeated until a stopping criterion (e.g.\ memory or time) is
 reached, resulting in algorithm~\ref{alg:gen_mcts} where the tree policy
@@ -182,12 +185,19 @@ default policy gives an evaluation of the newly added node.
 
 \subsubsection{Extending the search tree}
 \paragraph{Selection (algorithm~\ref{alg:tree_pol})}
-The aim of the selection is to choose the most promising node among the children
-available\footnote{i.e.\ possibly leading to the best evaluation} according to
-a \emph{tree policy}. This type of problem can be solved by bandits methods.
+The aim of the selection is to build a path from the root of the search tree
+by choosing successively the most
+promising\footnote{i.e.\ possibly leading to the best evaluation} node.
+Given a node \(u\) that has previously been selected, the
+best node --
+according to a \emph{tree policy} -- among the children of \(u\) is
+chosen.
+This type
+of problem can be solved by bandits methods.
 Those methods consist in, given a bandit in front of several slot machines
-(multi armed bandit), decide which machine will bring the highest reward knowing
-the past result. The objective of bandits methods is thus to maximise the reward
+(multi armed bandit), deciding which machine will bring the highest reward
+knowing
+the past results. The objective of bandits methods is thus to maximise the reward
 and minimise the regret of not playing the best machine.
 
 The bandit problem has been applied to MCTS via the Upper Confidence Tree
@@ -195,7 +205,7 @@ algorithm in~\cite{kocsis2006bandit} using the UCB1 equation~\ref{eq:ucb1}.
 Let \(u\) be the node from which a child \(v\) must be selected to go deeper in
 the tree, \(T_u\) the number of simulations carried out from node \(u\)
 (which includes any simulation from nodes in any subtree of \(u\)) and
-\(\beta\) a constant. The selected child \(v\) is thus the one maximising the
+\(\beta\) a chosen constant. The selected child \(v\) is the one maximising the
 \emph{UCB1} equation
 \begin{equation}
   \label{eq:ucb1}
@@ -204,12 +214,13 @@ the tree, \(T_u\) the number of simulations carried out from node \(u\)
 
 While the previous equation is well suited for two players games, it can be
 tweaked to improve its efficiency in one player games or sequencing problems. An
-alternative using the standard deviation of the outcome of the simulations is
+alternative using the standard deviation \(\sigma_v\) of the outcome of the
+previous simulations involving node \(v\) is
 proposed in~\cite{sebag2010fuse} called the \emph{UCB1-tuned} equation
-\begin{equation}
+\begin{equation}\label{eq:ucb1-tuned}
   \mu_v +
-  \sqrt{%
-    \frac{\beta\log T_u}{T_v}
+  \beta\sqrt{%
+    \frac{\log T_u}{T_v}
     \min\left( \frac{1}{4}, \sigma^2_v +
     \sqrt{%
       \frac{2 \log T_u}{T_v}
@@ -243,17 +254,17 @@ proposed in~\cite{sebag2010fuse} called the \emph{UCB1-tuned} equation
 \end{algorithm}
 
 \subparagraph{Exploration exploitation trade-off} The constant \(\beta\) answers
-to the exploration v exploitation dilemma. In the UCB1 equation~\ref{eq:ucb1},
-the left hand term increases the value of less explored nodes to consider them
+to the exploration-exploitation dilemma. In the UCB1 equations~\ref{eq:ucb1}
+and~\ref{eq:ucb1-tuned},
+the right hand term increases the UCB value of less explored nodes to consider them
 as still promising. A high \(\beta\) value will therefore make the algorithm
 prone to try unvisited nodes while a low value will consider almost exclusively
-the results obtained so far, even if other paths are better.
+the results obtained so far, even if other paths are better but unexplored.
 
 \paragraph{Expansion (algorithm~\ref{alg:expansion})}
-The above step is carried out only if, considering a node \(v\), a simulation
-has been run through each child available from \(v\). In the case where one or
-more children haven't been explored yet, one of the unexplored children is
-chosen and a simulation is started from it.
+If the selected node has one or more unvisited children, the selection stops and
+one of them is added to the search tree randomly, the latter being thus expanded
+by this new node.
 \begin{algorithm}
   \caption{Expansion}\label{alg:expansion}
   \begin{algorithmic}
@@ -265,6 +276,8 @@ chosen and a simulation is started from it.
 \end{algorithm}
 
 \subsubsection{Simulation and backpropagation}
+The two steps described in this paragraph aim to guess the reward that can be
+expected from a path including a given node.
 \paragraph{Simulation}
 Once a node has been expanded, random nodes are chosen successively until a
 terminal state is found. The cost of the resulting path, from the root to the
@@ -313,14 +326,15 @@ associated to a node \(u\) to compute the standard deviation via the formula
 
 
 \subsection{Sequence building}
-\subsubsection{Node selection}\label{sssec:node_selection}
-The building of the final sequence of nodes differs from the selection on the
-aim, the selection chooses the most promising node while the final sequence
-must be composed of the best. This means that the final path build won't use the
-UCB equation. Chaslot \textit{et al.}~\cite{browne2012survey} propose several
+Once the stopping criterium mentioned in~\ref{sssec:overview} is matched, the
+sequence of states can be extracted from the search tree.
+
+\subsubsection{Choosing nodes}\label{sssec:node_selection}
+To build the final sequence, nodes are chosen according to a criterion.
+Chaslot \textit{et al.} in~\cite{chaslot2008progstrat} propose several
 methods to select nodes,
 \begin{compactitem}
-  \item max-child: select the child with highest reward;
+  \item max-child: select the child with highest mean reward;
   \item robust child: select the most visited root child;
   \item secure child: select the child maximising a lower confidence bound.
 \end{compactitem}
@@ -329,7 +343,8 @@ methods to select nodes,
 The path is built iteratively by calling successive Monte Carlo tree searches.
 Say an MCTS has been called on a node \(u\). Once a stopping criterium is
 matched, a node \(v\) among the ones reachable from \(u\) is selected via one of
-the previously mentioned policies. Then an mcts is called back with node \(u\)
+the previously mentioned policies. Then the MCTS algorithm is called back with
+node \(u\)
 as the root node. The path is composed of the successive roots. The algorithm is
 described at~\ref{alg:path_building}.
 \begin{algorithm}
@@ -396,19 +411,16 @@ true distance from a node to a final state), then for any node \(u\), \(h(u)
 
 
 \subsection{Theoretical performances}
-In this paper, we consider a high branching factor problem.
+In this paper, a high branching factor problem is considered.
 
-Let \(M\) be the number of edges between the inital state and a final state and
-\(K\) the branching factor.
+Let \(H\) be the height of the tree, \(K\) the branching factor.
 Then, the complexity of the A\(^*\) is expected to be, in the worst case,
-exponential in \(M\) (see~\cite{alliotschiex2002ia&it}).
+exponential in \(H\) (see~\cite{alliotschiex2002ia&it}).
 
 Since the Monte carlo tree is a stochastic method, one must wait for a
 satisfactorily converging solution rather than the exact solution. It has
 however been proven in~\cite{kocsis2006bandit} that the bias of the expected
-payoff is \(O\left(\frac{\log n}{n}\right)\). Furthermore, the failure
-probability\footnote{probability of not selecting the best child} converges to
-zero at a polynomial rate.
+payoff tends to zero.
 
 
 \section{Model}
@@ -420,30 +432,38 @@ determined a cost per partition and a cost function aimed to be minimized.
 
 \subsection{State}
 
+\subsubsection{Time step}
+Since the overall goal is to compute a temporal sequence of partitions over a
+day, the day has to be sampled. This sampling in represented as the temporal
+difference between a node and its children in the trees mentioned in the
+previous section.
+
 \subsubsection{Partitions}\label{ssec:partitions}
 
-In the configuration problem, the airspace needs to be devided into sectors. Each
-sector represent a area controlled by two officers and is composed of
+In the configuration problem, the airspace needs to be divided into sectors. Each
+sector represents an area controlled by two controllers and is composed of
 one or more elementary modules. A partition $P$ is a set of
 sectors covering all the airspace.
 
 A sector is a group of elementary modules, but in practice only a collection
 of sectors are allowed in this model. This collection is referred as the context.
-This restriction reflect the fact the shape of a sector needs have a relatively
-'nice' shape in order to be easely manageable for a controller. 
+This restriction reflects the fact the more complex the shape is, the harder it
+is to manage.
 
-\subsubsection{Transitions}
+\subsubsection{Transitions}\label{sssec:transitions}
 
 During the day, and with the evolution of the trafic, the workload (rigorously
-defined in \ref{sub:workload}) vary. To help controllers to maintain a
-homogeneous level of workload, the airspace partitioning needs to be adapt
-and therefore make transition from an inital partition to a target partition.
-This maneuver requires coordination hence increase controller's workload.
-This is the reason why a full reconfiguration isn't doable in practice, and
-only a selection of transitions can be operate.
+defined in~\ref{sub:workload}) vary. To help controllers to maintain a
+homogeneous level of workload, the airspace partitioning needs to be adapted
+through a transition from an inital partition to a target partition.
+This maneuver requires either coordination or the opening of a new position
+and hence increases controller's workload.
+This is the reason why a full reconfiguration isn't feasible, and
+only a subset of all available transitions can be operated.
 
-In our model, three transistions are possible namely a merge, a transfer
-and a split. For an airspace composed of three modules $A$, $B$, and $C$,
+In the model considered here, three transistions are possible namely a merge,
+a transfer
+or a split. For an airspace composed of three modules $A$, $B$, and $C$,
 those actions represent:
 \begin{itemize}
   \item merge: $\{\{A, B\}, \{C\}\} \quad \rightarrow \quad \{\{A, B, C\}\}$ 
@@ -451,29 +471,32 @@ those actions represent:
   \item transfer: $\{\{A, B\}, \{C\}\} \quad \rightarrow \quad \{\{A\}, \{B, C\}\}$ 
 \end{itemize}
 
-TODO : meilleur explication des transition
+TODO : meilleure explication des transitions?
+
+Each transition is composed of at most one merge, split or tranfer; more would
+result in too complex reconfigurations.
 
 \subsection{Workload}\label{sub:workload}
 
 Let us now precise the model established to evaluate a workload metric. The
 workload depends on external criteria such as sector and trafic complexity
-or humain factors (e.g. controller fatigue, stress). In our model, we assum
-that the workload felt by a controller is directly and only related to the trafic
+or humain factors (e.g. controller health or stress). In the model assumed here,
+the workload felt by a controller is directly and only related to the trafic
 complexity.
 
-The simplest approch considers only the number of aircraft per sector $Nb_{aircraft}$. We
+The simplest approch considers only the number of aircraft per sector $N_{aircraft}$. We
 defined two arbitary thresholds, namely $th_{low}$ and $th_{high}$, defining
-three zones where the workload is low (resp. normal and high) if $Nb_{aircraft} < th_{low}$
-(resp. $th_{low} < Nb_{aircraft} < th_{high}$ and $th_{high} < Nb_{aircraft}$).
+three zones where the workload is low (resp. normal and high) if $N_{aircraft} < th_{low}$
+(resp. $th_{low} < N_{aircraft} < th_{high}$ and $th_{high} < N_{aircraft}$).
 Those workload levels are translated to probabilities $p_{low}$, $p_{normal}$ and
 $p_{high}$, where $p_{low}(S)$ is the probability that the sector $S$ is underloaded
-(resp. balanced and overloaded). In short, for a sector $S$ at time $t$ and $Nb_{aircraft}$:
+(resp. balanced and overloaded). In short, for a sector $S$ at time $t$ and $N_{aircraft}$:
 \begin{equation}
-  \begin{cases}
-    p_{low}^{S, t} = \mathbb{1}_{[0, th_{low}]}(Nb_{aircraft}) \\
-    p_{normal}^{S, t} = \mathbb{1}_{[th_{low}, th_{high}]}(Nb_{aircraft})\\
-    p_{high}^{S, t} = \mathbb{1}_{[th_{low}, \infty[}(Nb_{aircraft})
-  \end{cases}
+  \begin{aligned}
+    p_{low}^{S, t} &= \mathbb{1}_{[0, th_{low}]}(N_{aircraft}) \\
+    p_{normal}^{S, t} &= \mathbb{1}_{[th_{low}, th_{high}]}(N_{aircraft})\\
+    p_{high}^{S, t} &= \mathbb{1}_{[th_{low}, \infty[}(N_{aircraft})
+  \end{aligned}
 \end{equation}
 where $\mathbb{1}$ is the indicator function defined by:
 \begin{equation}
@@ -486,26 +509,28 @@ where $\mathbb{1}$ is the indicator function defined by:
 
 This expression of the workload, expressed in term of probabilities, allow us to
 use a more complex model for the workload such as a neural network
-(see~\cite{gianazza2010forecasting}). This method learn the probabilities $p_{low}$,
+(see~\cite{gianazza2010forecasting}). This method learns the probabilities $p_{low}$,
 $p_{normal}$ and $p_{high}$ based on parameters including trafic complexity and
-sector complexity (e.g. airspace volume).
+the complexity of the sector (e.g. airspace volume).
 
 \subsection{Partition cost and cost function}
 
 \subsubsection{Partition cost}
 
 In order to evaluate a given partition $P$ at time $t$, a cost $C(P, t)$ needs
-to be defined. This cost depend on the workload in each the sector. We give the
-following definitions~\cite{ferrari2017} to represent a high
-(respectively normal and low) cost for the partition:
-\begin{itemize}
-  \item $c_+(P, t) = \sum_{S \in P_t} \delta_{h}(S, t) p_{high}^{S, t} |S|^2$
-  \item $c_=(P, t) = 1 / \left(
-      \sum_{S \in P_t} \delta_{n}(S, t) p_{norm}^{S} |S|^{-2}
-    \right)$
-  \item $c_-(P, t) = \sum_{S \in P_t} \delta_{l}(S, t) p_{low}^{S, t} |S|^{-2}$
-\end{itemize}
-with $\delta_{h}(P, t)$ (resp. $\delta_{n}(P_t)$ and $\delta_{l}(P_t)$) equal 1
+to be defined. In this paper, this cost depends on the workload in each the
+sector. The definitions given in~\cite{ferrari2017} are used to represent a high
+(respectively normal and low) cost for partition \(P\):
+\begin{equation}
+  \begin{aligned}
+    c_+(P, t) &= \sum_{S \in P_t} \delta_{h}(S, t) \cdot p_{high}^{S, t} \cdot |S|^2\\
+    c_=(P, t) &= \left(
+    \sum_{S \in P_t} \delta_{n}(S, t) \cdot p_{norm}^{S} \cdot |S|^{-2}
+    \right)^{-1}\\
+    c_-(P, t) &= \sum_{S \in P_t} \delta_{l}(S, t) \cdot p_{low}^{S, t} \cdot |S|^{-2}
+  \end{aligned}
+\end{equation}
+with $\delta_{h}(P, t)$ (resp. $\delta_{n}(P_t)$ and $\delta_{l}(P_t)$) equals 1
 if the probability $p_{high}$ (resp. $p_{normal}$ and $p_{low}$) is superior to
 the two others, and 0 otherwise.
 
@@ -519,44 +544,45 @@ partition cost is defined as follows:
 The parameters $\alpha$, $\beta$, $\gamma$ and $\lambda$ (all positive)
 determine a priority on which parameter to optimize. For instance, a high
 value $\alpha$ help to
-minimize $c_+$, hence the overall number of sectors with too much tafic.
-In a real application, it maybe interesting to order those parmaeters as
+minimize $c_+$, hence the overall number of sectors with too much trafic.
+In a real application, it maybe interesting to order those parameters as
 follow: $\alpha > \gamma > \beta > \lambda$.
 
 \subsubsection{Transition cost}
 
-In an operational context, each reconfiguration raise the workload for
-controllers. This trend needs to be considered and a transition cost needs to
-be defined for this matter. A transition is (TODO), and the transition cost is
-then:
+In an operational context, each reconfiguration increases the workload for
+controllers. This needs to be considered via the definition of a transition
+cost.
+A transition is the difference of two partitions separated by only on time step.
+The transition cost is then
 \begin{equation}
   C_{tr}(P_1, P_2) =
   \begin{cases}
-    0 & \text{if\,} \quad P_1 = P_2\\
+    0 & \text{if} \quad P_1 = P_2\\
     1 & \text{otherwise}
   \end{cases}
 \end{equation}
 
 \subsubsection{Objective function}
 
-With a cost defined for partition and transition, it is now possible to
+Having defined a cost for partitions and transitions, it is now possible to
 aggregate everything in order to build a cost function over an entire
 path. For a path $\pi = [P_0, \dots, P_n]$ with a time from $t_0$ to $t_n$,
 the cost function is given by:
 \begin{equation}
   \begin{split}
     f(\pi) = C(P_0, t_0) + \sum_{i = 1}^{n} [C(P_i, t_i) +\\
-    \theta C_{tr}(P_{i-1}, P_i)]
+    \theta \cdot C_{tr}(P_{i-1}, P_i)]
   \end{split}
 \end{equation}
 
 with $\theta > 0$ a parameter to determine.
 This is the immediate function to minimize in the A$^*$ algorithm.
 
-The Monte Carlo Tree search algorithm maximize a objective function. This function
-represent the reward of a path, i.e.\ a list of partitions over time.
+The Monte Carlo Tree search algorithm maximizes an objective function. This function
+can be interpreted as the reward of a path.
 Given the loss function defined previously, the target function can be
-construct as:
+constructed as:
 \begin{equation}
   Q(\pi) = \frac{1}{f(\pi)}
 \end{equation}
@@ -566,7 +592,7 @@ construct as:
 To use effectively the A\(^*\) algorithm, a heuristic is needed. Using the null
 heuristic (\(\forall u \in \mathcal{N}, h(u) = 0\)) revealed to be inefficient
 considering the branching factor. To build a minimal heuristic, the limitations
-introduced in~\ref{ssec:partitions} are not considered, neither those associated
+introduced in~\ref{sssec:transitions} are not considered, neither those associated
 to the previous partition (split, merge or transfer). This allows to generate
 the sequence of the best partitions among all possible at each time step.
 
