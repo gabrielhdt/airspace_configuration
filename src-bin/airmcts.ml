@@ -44,7 +44,7 @@ let () =
       Airmcts.select_robust in
   let pathcost = List.fold_left (fun acc elt ->
       acc +. (Support.cost @@ Airmcts.get_state elt)) 0. path in
-  Printf.printf "%d %f\n" (int_of_float !Options.expvexp) pathcost;
+  Printf.printf "%f\n" pathcost;
   if !Options.verbose then
     Partitions.print_partitions (List.map (fun s ->
         Support.get_partitions s) (List.map (fun tree ->
