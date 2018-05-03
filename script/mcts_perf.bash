@@ -11,7 +11,7 @@ Param:
 \t-o|--out\t<filepath>\toutput file"
 
 SCENARIO=""
-DETPH=0
+DETPH=10
 OUTFILE='tps.data'
 lowerbound=0.0001
 upperbound=0.1
@@ -83,11 +83,12 @@ fi
 # Time per step test
 step=$( echo "($upperbound - $lowerbound) / $nval" | bc -l )
 echo "step of $step"
-for i in $(seq 1 $nval) ; do
+for i in $(seq 0 $nval) ; do
     printf "$i/$nval\r"
     val=$( echo "$lowerbound + $i * $step" | bc -l )
-    out="$( $MCTS_CMD -nsteps $maxsteps -horizon $maxsteps -timeperstep $val \
-        -scenario $SCENARIO )"
-    echo "$val $out" >> $OUTFILE
+    #echo "$MCTS_CMD -nsteps $DEPTH -horizon $DEPTH -timeperstep $val -scenario $SCENARIO"
+    cost=$( $MCTS_CMD -nsteps $DEPTH -horizon $DETPH -timeperstep $val -scenario $SCENARIO )
+    #echo "$cost"
+    echo "$val $cost" >> $OUTFILE
 done;
 gnuplot -p -e "plot \"$OUTFILE\" with lines"
