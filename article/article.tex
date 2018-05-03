@@ -139,6 +139,26 @@ elementary module and the cost of transition from the previous partitioning. The
 available partitions come from a predetermined set containing feasible
 partitioning.
 
+The Monte Carlo tree search algorithm has been quickly used in two players game.
+Only three years after its apparition in 1990, Br\"ugmann applies it to the Go
+game in~\cite{brugmann1993mcgo}. While the Monte-Carlo tree search is still
+extensively used in two players games (and especially the Go game), its
+adaptation to one player game has been worked on. Auer \textit{et al.} propose
+an
+upper confidence bound formula which appears to be more efficient for one player
+games as seen in~\cite{sebag2010fuse}. The introduced formula uses the standard
+deviation of the outcome of the simulations.
+The latter article also uses the rapid
+action value estimation (RAVE) technique to quicken the convergence of the
+algorithm. RAVE uses the ``all moves as first'' heuristic, in which all
+moves\footnote{a move is informally considered as a decision taken regarding
+which state to choose while descending the search tree}
+seen during simulations are considered as a first move. This allows the
+algorithm to update more statistics in one simulation. Gelly \textit{et al.} use
+in~\cite{gelly2012grand} the RAVE technique coupled with several heuristics. The
+heuristics bias the initialisaton of a node in the search tree, pre filling its
+statistics using prior knowledge of the problem.
+
 \section{Algorithm}
 
 The task of building an optimal sequence of partitions (lowering
@@ -466,9 +486,9 @@ a transfer
 or a split. For an airspace composed of three modules $A$, $B$, and $C$,
 those actions represent:
 \begin{itemize}
-  \item merge: $\{\{A, B\}, \{C\}\} \quad \rightarrow \quad \{\{A, B, C\}\}$ 
-  \item split: $\{\{A, B, C\}\} \quad \rightarrow \quad \{\{A, B\}, \{C\}\}$ 
-  \item transfer: $\{\{A, B\}, \{C\}\} \quad \rightarrow \quad \{\{A\}, \{B, C\}\}$ 
+  \item merge: $\{\{A, B\}, \{C\}\} \quad \rightarrow \quad \{\{A, B, C\}\}$
+  \item split: $\{\{A, B, C\}\} \quad \rightarrow \quad \{\{A, B\}, \{C\}\}$
+  \item transfer: $\{\{A, B\}, \{C\}\} \quad \rightarrow \quad \{\{A\}, \{B, C\}\}$
 \end{itemize}
 
 TODO : meilleure explication des transitions?
@@ -484,23 +504,23 @@ or humain factors (e.g. controller health or stress). In the model assumed here,
 the workload felt by a controller is directly and only related to the trafic
 complexity.
 
-The simplest approch considers only the number of aircraft per sector $N_{aircraft}$. We
-defined two arbitary thresholds, namely $th_{low}$ and $th_{high}$, defining
-three zones where the workload is low (resp. normal and high) if $N_{aircraft} < th_{low}$
-(resp. $th_{low} < N_{aircraft} < th_{high}$ and $th_{high} < N_{aircraft}$).
-Those workload levels are translated to probabilities $p_{low}$, $p_{normal}$ and
-$p_{high}$, where $p_{low}(S)$ is the probability that the sector $S$ is underloaded
-(resp. balanced and overloaded). In short, for a sector $S$ at time $t$ and $N_{aircraft}$:
+The simplest approch considers only the number of aircraft per sector $N_\text{aircraft}$. We
+defined two arbitary thresholds, namely $th_\text{low}$ and $th_\text{high}$, defining
+three zones where the workload is low (resp. normal and high) if $N_\text{aircraft} < th_\text{low}$
+(resp. $th_\text{low} < N_\text{aircraft} < th_\text{high}$ and $th_\text{high} < N_\text{aircraft}$).
+Those workload levels are translated to probabilities $p_\text{low}$, $p_\text{normal}$ and
+$p_\text{high}$, where $p_\text{low}(S)$ is the probability that the sector $S$ is underloaded
+(resp. balanced and overloaded). In short, for a sector $S$ at time $t$ and $N_\text{aircraft}$:
 \begin{equation}
   \begin{aligned}
-    p_{low}^{S, t} &= \mathbb{1}_{[0, th_{low}]}(N_{aircraft}) \\
-    p_{normal}^{S, t} &= \mathbb{1}_{[th_{low}, th_{high}]}(N_{aircraft})\\
-    p_{high}^{S, t} &= \mathbb{1}_{[th_{low}, \infty[}(N_{aircraft})
+    p_\text{low}^{S, t} &= \mathbb{1}_{[0, th_\text{low}]}(N_\text{aircraft}) \\
+    p_\text{normal}^{S, t} &= \mathbb{1}_{[th_\text{low}, th_\text{high}]}(N_\text{aircraft})\\
+    p_\text{high}^{S, t} &= \mathbb{1}_{[th_\text{low}, \infty[}(N_\text{aircraft})
   \end{aligned}
 \end{equation}
 where $\mathbb{1}$ is the indicator function defined by:
 \begin{equation}
-  \mathbb{1}_{I}(x) = 
+  \mathbb{1}_{I}(x) =
   \begin{cases}
     1 & \text{if\,} \quad x \in I\\
     0 & \text{otherwise}
@@ -509,8 +529,8 @@ where $\mathbb{1}$ is the indicator function defined by:
 
 This expression of the workload, expressed in term of probabilities, allow us to
 use a more complex model for the workload such as a neural network
-(see~\cite{gianazza2010forecasting}). This method learns the probabilities $p_{low}$,
-$p_{normal}$ and $p_{high}$ based on parameters including trafic complexity and
+(see~\cite{gianazza2010forecasting}). This method learns the probabilities $p_\text{low}$,
+$p_\text{normal}$ and $p_\text{high}$ based on parameters including trafic complexity and
 the complexity of the sector (e.g. airspace volume).
 
 \subsection{Partition cost and cost function}
@@ -523,15 +543,15 @@ sector. The definitions given in~\cite{ferrari2017} are used to represent a high
 (respectively normal and low) cost for partition \(P\):
 \begin{equation}
   \begin{aligned}
-    c_+(P, t) &= \sum_{S \in P_t} \delta_{h}(S, t) \cdot p_{high}^{S, t} \cdot |S|^2\\
+    c_+(P, t) &= \sum_{S \in P_t} \delta_{h}(S, t) \cdot p_\text{high}^{S, t} \cdot |S|^2\\
     c_=(P, t) &= \left(
     \sum_{S \in P_t} \delta_{n}(S, t) \cdot p_{norm}^{S} \cdot |S|^{-2}
     \right)^{-1}\\
-    c_-(P, t) &= \sum_{S \in P_t} \delta_{l}(S, t) \cdot p_{low}^{S, t} \cdot |S|^{-2}
+    c_-(P, t) &= \sum_{S \in P_t} \delta_{l}(S, t) \cdot p_\text{low}^{S, t} \cdot |S|^{-2}
   \end{aligned}
 \end{equation}
 with $\delta_{h}(P, t)$ (resp. $\delta_{n}(P_t)$ and $\delta_{l}(P_t)$) equals 1
-if the probability $p_{high}$ (resp. $p_{normal}$ and $p_{low}$) is superior to
+if the probability $p_\text{high}$ (resp. $p_\text{normal}$ and $p_\text{low}$) is superior to
 the two others, and 0 otherwise.
 
 It is now possible to assign a cost to each partition. This cost is linear
