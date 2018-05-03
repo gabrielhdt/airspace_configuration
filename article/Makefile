@@ -5,7 +5,7 @@ FLAGS = -shell-escape -lualatex -synctex=1 -silent
 
 all: prework.pdf article.pdf
 
-%.pdf: %.tex
+%.pdf: %.tex %.bib
 	$(LC) $(FLAGS) $<
 
 clean:
