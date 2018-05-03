@@ -1,6 +1,8 @@
 import sys
+import matplotlib.pyplot as plt
 
 filename = sys.argv[1]
+opt = float(sys.argv[2])
 
 x = []
 y = []
@@ -19,3 +21,7 @@ with open(filename, 'r') as f:
 
 for i, j in zip(x, y):
     print(i, ' ', j)
+
+plt.plot(x, y)
+plt.plot([min(x), max(x)], [opt, opt])
+plt.show()
