@@ -113,6 +113,6 @@ done
 # backup 1st column
 cut -d ' ' -f 1 $TMPD/$OUTFILE.0 >$TMPD/abs.data
 # agglomerate everything
-paste $TMPD/abs.data $TMPD/$OUTFILE.* >"$OUTFILE"
+paste $TMPD/abs.data $TMPD/$OUTFILE.*.c >"$OUTFILE"
 rm -r $TMPD
 #gnuplot -p -e "plot \"$OUTFILE\" with lines"
