@@ -30,17 +30,19 @@ let write_partial_scens data (ndiv : int)
           let ind_begin, ind_end = k * cardperdiv, (k + 1) * cardperdiv in
           (em, slice ind_begin ind_end traf)) data in
       (* Build the string to be written to file *)
-      let traffjsonstr = List.fold_left (fun outstr (em, traf) ->
-          let opening = sprintf "\t\"%s\": [" em in
-          let traff = List.fold_left (fun trafstr trafelt ->
-              trafstr ^ sprintf "%d," trafelt) "" traf in
-          let trafofem = opening ^ traff ^ "],\n" in
-          outstr ^ trafofem
-        ) "{\n" sliced
+      (* slem2traf --> [ ("OY", [13, ..., 12]) ; ... ] *)
+      let slem2traf = List.map (fun (em, traf) ->
+          (em, String.concat ", " (List.map string_of_int traf))) sliced in
+      (* slemtraf --> [ "OY: [13, ..., 12]" ; ... ] *)
+      let slemtraf = List.map (fun (em, traf) -> sprintf "\"%s\": [%s]" em traf)
+          slem2traf in
+      (* The final file without opening curly brackets *)
+      let scorpus = String.concat ",\n\t" slemtraf in
+      let sfinal = sprintf "{\n\t%s\n}" scorpus
       (* Now write the string to file *)
       and outfile = open_out fname in
       begin
-        fprintf outfile "%s\n}" traffjsonstr;
+        fprintf outfile "%s" sfinal;
         close_out outfile;
         (* And loop *)
         loop (k + 1)
