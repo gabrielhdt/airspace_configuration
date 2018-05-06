@@ -2,6 +2,7 @@ open Yojson.Basic.Util
 open Printf
 
 let nchunks = int_of_string Sys.argv.(2)
+let basefname = Sys.argv.(1)
 
 (** [drop n x] drops the [n] first elements of x. Returns empty list if [n]
     is greater than the length of [x] *)
@@ -24,21 +25,25 @@ let write_partial_scens data (ndiv : int)
     (cardperdiv : int) (nlastdiv : int) =
   let rec loop k = (* Iteration over the file number *)
     if k >= ndiv then () else
-      let fname = Sys.argv.(1) ^ (string_of_int k) in
+      let fname = basefname ^ (string_of_int k) in
       let sliced = List.map (fun (em, traf) ->
           let ind_begin, ind_end = k * cardperdiv, (k + 1) * cardperdiv in
           (em, slice ind_begin ind_end traf)) data in
-      let outfile = open_out fname in
+      (* Build the string to be written to file *)
+      let traffjsonstr = List.fold_left (fun outstr (em, traf) ->
+          let opening = sprintf "\t\"%s\": [" em in
+          let traff = List.fold_left (fun trafstr trafelt ->
+              trafstr ^ sprintf "%d," trafelt) "" traf in
+          let trafofem = opening ^ traff ^ "],\n" in
+          outstr ^ trafofem
+        ) "{\n" sliced
+      (* Now write the string to file *)
+      and outfile = open_out fname in
       begin
-        fprintf outfile "{\n";
-        List.iter (fun (em, traf) ->
-            begin
-              fprintf outfile "\t\"%s\": [" em;
-              List.iter (fun trafelt -> fprintf outfile "%d," trafelt) traf;
-              fprintf outfile "],\n"
-            end) sliced;
-        fprintf outfile "\n}";
-        close_out outfile
+        fprintf outfile "%s\n}" traffjsonstr;
+        close_out outfile;
+        (* And loop *)
+        loop (k + 1)
       end
   in
   loop 0
