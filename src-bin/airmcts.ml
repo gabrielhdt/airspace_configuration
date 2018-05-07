@@ -7,15 +7,15 @@ let () =
                     (Util.Sset.add "OY"
                        (Util.Sset.add "RT"
                           (Util.Sset.add "TB"
-                            (Util.Sset.add "TE"
-                              (Util.Sset.add "TH"
-                                (Util.Sset.add "TN"
-                                   (Util.Sset.add "TP"
-                                      (Util.Sset.add "UK"
-                                         (Util.Sset.add "UZ" Util.Sset.empty)))))))))))) in
+                             (Util.Sset.add "TE"
+                                (Util.Sset.add "TH"
+                                   (Util.Sset.add "TN"
+                                      (Util.Sset.add "TP"
+                                         (Util.Sset.add "UK"
+                                            (Util.Sset.add "UZ" Util.Sset.empty)))))))))))) in
   (* let s15 = Util.Sset.add "1" (Util.Sset.add "5" Util.Sset.empty)
-  and s32 = Util.Sset.add "3" (Util.Sset.add "2" Util.Sset.empty)
-  and s4 = Util.Sset.add "4" Util.Sset.empty in *)
+     and s32 = Util.Sset.add "3" (Util.Sset.add "2" Util.Sset.empty)
+     and s4 = Util.Sset.add "4" Util.Sset.empty in *)
   let initial_partition = [
     (s, [("RPW") ])
   ] in
@@ -49,5 +49,5 @@ let () =
     Partitions.print_partitions (List.map (fun s ->
         Support.get_partitions s) (List.map (fun tree ->
         Airmcts.get_state tree)
-      path)
-    )
+        path)
+      )
