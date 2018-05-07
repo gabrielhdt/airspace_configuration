@@ -1,9 +1,6 @@
 open Yojson.Basic.Util
 open Printf
 
-let nchunks = int_of_string Sys.argv.(2)
-let basefname = Sys.argv.(1)
-
 (** [drop n x] drops the [n] first elements of x. Returns empty list if [n]
     is greater than the length of [x] *)
 let drop n xs =
@@ -21,8 +18,7 @@ let take n xs =
 
 let slice b e xs = take (e - b) @@ drop b xs
 
-let write_partial_scens data (ndiv : int)
-    (cardperdiv : int) (nlastdiv : int) =
+let write_partial_scens data ndiv cardperdiv nlastdiv basefname =
   let rec loop k = (* Iteration over the file number *)
     if k >= ndiv then () else
       let fname = basefname ^ (string_of_int k) in
@@ -50,12 +46,17 @@ let write_partial_scens data (ndiv : int)
   in
   loop 0
 
-let () =
+let divide fpath ndivs =
   let scenjson = Yojson.Basic.from_file Sys.argv.(1) in
   let mod2json = to_assoc scenjson in
   let mod2traff = List.map (fun (sec, json) ->
       (sec, List.map to_int @@ to_list json)) mod2json in
   let traflength = List.length @@ snd @@ List.hd mod2traff in
-  let nperchunk = traflength / nchunks
-  and lastchunk = traflength mod nchunks in
-  write_partial_scens mod2traff nchunks nperchunk lastchunk
+  let nperchunk = traflength / ndivs
+  and lastchunk = traflength mod ndivs in
+  write_partial_scens mod2traff ndivs nperchunk lastchunk fpath
+
+let () =
+  let nchunks = int_of_string Sys.argv.(2)
+  and basefname = Sys.argv.(1) in
+  divide basefname nchunks
