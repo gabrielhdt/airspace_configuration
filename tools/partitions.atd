@@ -1,0 +1,6 @@
+type division = {
+    modules : string list;
+    compat_groups : string list;
+}
+
+type partition = { partition : division list }
