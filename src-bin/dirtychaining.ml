@@ -20,11 +20,19 @@ let () =
   let initial_partition = [
     (s, [("RPW") ])
   ] in
+  Scendiv.divide !Options.scpath divisions;
+  let fullscen = Scenario.load !Options.scpath in
+  let fullscenlength = Scenario.length fullscen in
+  let partscenlength = fullscenlength / divisions in
+  Printf.printf "Length of scenarii (full/partial): %d/%d\n" fullscenlength
+    partscenlength;
+
   let rec loop initpart cost k =
-    if k >= divisions then cost else
+    if k * partscenlength >= !Options.horizon then cost else
       let sc = Scenario.load @@ !Options.scpath ^ (string_of_int k) in
       let module Env = struct
-        let horizon = !Options.horizon
+        let horizon = if (k + 1) * partscenlength < !Options.horizon then
+            partscenlength - 1 else !Options.horizon
         let alpha = !Options.alpha
         let beta = !Options.beta
         let gamma = !Options.gamma
