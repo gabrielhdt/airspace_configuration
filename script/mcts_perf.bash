@@ -118,7 +118,7 @@ echo "# scen=$SCENARIO depth=$DEPTH runs=$runs nval=$nval" >>$OUTFILE
 echo "# lowerbound=$lowerbound upperbound=$upperbound" >>$OUTFILE
 
 # Astar computation
-astarcost=$($ASTAR_CMD -horizon $DEPTH -SCENARIO $SCENARIO)
+astarcost=$($ASTAR_CMD -horizon $DEPTH -scenario $SCENARIO)
 echo "# $astarcost" >>"$OUTFILE"
 # agglomerate everything
 paste $TMPD/abs.data $TMPD/$OUTFILE.*.c >>"$OUTFILE"

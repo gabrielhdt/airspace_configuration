@@ -74,7 +74,7 @@ let search user_fun u0 is_goal next k h =
     while not (Pqueue.is_empty !q) do
       let (c,u,new_q) = Pqueue.extract !q in
       q := new_q;
-      if is_goal u then (path := Memory.get_path m u; Printf.printf "nb node vi : %d\n%!" !count;
+      if is_goal u then (path := Memory.get_path m u;
                          raise Eureka)
       else
       if (not (Memory.already_expanded m u)) then
