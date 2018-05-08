@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 filename = sys.argv[1]
 percent = float(sys.argv[2]) / 100
+opt = 0
 
 x = []
 y = []
@@ -22,7 +23,7 @@ with open(filename, 'r') as f:
         print(len(l))
         if l[0] == '#' and len(l) == 2 :
             opt = float(l[1])
-        else:
+        elif l[0] != '#':
             x.append(float(l[0]))
             y.append(mean(list(map(float, l[1:]))))
 
