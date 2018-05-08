@@ -57,11 +57,13 @@ let h _ st = AirSupp.h st
 
   let total_reward = List.fold_left (fun accu e ->
       accu +. AirSupp.cost e) 0. b_path in
-  Printf.printf "reward best path : %f\n" (total_reward);
+  Printf.printf "%f\n" total_reward;
 
-  Printf.printf "path length : %d\nnb visited nodes : %d\n" (List.length b_path) !_count;
 
   if !Options.verbose then
-  List.iter (fun x -> Partitions.print_partition @@ AirSupp.get_partitions x)
-    b_path
-  else ()
+    begin
+      Printf.printf "path length : %d\nnb visited nodes : %d\n"
+        (List.length b_path) !_count;
+      List.iter (fun x ->
+          Partitions.print_partition @@ AirSupp.get_partitions x) b_path
+    end
