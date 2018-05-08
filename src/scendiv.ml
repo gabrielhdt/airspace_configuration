@@ -55,8 +55,3 @@ let divide fpath ndivs =
   let nperchunk = traflength / ndivs
   and lastchunk = traflength mod ndivs in
   write_partial_scens mod2traff ndivs nperchunk lastchunk fpath
-
-let () =
-  let nchunks = int_of_string Sys.argv.(2)
-  and basefname = Sys.argv.(1) in
-  divide basefname nchunks
