@@ -47,7 +47,7 @@ let write_partial_scens data ndiv cardperdiv nlastdiv basefname =
   loop 0
 
 let divide fpath ndivs =
-  let scenjson = Yojson.Basic.from_file Sys.argv.(1) in
+  let scenjson = Yojson.Basic.from_file fpath in
   let mod2json = to_assoc scenjson in
   let mod2traff = List.map (fun (sec, json) ->
       (sec, List.map to_int @@ to_list json)) mod2json in
