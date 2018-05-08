@@ -14,7 +14,7 @@ let drop n xs =
 let take n xs =
   let rec loop k ys =
     if k >= n then [] else (List.hd ys) :: loop (succ k) (List.tl ys) in
-  if n >= List.length xs then xs else List.rev @@ loop 0 xs
+  if n >= List.length xs then xs else loop 0 xs
 
 let slice b e xs = take (e - b) @@ drop b xs
 
