@@ -625,6 +625,11 @@ and 20 control sectors. The resulting model tree has a mean branching factor of
 16. Since it is the smallest French area, considering the already important
 branching factor, a stochastic tree search method seems appropriate.
 
+The traffic is simulated the following way, each elementary module has an
+associted list which, at index \(i\) has the number of aircraft in it at time
+step \(i\). Thoses lists has been randomly generated. The set of lists form a
+scenario which is used in all following tests.
+
 \subsection{Accuracy}
 Accuracy is assessed by comparing the exact cost given by the A\(^*\) algorithm
 with the result of the MCTS\@. The time allowed to the MCTS to run is considered
