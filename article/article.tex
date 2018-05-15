@@ -113,7 +113,7 @@ qualified hard constraints.
 
 In most cases the cost of a configuration is based on the workload. Each
 approach seems to give their own representation of the workload. For instance,
-~\cite{bedouet2016towards} determined workload density proportionally to the time
+\cite{bedouet2016towards} determined workload density proportionally to the time
 spent by aircraft in each sector. A simpler version~\cite{sergeeva2017dynamic}
 only uses the number of aircraft. On the other hand, more complex methods,
 involving many more inputs are also available. For
@@ -635,8 +635,8 @@ bias of approximately 15\%, considering that the stabilisation matches the
 optimal value reachable.
 
 Considering paragraph~\ref{ssec:theoretical_performances}, the MCTS should
-eventually converge to the optimal value, and this result reveals a flaw in the
-implementation of the algorithm.
+eventually converge to the optimal value. This result reveals a flaw in the
+implementation.
 \begin{figure}
   \begin{tikzpicture}
     \begin{axis}
@@ -652,10 +652,42 @@ implementation of the algorithm.
 \end{figure}
 
 
-\subsection{Speed}
-To measure 
+\subsection{Converging speed}
+Since the MCTS converges to a solution, one expects to know the time required to
+be close enough to the optimal solution. To have an idea of this lapse, several
+MCTS are run with different computing time. This results in a graph mapping the
+time allowed to compute each step of the MCTS to the cost of the final path. To
+get rid of the undesired varations due to the stochastic nature of the
+algorithm, the latter process is run several times; which allows one to compute
+the mean over all computed costs.
+
+The resulting graphs are shown in figure~\ref{fig:longterm} in which it can be
+seen that the algorithm reaches its best cost when it runs for 2 seconds per
+step.
+
+\begin{figure}
+  \begin{tikzpicture}
+    \begin{axis}
+      [line width=0.05, mark size=0.1, xlabel=depth, ylabel=cost]
+      \addplot+[dashed, domain=100:800] {18};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{The nice graph}\label{fig:timedepth}
+\end{figure}
+
+The converging speed may also depend on the depth of the tree searched through.
+The figure~\ref{fig:timedepth} shows
+
+
 
 \subsection{Further work}
+Since all the tests has been run using Paris West area, the influence of the
+complexity of the airspace has not been assessed. It would be thus relevant to
+carry further tests on bigger areas. In~\cite{ferrari2017}, the time needed to
+compute the cost with A\(^*\) depends heavily on the traffic itself. Therefore
+the use, in this paper, of randomly generated scenarii of traffic may not be
+suitable in the context of ATM. One can even use a more realistic workload model
+such as a neural network as mentioned in~\cite{gianazza2010forecasting}.
 
 \bibliography{article}
 \bibliographystyle{plain}
