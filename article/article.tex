@@ -32,7 +32,12 @@ decision problem}
 \maketitle
 
 \begin{abstract}
-  A nice abstract
+  Dynamic airspace configuration falls under highly combinatorial partitioning
+  problems. Since exact methods tend to be overwhelmed by the complexity of such
+  problems, a stochastic approach is here considered. This paper presents the
+  the Monte Carlo tree search algorithm using UCT search and adapted to one
+  player games. The application of the algorithm to the airspace partitioning is
+  then detailed. Finally the Monte Carlo tree search is compared to the A\(^*\).
 \end{abstract}
 
 
@@ -68,7 +73,7 @@ used when traffic gets too dense. On the opposite, merging sectors allows fewer
 controllers to manage the same airspace, and is therefore used when traffic
 becomes sparse.
 
-Currently, configuration is mainly decided on the fly by chief officer (TODO).
+Currently, configuration is mainly decided on the fly by chief officer.
 This decision is based on the actual workload on each position. In this
 approach, future workload estimation is based on the controller's feelings and
 it therefore lacks a workload prediction tool.
@@ -491,8 +496,6 @@ those actions represent:
   \item split: $\{\{A, B, C\}\} \quad \rightarrow \quad \{\{A, B\}, \{C\}\}$
   \item transfer: $\{\{A, B\}, \{C\}\} \quad \rightarrow \quad \{\{A\}, \{B, C\}\}$
 \end{itemize}
-
-TODO : meilleure explication des transitions?
 
 Each transition is composed of at most one merge, split or tranfer; more would
 result in too complex reconfigurations.
