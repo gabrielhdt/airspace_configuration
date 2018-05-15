@@ -9,6 +9,7 @@
 \usepackage{algorithm,algpseudocode}
 \usepackage{paralist}
 \usepackage{titlesec}
+\usepackage{tikz,pgfplots}
 
 \DeclareMathOperator{\argmax}{argmax}
 \DeclareMathOperator{\first}{first}
@@ -430,7 +431,7 @@ true distance from a node to a final state), then for any node \(u\), \(h(u)
 \leq h^*(u)\).
 
 
-\subsection{Theoretical performances}
+\subsection{Theoretical performances}\label{ssec:theoretical_performances}
 In this paper, a high branching factor problem is considered.
 
 Let \(H\) be the height of the tree, \(K\) the branching factor.
@@ -618,7 +619,43 @@ the sequence of the best partitions among all possible at each time step.
 
 \section{Results}
 
-TODO
+\subsection{Experimental setup}
+For the tests, the Paris West area is used. It contains 12 elementary modules
+and 20 control sectors. The resulting model tree has a mean branching factor of
+16. Since it is the smallest French area, considering the already important
+branching factor, a stochastic tree search method seems appropriate.
+
+\subsection{Accuracy}
+Accuracy is assessed by comparing the exact cost given by the A\(^*\) algorithm
+with the result of the MCTS\@. The time allowed to the MCTS to run is considered
+long enough to allow the MCTS to converge to its best solution.
+
+It results in figure~\ref{fig:longterm} that the algorithm described here has a
+bias of approximately 15\%, considering that the stabilisation matches the
+optimal value reachable.
+
+Considering paragraph~\ref{ssec:theoretical_performances}, the MCTS should
+eventually converge to the optimal value, and this result reveals a flaw in the
+implementation of the algorithm.
+\begin{figure}
+  \begin{tikzpicture}
+    \begin{axis}
+      [line width=0.05, mark size=0.1, xlabel=time(s), ylabel=cost]
+      \addplot+ table {data/longterm.data};
+      \addplot+[dashed, domain=0:10] {1268};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{The continuous line shows the total cost of a path computed by the
+    MCTS algorithm. The x-axis shows the time allowed to the algorithm. The
+    dashed curve is 15\% of the optimal cost found with the \(A^*\)
+  algorithm.}\label{fig:longterm}
+\end{figure}
+
+
+\subsection{Speed}
+To measure 
+
+\subsection{Further work}
 
 \bibliography{article}
 \bibliographystyle{plain}
