@@ -1,8 +1,8 @@
 #!/bin/bash
 
 NAME=$0
-OPTIONS=hu:l:n:o:s:d:r:
-LONGOPTIONS=help,scenario:,depth:,upper:,lower:,nval:,out:,runs:
+OPTIONS=hu:l:n:o:s:d:r:t:
+LONGOPTIONS=help,scenario:,depth:,upper:,lower:,nval:,out:,runs:,theta:
 USAGE="Usage: $0 -s <scenario> -d <depth>
 Evaluates performance of the airmcts. Outputs a file containing several
 columns, each column contains a given number of measures.
@@ -11,11 +11,13 @@ Param:
 \t-u|--upper\t<float>\tupper bound of time per step
 \t-r|--runs\t<int>\tnumber of runs
 \t-n|--nval\t<int>\tnumber of measures per run
-\t-o|--out\t<filepath>\toutput file"
+\t-o|--out\t<filepath>\toutput file
+\t-t|--theta\t<float>\tcost of transitions"
 
 SCENARIO=""
 DETPH=10
 OUTFILE='tps.data'
+THETA=11 # Transition cost
 runs=1
 lowerbound=0.0001
 upperbound=0.1
@@ -36,6 +38,11 @@ eval set -- "$temp"
 unset temp
 while true; do
     case "$1" in
+    '-t' | '--theta')
+        THETA=$2
+        shift 2
+        continue
+        ;;
     '-s' | '--scenario')
         SCENARIO=$2
         shift 2
@@ -101,7 +108,8 @@ for j in $(seq 0 $runs); do
         printf "$j/$runs-$i/$nval\r"
         val=$(echo "$lowerbound + $i * $step" | bc -l)
         #echo "$MCTS_CMD -nsteps $DEPTH -horizon $DEPTH -timeperstep $val -scenario $SCENARIO"
-        cost=$($MCTS_CMD -nsteps $DEPTH -horizon $DETPH -timeperstep $val -scenario $SCENARIO)
+        cost=$($MCTS_CMD -nsteps $DEPTH -horizon $DETPH -timeperstep $val \
+            -scenario $SCENARIO -theta $THETA)
         #echo "$cost"
         echo "$val $cost" >>"$suboutfile"
     done
