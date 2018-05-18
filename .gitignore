@@ -24,19 +24,10 @@ perf.data
 setup.data
 setup.log
 
-# latex files
-article/*.pdf
-article/*.toc
-article/*.log
-article/*.aux
-article/*.bbl
-article/*.blg
-article/*.fdb_latexmk
-article/*.fls
-article/*.out
-article/*.synctex.gz
-
 # vim files
 *.un~
 *.swp
 tags
+
+# generated data
+*.data
