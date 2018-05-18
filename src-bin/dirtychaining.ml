@@ -1,6 +1,6 @@
 let () =
   Arg.parse Options.speclist Options.anon_fun (Options.usage Sys.argv.(0)) ;
-  let divisions = 4 in
+  let divisions = 12 in
   (* Inital state *)
   let s =  (Util.Sset.add "AP"
               (Util.Sset.add "OG"
@@ -32,7 +32,7 @@ let () =
       let sc = Scenario.load @@ !Options.scpath ^ (string_of_int k) in
       let module Env = struct
         let horizon = if (k + 1) * partscenlength < !Options.horizon then
-            partscenlength - 1 else !Options.horizon
+            partscenlength - 1 else (k + 1) * partscenlength - !Options.horizon
         let alpha = !Options.alpha
         let beta = !Options.beta
         let gamma = !Options.gamma
