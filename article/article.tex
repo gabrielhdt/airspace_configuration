@@ -658,6 +658,16 @@ implementation.
     dashed curve is 15\% of the optimal cost found with the \(A^*\)
   algorithm.}\label{fig:longterm}
 \end{figure}
+\begin{figure}
+  \begin{tikzpicture}
+    \begin{axis}
+      [line width=0.05, mark size=0.1, xlabel=time(s), ylabel=cost]
+      \addplot+ table {data/shortterm.data};
+      \addplot+[dashed, domain=0:2] {1268};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{}\label{fig:shortterm}
+\end{figure}
 
 
 \subsection{Converging speed}
