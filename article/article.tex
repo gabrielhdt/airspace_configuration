@@ -10,6 +10,7 @@
 \usepackage{paralist}
 \usepackage{titlesec}
 \usepackage{tikz,pgfplots}
+\usepackage{array,tabulary,booktabs}
 
 \DeclareMathOperator{\argmax}{argmax}
 \DeclareMathOperator{\first}{first}
@@ -632,28 +633,63 @@ the sequence of the best partitions among all possible at each time step.
 \section{Results}
 
 \subsection{Experimental setup}
-For the tests, the Paris West area is used. It contains 12 elementary modules
-and 20 control sectors. The resulting model tree has a mean branching factor of
-16. Since it is the smallest French area, considering the already important
+For the tests, a fictitious area is used. It contains 5 elementary modules
+and 12 control sectors. The resulting model tree has a mean branching factor of
+6.
+Regarding the branching, the smallest French area -- which is Paris West
+-- has a branching factor of 16 for 20 control sectors and 12 elementary
+modules. Considering the already important
 branching factor, a stochastic tree search method seems appropriate.
 
 The traffic is simulated the following way, each elementary module has an
 associted list which, at index \(i\) has the number of aircraft in it at time
-step \(i\). Those lists have been randomly generated. The set of lists form a
-scenario which is used in all following tests.
+step \(i\). Those lists have been written by hand, the activity shows a traffic
+peak at the beginning of the scenario and much less activity after. The expected
+outcome of the algorithms is a massive degrouping reflecting the heavy workload
+followed by merges.
 
 \subsection{Accuracy}
-Accuracy is assessed by comparing the exact cost given by the A\(^*\) algorithm
-with the result of the MCTS\@. The time allowed to the MCTS to run is considered
-long enough to allow the MCTS to converge to its best solution.
+Accuracy is assessed by comparing the outcome of the MCTS algorithm with the
+A\(^*\) cost and a greedy algorithm cost.
+The time allowed to the MCTS to run is considered long enough to allow the MCTS
+to converge to its best solution. The results are summarised in
+table~\ref{tab:methods_compare}.
 
-It results in figure~\ref{fig:longterm} that the algorithm described here has a
-bias of approximately 15\%, considering that the stabilisation matches the
-optimal value reachable.
+The graph~\ref{fig:grouping} asserts the correct behaviour of both algorithms
+A\(^*\) and MCTS regarding grouping and degrouping.
 
 Considering paragraph~\ref{ssec:theoretical_performances}, the MCTS should
 eventually converge to the optimal value. This result reveals a flaw in the
 implementation.
+
+\begin{table}
+  \centering
+  \begin{tabulary}
+    {\textwidth}{LRR}
+    Alg. & Cost & Err.\\\toprule
+    A\(^*\) & 77.31 & 0\%    \\
+    MCTS    & 82.48 & 6.7\%  \\
+    Greedy  & 90.50 & 17.1\% \\
+  \end{tabulary}
+  \caption{Comparison of several methods on the generated
+  scenario.}\label{tab:methods_compare}
+\end{table}
+
+\begin{figure}
+  \begin{tikzpicture}
+    \begin{axis}
+      [line width=0.05, mark size=0.1, xlabel=timestep, ylabel=num of sectors,
+      legend entries={A\(^*\), MCTS}]
+      \foreach \i in {0,1}{%
+        \addplot+ table [
+          x expr={\lineno}, y index=\i
+          ]
+          {./data/grouping.data};
+      }
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Grouping profile}\label{fig:grouping}
+\end{figure}
 \begin{figure}
   \begin{tikzpicture}
     \begin{axis}
