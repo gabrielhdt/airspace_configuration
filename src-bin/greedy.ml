@@ -40,9 +40,14 @@ let () =
       if Support.terminal nroot then acc else
         let children = Support.produce nroot in
         let favourite = Auxfct.argmax (fun n m ->
-            if Support.cost n >= Support.cost m then n else m) children in
-        loop favourite (acc +. Support.cost favourite) in
-    loop root 0. in
+            if Support.cost n <= Support.cost m then n else m) children in
+        loop favourite (favourite :: acc) in
+    loop root [root] in
 
-  let totcost = greedy_traversal Support.init in
-  Printf.printf "%f" totcost
+  let path  = greedy_traversal Support.init in
+  let totcost = List.fold_left (fun acc n -> acc +. Support.cost n) 0. path in
+  Printf.printf "%f\n" totcost;
+
+  if !Options.verbose then
+      List.iter (fun x ->
+        Partitions.print_partition @@ Support.get_partitions x) (List.rev path)
