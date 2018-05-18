@@ -32,11 +32,12 @@ decision problem}
 \maketitle
 
 \begin{abstract}
-  Dynamic airspace configuration falls under highly combinatorial partitioning
-  problems. Since exact methods tend to be overwhelmed by the complexity of such
+  Dynamic airspace configuration is a highly combinatorial partitioning
+  problem. Since exact methods tend to be overwhelmed by the complexity of such
   problems, a stochastic approach is here considered. This paper presents the
-  the Monte Carlo tree search algorithm using UCT search and adapted to one
-  player games. The application of the algorithm to the airspace partitioning is
+  Monte Carlo tree search algorithm using UCT search and adapted to one
+  player games. The application of the algorithm to the airspace partitioning
+  problem is
   then detailed. Finally the Monte Carlo tree search is compared to the A\(^*\).
 \end{abstract}
 
@@ -44,7 +45,7 @@ decision problem}
 \section*{Notations}
 \begin{compactitem}
   \item $m$: elementary module;
-  \item $S$: sector control position, group of modules;
+  \item $S$: air traffic control sector, group of modules;
   \item $P$: partition of the airspace, group of sectors;
   \item $t$: current time;
   \item $C(P, t)$: cost of a given partition $P$ at time $t$;
@@ -73,12 +74,11 @@ used when traffic gets too dense. On the opposite, merging sectors allows fewer
 controllers to manage the same airspace, and is therefore used when traffic
 becomes sparse.
 
-Currently, configuration is mainly decided on the fly by chief officer.
+Currently, configuration is mainly decided on the fly by the chief officer.
 This decision is based on the actual workload on each position. In this
 approach, future workload estimation is based on the controller's feelings and
 it therefore lacks a workload prediction tool.
-This papers aims at providing this tool as well as a method offering a smoother
-workload during the day.
+This papers aims at providing a method predicting the airspace configuration.
 
 Several methods have been considered to solve the dynamic airspace configuration
 problem, for instance via genetic algorithms in~\cite{sergeeva2017dynamic},
@@ -86,14 +86,15 @@ constraint local search in~\cite{jagare2013airspace}, integer linear
 programming in~\cite{treimuth2016branch} or dynamic programming
 in~\cite{bloem2010dynamic}.
 
-In this paper, a temporal sequence of configuration is provided, as done
+In this paper, a temporal sequence of configurations is considered, as
 in~\cite{treimuth2016branch} or~\cite{sergeeva2017dynamic}.
 Two costs are considered to create the sequence, namely the cost
 associated to each configuration and a transition cost. The former is based on
-the workload estimated for one sector given a neural network
+the workload estimated for one sector given by a simple model. More complex
+models might be used such as a neural network
 (see~\cite{gianazza2010forecasting}).
 
-The sequence of configurations is represented as a tree. The resulting
+The sequence of configurations is extracted from a tree. The resulting
 sequence will therefore be a path from the root to a leaf of this tree. This
 problem is highly combinatorial (partitioning of the airspace). Since stochastic
 tree search algorithms, combined with deep neural networks have proved
@@ -106,15 +107,15 @@ previously mentioned task.
 
 \section{Previous related works}\label{sec:previous_related_works}
 
-The dynamic airspace configuration problem requires a model of the airspace. As
-done in~\cite{sergeeva2017dynamic} or~\cite{treimuth2016branch} the airspace
+The dynamic airspace configuration problem requires a model of the airspace.
+In~\cite{sergeeva2017dynamic} or~\cite{treimuth2016branch} the airspace
 is modelled via a graph. In those graphs, vertices represent elementary modules
 and an edge links two adjacent modules. In~\cite{treimuth2016branch}, to be
 able to produce a sequence of configurations, the graph is time dependent.
 An other way to model the problem is to use a constrained set of
 configurations as in~\cite{gianazza2010forecasting} and~\cite{bloem2010dynamic}.
 This way any configuration will match specified requirements, which can be
-qualified hard constraints.
+qualified as hard constraints.
 
 In most cases the cost of a configuration is based on the workload. Each
 approach seems to give their own representation of the workload. For instance,
@@ -124,7 +125,7 @@ only uses the number of aircraft. On the other hand, more complex methods,
 involving many more inputs are also available. For
 instance,~\cite{gianazza2010forecasting} used several indicators, such as sector
 volume, or vertical incoming flows in the next 15 and 60 minutes. Those
-indicators ease the training of a neural network forecasting the workload.
+indicators as inputs to a neural network forecasting the workload.
 
 Other soft constraints appear to be relevant to have a better model of
 the problem. For instance in~\cite{sergeeva2017dynamic}
@@ -136,8 +137,8 @@ the shape, the easier it is to manage. Complex shapes are therefore avoided,
 thanks to the notion of compactness in~\cite{jagare2013airspace} and balconies
 in~\cite{sergeeva2017dynamic}. To smooth the transition between two
 configurations, the work associated with the reallocation of one or more modules
-is evaluated. This can be used in a cost function aimed to be minimised
-(in~\cite{bedouet2016towards}).
+is evaluated. This transition cost is included in the cost function being
+minimised (in~\cite{bedouet2016towards}).
 
 In this paper, each partition scheme is based upon the number of aircraft in
 each
@@ -145,14 +146,14 @@ elementary module and the cost of transition from the previous partitioning. The
 available partitions come from a predetermined set containing feasible
 partitioning.
 
-The Monte Carlo tree search algorithm has been quickly used in two players game.
+The Monte Carlo tree search algorithm has been widely used in two-player games.
 Only three years after its apparition in 1990, Br\"ugmann applies it to the Go
 game in~\cite{brugmann1993mcgo}. While the Monte-Carlo tree search is still
-extensively used in two players games (and especially the Go game), its
+extensively used in two-player games (and especially the Go game), its
 adaptation to one player game has been worked on. Auer \textit{et al.} propose
 an
-upper confidence bound formula which appears to be more efficient for one player
-games as seen in~\cite{sebag2010fuse}. The introduced formula uses the standard
+upper confidence bound formula in~\cite{sebag2010fuse} which appears to be more
+efficient for one player games. The introduced formula uses the standard
 deviation of the outcome of the simulations.
 The latter article also uses the rapid
 action value estimation (RAVE) technique to quicken the convergence of the
@@ -170,7 +171,7 @@ statistics using prior knowledge of the problem.
 The task of building an optimal sequence of partitions (lowering
 as much as possible the workload of each controller) is fulfilled by a
 stochastic tree search method, namely the Monte Carlo tree search. To assess the
-exactness of the results, an exact method (here A\(^*\)) is used.
+quality of the results, an exact method (here A\(^*\)) is used.
 
 \subsection{Monte Carlo tree search}
 \subsubsection{Overview}\label{sssec:overview}
@@ -370,9 +371,9 @@ The path is built iteratively by calling successive Monte Carlo tree searches.
 Say an MCTS has been called on a node \(u\). Once a stopping criterium is
 matched, a node \(v\) among the ones reachable from \(u\) is selected via one of
 the previously mentioned policies. Then the MCTS algorithm is called back with
-node \(u\)
-as the root node. The path is composed of the successive roots. The algorithm is
-described at~\ref{alg:path_building}.
+node \(v\)
+as the root node. The final path is composed of the successive roots. The
+algorithm is described in~\ref{alg:path_building}.
 \begin{algorithm}
   \caption{%
     Path building. The {\sc NextNode} (here max-child) function is one among
@@ -396,9 +397,9 @@ described at~\ref{alg:path_building}.
 \end{algorithm}
 \subsection{A\(^*\)}
 To evaluate the exactness of the paths given by the MCTS algoithm, the A\(^*\)
-algorithm is used. A\(^*\) is an exact depth first search pathfinding algorithm
+algorithm is used. A\(^*\) is an exact best first search pathfinding algorithm
 which uses a heuristic function to guide its search. The algorithm is given
-in~\ref{alg:astar} where \(u_0\) is the initial state, \(T\) the set of termial
+in~\ref{alg:astar} where \(u_0\) is the initial state, \(T\) the set of terminal
 nodes, \(h\) a heuristic function estimating the cost from a state \(u\) given
 as argument to a final state, \(k \colon \mathcal{N}^2 \to \mathbb{R}\). The
 function \(\first(G)\) returns the first element of \(G\) and
@@ -452,9 +453,9 @@ payoff tends to zero.
 \section{Model}
 
 In this section, we discuss the model established to approach this configuration
-problem. First we defined a structure for a controled sector and all possible
+problem. First we define a structure for a controlled sector and all possible
 transitions through time. Then a workload model is defined. And finally we
-determined a cost per partition and a cost function aimed to be minimized.
+define a cost per partition and a cost function aimed to be minimized.
 
 \subsection{State}
 
@@ -469,25 +470,24 @@ previous section.
 In the configuration problem, the airspace needs to be divided into sectors. Each
 sector represents an area controlled by two controllers and is composed of
 one or more elementary modules. A partition $P$ is a set of
-sectors covering all the airspace.
+non-overlapping sectors covering all the airspace.
 
 A sector is a group of elementary modules, but in practice only a collection
-of sectors are allowed in this model. This collection is referred as the context.
-This restriction reflects the fact the more complex the shape is, the harder it
-is to manage.
+of sectors are allowed in this model. This collection is referred to as the
+context. It is the list of operation ATC sectors actually used in ATC centres.
 
 \subsubsection{Transitions}\label{sssec:transitions}
 
-During the day, and with the evolution of the trafic, the workload (rigorously
-defined in~\ref{sub:workload}) vary. To help controllers to maintain a
+During the day, and with the evolution of the traffic, the workload (rigorously
+defined in~\ref{sub:workload}) varies. To help controllers to maintain a
 homogeneous level of workload, the airspace partitioning needs to be adapted
-through a transition from an inital partition to a target partition.
+through successive transitions starting from an inital partition.
 This maneuver requires either coordination or the opening of a new position
 and hence increases controller's workload.
 This is the reason why a full reconfiguration isn't feasible, and
 only a subset of all available transitions can be operated.
 
-In the model considered here, three transistions are possible namely a merge,
+In the model considered here, three transitions are possible namely a merge,
 a transfer
 or a split. For an airspace composed of three modules $A$, $B$, and $C$,
 those actions represent:
@@ -497,21 +497,21 @@ those actions represent:
   \item transfer: $\{\{A, B\}, \{C\}\} \quad \rightarrow \quad \{\{A\}, \{B, C\}\}$
 \end{itemize}
 
-Each transition is composed of at most one merge, split or tranfer; more would
+Each transition is composed of at most one merge, split or transfer; more would
 result in too complex reconfigurations.
 
 \subsection{Workload}\label{sub:workload}
 
 Let us now precise the model established to evaluate a workload metric. The
-workload depends on external criteria such as sector and trafic complexity
-or humain factors (e.g. controller health or stress). In the model assumed here,
-the workload felt by a controller is directly and only related to the trafic
+workload depends on external criteria such as sector and traffic complexity
+or human factors (e.g.\ controller health or stress). In the model assumed here,
+the workload felt by a controller is directly and only related to the traffic
 complexity.
 
 The simplest approch considers only the number of aircraft per sector $N_\text{aircraft}$. We
-defined two arbitary thresholds, namely $th_\text{low}$ and $th_\text{high}$, defining
+define two arbitary thresholds, namely $th_\text{low}$ and $th_\text{high}$, defining
 three zones where the workload is low (resp. normal and high) if $N_\text{aircraft} < th_\text{low}$
-(resp. $th_\text{low} < N_\text{aircraft} < th_\text{high}$ and $th_\text{high} < N_\text{aircraft}$).
+(resp. $th_\text{low} \leq N_\text{aircraft} \leq th_\text{high}$ and $th_\text{high} < N_\text{aircraft}$).
 Those workload levels are translated to probabilities $p_\text{low}$, $p_\text{normal}$ and
 $p_\text{high}$, where $p_\text{low}(S)$ is the probability that the sector $S$ is underloaded
 (resp. balanced and overloaded). In short, for a sector $S$ at time $t$ and $N_\text{aircraft}$:
@@ -531,10 +531,10 @@ where $\mathbb{1}$ is the indicator function defined by:
   \end{cases}
 \end{equation}
 
-This expression of the workload, expressed in term of probabilities, allow us to
+This expression of the workload, expressed in terms of probabilities, allows us to
 use a more complex model for the workload such as a neural network
 (see~\cite{gianazza2010forecasting}). This method learns the probabilities $p_\text{low}$,
-$p_\text{normal}$ and $p_\text{high}$ based on parameters including trafic complexity and
+$p_\text{normal}$ and $p_\text{high}$ based on parameters including traffic complexity and
 the complexity of the sector (e.g. airspace volume).
 
 \subsection{Partition cost and cost function}
@@ -542,7 +542,7 @@ the complexity of the sector (e.g. airspace volume).
 \subsubsection{Partition cost}
 
 In order to evaluate a given partition $P$ at time $t$, a cost $C(P, t)$ needs
-to be defined. In this paper, this cost depends on the workload in each the
+to be defined. In this paper, this cost depends on the workload in each
 sector. The definitions given in~\cite{ferrari2017} are used to represent a high
 (respectively normal and low) cost for partition \(P\):
 \begin{equation}
@@ -568,7 +568,7 @@ partition cost is defined as follows:
 The parameters $\alpha$, $\beta$, $\gamma$ and $\lambda$ (all positive)
 determine a priority on which parameter to optimize. For instance, a high
 value $\alpha$ help to
-minimize $c_+$, hence the overall number of sectors with too much trafic.
+minimize $c_+$, hence the overall number of sectors with too much traffic.
 In a real application, it maybe interesting to order those parameters as
 follow: $\alpha > \gamma > \beta > \lambda$.
 
@@ -601,7 +601,7 @@ the cost function is given by:
 \end{equation}
 
 with $\theta > 0$ a parameter to determine.
-This is the immediate function to minimize in the A$^*$ algorithm.
+This is the objective function to minimize in the A$^*$ algorithm.
 
 The Monte Carlo Tree search algorithm maximizes an objective function. This function
 can be interpreted as the reward of a path.
@@ -630,7 +630,7 @@ branching factor, a stochastic tree search method seems appropriate.
 
 The traffic is simulated the following way, each elementary module has an
 associted list which, at index \(i\) has the number of aircraft in it at time
-step \(i\). Thoses lists has been randomly generated. The set of lists form a
+step \(i\). Those lists have been randomly generated. The set of lists form a
 scenario which is used in all following tests.
 
 \subsection{Accuracy}
