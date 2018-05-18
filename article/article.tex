@@ -113,7 +113,7 @@ is modelled via a graph. In those graphs, vertices represent elementary modules
 and an edge links two adjacent modules. In~\cite{treimuth2016branch}, to be
 able to produce a sequence of configurations, the graph is time dependent.
 An other way to model the problem is to use a constrained set of
-configurations as in~\cite{gianazza2010forecasting} and~\cite{bloem2010dynamic}.
+configurations as in~\cite{bloem2010dynamic}.
 This way any configuration will match specified requirements, which can be
 qualified as hard constraints.
 
@@ -142,9 +142,9 @@ minimised (in~\cite{bedouet2016towards}).
 
 In this paper, each partition scheme is based upon the number of aircraft in
 each
-elementary module and the cost of transition from the previous partitioning. The
-available partitions come from a predetermined set containing feasible
-partitioning.
+elementary module and the cost of transition from the previous partitioning.
+The set of available parititions can be computed from the set of elementary
+modules and a context which contains all available ATC sectors.
 
 The Monte Carlo tree search algorithm has been widely used in two-player games.
 Only three years after its apparition in 1990, Br\"ugmann applies it to the Go
@@ -461,9 +461,8 @@ define a cost per partition and a cost function aimed to be minimized.
 
 \subsubsection{Time step}
 Since the overall goal is to compute a temporal sequence of partitions over a
-day, the day has to be sampled. This sampling in represented as the temporal
-difference between a node and its children in the trees mentioned in the
-previous section.
+day, the day has to be sampled. In the model tree, a timestep separates a node
+from its children. Practically, a timestep is one minute.
 
 \subsubsection{Partitions}\label{ssec:partitions}
 
@@ -614,10 +613,20 @@ constructed as:
 
 \subsection{Heuristic}
 To use effectively the A\(^*\) algorithm, a heuristic is needed. Using the null
-heuristic (\(\forall u \in \mathcal{N}, h(u) = 0\)) revealed to be inefficient
-considering the branching factor. To build a minimal heuristic, the limitations
-introduced in~\ref{sssec:transitions} are not considered, neither those associated
-to the previous partition (split, merge or transfer). This allows to generate
+heuristic (\(\forall u \in \mathcal{N}, h(u) = 0\)) -- and thus using Dijkstra
+algorithm -- revealed to be inefficient
+considering the branching factor. Let \(k \in \mathbb{N}\), \(u\) a node
+selected at time \(k\).
+The heuristic \(h(u)\) gives the cost of the path starting from \(u\) to a
+leaf which is reached at a time \(t_f\).
+The heuristic is built without
+considering transitions (transition cost and~\ref{sssec:transitions}).
+Let \(P^*_i\) be the partition with minimal cost at time \(i\), the heuristic is
+then
+\begin{equation}
+  h(u) = \sum_{i=k+1}^f C(P^*_i, t_i)
+\end{equation}
+This allows to generate
 the sequence of the best partitions among all possible at each time step.
 
 \section{Results}
@@ -663,10 +672,11 @@ implementation.
     \begin{axis}
       [line width=0.05, mark size=0.1, xlabel=time(s), ylabel=cost]
       \addplot+ table {data/shortterm.data};
-      \addplot+[dashed, domain=0:2] {1268};
     \end{axis}
   \end{tikzpicture}
-  \caption{}\label{fig:shortterm}
+  \caption{Monte Carlo tree search called with varying time allowed to compute
+  each step, with a depth of 40 and \(\theta = 11\). The cost seems to be
+  approximately stable from \(t=0.5\)s.}\label{fig:shortterm}
 \end{figure}
 
 
