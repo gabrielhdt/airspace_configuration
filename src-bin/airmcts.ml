@@ -1,6 +1,7 @@
 let () =
   Arg.parse Options.speclist Options.anon_fun (Options.usage Sys.argv.(0)) ;
   let sc = Scenario.load !Options.scpath in
+  (*
   let s =  (Util.Sset.add "AP"
               (Util.Sset.add "OG"
                  (Util.Sset.add "OT"
@@ -13,12 +14,15 @@ let () =
                                       (Util.Sset.add "TP"
                                          (Util.Sset.add "UK"
                                             (Util.Sset.add "UZ" Util.Sset.empty)))))))))))) in
-  (* let s15 = Util.Sset.add "1" (Util.Sset.add "5" Util.Sset.empty)
-     and s32 = Util.Sset.add "3" (Util.Sset.add "2" Util.Sset.empty)
-     and s4 = Util.Sset.add "4" Util.Sset.empty in *)
   let initial_partition = [
     (s, [("RPW") ])
   ] in
+     *)
+  let s15 = Util.Sset.add "1" (Util.Sset.add "5" Util.Sset.empty)
+  and s32 = Util.Sset.add "3" (Util.Sset.add "2" Util.Sset.empty)
+  and s4 = Util.Sset.add "4" Util.Sset.empty in
+  let initial_partition = ([(s15, ["d"]) ; (s32, ["a"]) ; (s4, ["s4"])] :
+                             Partitions.partition) in
 
   let module Env = struct
     let horizon = !Options.horizon
@@ -46,8 +50,7 @@ let () =
       acc +. (Support.cost @@ Airmcts.get_state elt)) 0. path in
   Printf.printf "%f\n" pathcost;
   if !Options.verbose then
-    Partitions.print_partitions (List.map (fun s ->
-        Support.get_partitions s) (List.map (fun tree ->
-        Airmcts.get_state tree)
-        path)
+    Partitions.print_partitions
+      (List.map (fun s -> Support.get_partitions s)
+         (List.map (fun tree -> Airmcts.get_state tree) path)
       )

@@ -1,8 +1,7 @@
 (* creation of the context needed for  our scenario *)
 open Yojson.Basic.Util
 
-(*
-let l = [ ("s1",["1"]);
+let all_sectors = [ ("s1",["1"]);
   ("s2",["2"]);
   ("s3",["3"]);
   ("s4",["4"]);
@@ -14,7 +13,8 @@ let l = [ ("s1",["1"]);
   ("e",["1";"2";"3"]);
   ("f",["1";"2";"3";"4";"5"]);
   ("g",["1";"2"])  ]
-let sectors = ["1"; "2"; "3"; "4"; "5"] *)
+let sectors = ["1"; "2"; "3"; "4"; "5"]
+       (*
 let centres = "data/centres"
 let name = "PW"
 let cmap = Atcc_data.read_centres centres;;
@@ -24,6 +24,7 @@ let all_sectors = List.append (List.map (fun x ->
     (x,[x])
   ) sectors
   ) region.Atcc_data.c_groups;;
+          *)
 
 let ctx = Partitions.make_context all_sectors
 

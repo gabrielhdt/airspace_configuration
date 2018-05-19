@@ -2,24 +2,28 @@ Arg.parse Options.speclist Options.anon_fun (Options.usage Sys.argv.(0)) ;;
 
 let sc = Scenario.load !Options.scpath
 (* Inital state *)
-let s =  (Util.Sset.add "AP"
-            (Util.Sset.add "OG"
-               (Util.Sset.add "OT"
-                  (Util.Sset.add "OY"
-                     (Util.Sset.add "RT"
-                        (Util.Sset.add "TB"
-                          (Util.Sset.add "TE"
-                            (Util.Sset.add "TH"
-                              (Util.Sset.add "TN"
-                                 (Util.Sset.add "TP"
-                                    (Util.Sset.add "UK"
-                                       (Util.Sset.add "UZ" Util.Sset.empty))))))))))))
-(* let s15 = Util.Sset.add "1" (Util.Sset.add "5" Util.Sset.empty)
-and s32 = Util.Sset.add "3" (Util.Sset.add "2" Util.Sset.empty)
-and s4 = Util.Sset.add "4" Util.Sset.empty in *)
-let initial_partition = [
-  (s, [("RPW") ])
-]
+  (*
+  let s =  (Util.Sset.add "AP"
+              (Util.Sset.add "OG"
+                 (Util.Sset.add "OT"
+                    (Util.Sset.add "OY"
+                       (Util.Sset.add "RT"
+                          (Util.Sset.add "TB"
+                             (Util.Sset.add "TE"
+                                (Util.Sset.add "TH"
+                                   (Util.Sset.add "TN"
+                                      (Util.Sset.add "TP"
+                                         (Util.Sset.add "UK"
+                                            (Util.Sset.add "UZ" Util.Sset.empty)))))))))))) in
+  let initial_partition = [
+    (s, [("RPW") ])
+  ] in
+     *)
+let s15 = Util.Sset.add "1" (Util.Sset.add "5" Util.Sset.empty)
+let s32 = Util.Sset.add "3" (Util.Sset.add "2" Util.Sset.empty)
+let s4 = Util.Sset.add "4" Util.Sset.empty
+let initial_partition = ([(s15, ["d"]) ; (s32, ["a"]) ; (s4, ["s4"])] :
+                             Partitions.partition)
 
 module Env = struct
   let horizon = !Options.horizon
@@ -59,7 +63,7 @@ let argmin (defset : NSet.t) f =
   in minelt
 
 let h = Support.h
-(*let h node = 0.*)
+let h node = 0.
 
 let reconstruct_path came_from current =
   let rec loop total_path currnode =
@@ -106,7 +110,7 @@ let astar start =
 
 let () =
   let path = astar Support.init in
-  let pathcost = List.fold_left (fun acc elt ->
+  let pathcost = List.fold_left (fun acc elt -> Printf.printf "adfk " ;
       acc +. Support.cost elt) 0. path in
   let n = List.length path in
   Printf.printf "path cost : %f path length %d \n" (pathcost) n;
