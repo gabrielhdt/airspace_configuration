@@ -500,6 +500,13 @@ those actions represent:
 Each transition is composed of at most one merge, split or transfer; more would
 result in too complex reconfigurations.
 
+\subsubsection*{Tree translation}
+In the tree used in the algorithm exposed earlier, each node has an embedded
+state. Considering a node \(u\), its children are the elements of the set of
+nodes having as states the possible transitions from the state of \(u\). Going
+down in the tree by selecting nodes is then equivalent to moving forward through
+time, each step in the tree being a time step.
+
 \subsection{Workload}\label{sub:workload}
 
 Let us now precise the model established to evaluate a workload metric. The
@@ -535,7 +542,7 @@ This expression of the workload, expressed in terms of probabilities, allows us 
 use a more complex model for the workload such as a neural network
 (see~\cite{gianazza2010forecasting}). This method learns the probabilities $p_\text{low}$,
 $p_\text{normal}$ and $p_\text{high}$ based on parameters including traffic complexity and
-the complexity of the sector (e.g. airspace volume).
+the complexity of the sector (e.g.\ airspace volume).
 
 \subsection{Partition cost and cost function}
 
@@ -750,8 +757,8 @@ complexity of the airspace has not been assessed. It would be thus relevant to
 carry further tests on bigger areas. In~\cite{ferrari2017}, the time needed to
 compute the cost with A\(^*\) depends heavily on the traffic itself. Therefore
 the use, in this paper, of randomly generated scenarii of traffic may not be
-suitable in the context of ATM. One can even use a more realistic workload model
-such as a neural network as mentioned in~\cite{gianazza2010forecasting}.
+suitable in the context of ATM\@. One can even use a more realistic workload
+model such as a neural network as mentioned in~\cite{gianazza2010forecasting}.
 
 \bibliography{article}
 \bibliographystyle{plain}
