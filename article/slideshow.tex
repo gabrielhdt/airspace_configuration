@@ -71,9 +71,8 @@
 \end{frame}
 
 \section{Modele}
-\subsection{Workload}
+\subsection{Definition de la charge de travail}
 \begin{frame}
-  
   \begin{block}{Facteurs humains}
     Fatigue, stress, experience \(\longrightarrow\) difficulte a quantifier
   \end{block}
@@ -91,8 +90,7 @@
   lien avec workload (written?)
   tikz secteurs valides et non \(\rightarrow\) partition
 \end{frame}
-\begin{frame}
-  {Transitions}
+\begin{frame}{Transitions}
   \begin{block}{Notion de temps}
     succession de partitions
   \end{block}
@@ -101,13 +99,54 @@
   \end{block}
 \end{frame}
 
-
-\subsection{Cost function}
-\begin{frame}
-  {Cout de partition}
+\subsection{Modelisation de la charge de travail}
+\begin{frame}{Modelisation de la charge de travail}
   \begin{block}
-    {Zones}
+    {Classes}
+    Quantification difficile \(\rightarrow\) classification: under, normal,
+    over load
   \end{block}
+  \begin{block}
+    {Modele de classification}
+    Simple (\# d'avions \emph{par secteur}), determinant directement la
+    classe (seuils fixes) klein tikz schema
+  \end{block}
+\end{frame}
+
+
+\subsection{Construction de la fonction objectif}
+\begin{frame}{Cout de partition}
+  \begin{block}{Agglomeration des classifications}
+    Secteur \(\to\) partition\\
+    En trois couts intermediaires de sous, sur ou normale charge (\(c_+, c_-,
+    c_=\))
+  \end{block}
+  \begin{block}{Cout resultant}
+    cout d'une partition \(P\) a un temps \(t\):
+    \begin{equation}
+      C(P,t) = \alpha c_+ + \beta c_= + \gamma c_- + \lambda \vert P \vert
+    \end{equation}
+  \end{block}
+\end{frame}
+\begin{frame}[c]{Cout de transition}
+  \begin{block}{Signification}
+  Coordination entre controleurs
+  \end{block}
+  \begin{equation}
+    C_\text{tr}(P_1, P_2) =
+    \begin{cases}
+      0 & \text{si\;} P_1 = P_2\\
+      \theta & \text{sinon}
+    \end{cases}
+  \end{equation}
+\end{frame}
+\begin{frame}[c]{Fonction objectif}
+  Cout d'une sequence de partitions \(\pi = [P_0, \dots, P_n]\),
+  \begin{equation}
+    f(\pi) = C(P_0, t_0) + \sum_{i=1}^n \left[
+      C(P_i, t_i) + C_\text{tr}(P_{i-1}, P_i)
+    \right]
+  \end{equation}
 \end{frame}
 
 \section{Methode de resolution}
