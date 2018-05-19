@@ -524,9 +524,9 @@ $p_\text{high}$, where $p_\text{low}(S)$ is the probability that the sector $S$ 
 (resp.\ balanced and overloaded). In short, for a sector $S$ at time $t$ and $N_\text{aircraft}$:
 \begin{equation}
   \begin{aligned}
-    p_\text{low}^{S, t} &= \mathbb{1}_{[0, th_\text{low}]}(N_\text{aircraft}) \\
+    p_\text{low}^{S, t} &= \mathbb{1}_{[0, th_\text{low}[}(N_\text{aircraft}) \\
     p_\text{normal}^{S, t} &= \mathbb{1}_{[th_\text{low}, th_\text{high}]}(N_\text{aircraft})\\
-    p_\text{high}^{S, t} &= \mathbb{1}_{[th_\text{low}, \infty[}(N_\text{aircraft})
+    p_\text{high}^{S, t} &= \mathbb{1}_{]th_\text{low}, \infty[}(N_\text{aircraft})
   \end{aligned}
 \end{equation}
 where $\mathbb{1}$ is the indicator function defined by:

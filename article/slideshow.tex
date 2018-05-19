@@ -1,0 +1,124 @@
+\documentclass[tikz]{beamer}
+\usetheme[hideothersubsections]{Hannover}
+\usepackage{fontspec}
+\usepackage{stmaryrd,amsthm,amsmath,amssymb}
+\usepackage{unicode-math}
+\usepackage{color,graphicx}
+\usepackage{tikz,pgfplots}
+\usepackage{algorithm,algpseudocode}
+\usepackage{tabulary}
+
+\usecolortheme{dolphin}
+
+\title[Reconfiguration par Monte Carlo]{%
+  Recherche arborescente Monte Carlo applique au probleme de reconfiguration
+  dynamique de l'espace aerien
+}
+\author[Hondet, Viry]{G.~Hondet, B.~Viry}
+
+% ----------------------------------------------------------
+% nuremotation des pages -----------------------------------
+% ----------------------------------------------------------
+\def\swidth{1.6cm}
+\setbeamersize{sidebar width left=\swidth}
+\setbeamertemplate{sidebar left}
+{%
+  {\usebeamerfont{title in sidebar}
+    \vskip1.5em
+    \usebeamercolor[fg]{title in sidebar}
+    \insertshorttitle[width=\swidth,center,respectlinebreaks]\par
+    \vskip1.25em
+  }
+  {
+    \usebeamercolor[fg]{author in sidebar}
+    \usebeamerfont{author in sidebar}
+    \insertshortauthor[width=\swidth,center,respectlinebreaks]\par
+    \vskip1.25em
+  }
+  \hbox to2cm{\hss\insertlogo\hss}
+  \vskip1.25em
+  \insertverticalnavigation{\swidth}
+  \vfill
+  \hbox to2cm{\hskip0.6cm\usebeamerfont{subsection in
+      sidebar}\strut\usebeamercolor[fg]{subsection in
+      sidebar}\insertframenumber /\inserttotalframenumber\hfill}
+  \vskip3pt
+}
+% ----------------------------------------------------------
+
+\begin{document}
+\begin{frame}
+  \titlepage{}
+\end{frame}
+
+\AtBeginSection[]
+{%
+  \begin{frame}
+    \frametitle{Plan}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+\section*{Introduction}
+
+\begin{frame}[c]{Introduction}
+  \begin{itemize}
+    \item But: diminution de la charge de travail des controleurs
+    \item Actuellement: reconfiguration de l'espace aerien a la volee
+    \item Travail expose: planification des sequences d'ouverture
+    \item Comment? Algorithme stochastique de recherche arborescente
+  \end{itemize}
+\end{frame}
+
+\section{Modele}
+\subsection{Workload}
+\begin{frame}
+  
+  \begin{block}{Facteurs humains}
+    Fatigue, stress, experience \(\longrightarrow\) difficulte a quantifier
+  \end{block}
+  \begin{block}{Environnement}
+    schemas trafic, shape complexite (tikz)
+  \end{block}
+\end{frame}
+
+
+\subsection{Espace aerien}
+\begin{frame}{Fragmentation de l'espace}
+  Super tikz elementary module, sectors
+\end{frame}
+\begin{frame}{Contexte}
+  lien avec workload (written?)
+  tikz secteurs valides et non \(\rightarrow\) partition
+\end{frame}
+\begin{frame}
+  {Transitions}
+  \begin{block}{Notion de temps}
+    succession de partitions
+  \end{block}
+  \begin{block}{Transitions}
+    contraintes, \dots
+  \end{block}
+\end{frame}
+
+
+\subsection{Cost function}
+\begin{frame}
+  {Cout de partition}
+  \begin{block}
+    {Zones}
+  \end{block}
+\end{frame}
+
+\section{Methode de resolution}
+
+\subsection{Principe}
+\subsection{Lien avec le modele}
+\subsection{Phases}
+\subsection{Construction de la solution}
+\subsection{A\(^*\)}
+
+\section{Resultats}
+
+\section*{Conclusion}
+\end{document}
