@@ -22,3 +22,5 @@ val theta : float ref
 val expvexp : float ref
 
 val verbose : bool ref
+
+val heuristic : bool ref

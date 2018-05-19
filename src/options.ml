@@ -17,6 +17,7 @@ let theta = ref 1.
 let expvexp = ref 2.
 
 let verbose = ref false
+let heuristic = ref false
 
 let speclist = [
   ("-scenario", Arg.Set_string scpath,
@@ -43,4 +44,6 @@ let speclist = [
    "Verbose mode: print final path") ;
   ("-expvexp", Arg.Set_float expvexp,
    "Sets tradeoff between exploration and exploitation") ;
+   ("-h", Arg.Set heuristic,
+   "Use heuristic for mcts similations") ;
 ]

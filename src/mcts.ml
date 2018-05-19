@@ -25,6 +25,7 @@ end
 module type MctsParameters = sig
   val expvexp : float
   val lapse : float
+  val heuristic : bool
 end
 
 module Make (Supp : Support) (MctsParam : MctsParameters) = struct
@@ -169,13 +170,17 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
       else
         begin
           let children = produce next_node in
-          let estim_costs = Array.mapi (fun i child ->
-              let c = Supp.cost child.state in
-              (i, c)
-            ) (Array.of_list children) in
-          let wheel = Rand.make_wheel estim_costs in
-          let chosen = List.nth children (Rand.roulette wheel) in
-          loop chosen (accu +. cost)
+          if MctsParam.heuristic then
+            let estim_costs = Array.mapi (fun i child ->
+                let c = Supp.cost child.state in
+                (i, c)
+              ) (Array.of_list children) in
+            let wheel = Rand.make_wheel estim_costs in
+            let chosen = List.nth children (Rand.roulette wheel) in
+            loop chosen (accu +. cost)
+          else
+            let chosen = Auxfct.random_elt children in
+            loop chosen (accu +. cost)
         end
     in
     loop node 0.
