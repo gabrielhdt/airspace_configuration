@@ -30,6 +30,9 @@ module type MctsParameters = sig
 
   (** Amount of time during which the mcts develops the tree *)
   val lapse : float
+    
+  (** option for using a heuristic in MCTS simulations *)
+  val heuristic : bool
 end
 
 
