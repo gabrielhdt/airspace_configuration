@@ -169,8 +169,13 @@ module Make (Supp : Support) (MctsParam : MctsParameters) = struct
       else
         begin
           let children = produce next_node in
-          let randchild = Auxfct.random_elt children in
-          loop randchild (accu +. cost)
+          let estim_costs = Array.mapi (fun i child ->
+              let c = Supp.cost child.state in
+              (i, c)
+            ) (Array.of_list children) in
+          let wheel = Rand.make_wheel estim_costs in
+          let chosen = List.nth children (Rand.roulette wheel) in
+          loop chosen (accu +. cost)
         end
     in
     loop node 0.
