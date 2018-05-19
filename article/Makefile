@@ -3,7 +3,7 @@ FLAGS = -shell-escape -lualatex -synctex=1 -silent
 
 .PHONY: %.pdf clean
 
-all: prework.pdf article.pdf
+all: article.pdf
 
 %.pdf: %.tex %.bib
 	$(LC) $(FLAGS) $<
