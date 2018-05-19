@@ -10,4 +10,8 @@
 *.bbl
 *.blg
 
+*.nav
+*.snm
+*.toc
+
 *.synctex.gz
