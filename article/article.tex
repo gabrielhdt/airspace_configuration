@@ -650,10 +650,7 @@ branching factor, a stochastic tree search method seems appropriate.
 
 The traffic is simulated the following way, each elementary module has an
 associted list which, at index \(i\) has the number of aircraft in it at time
-step \(i\). Those lists have been written by hand, the activity shows a traffic
-peak at the beginning of the scenario and much less activity after. The expected
-outcome of the algorithms is a massive degrouping reflecting the heavy workload
-followed by merges.
+step \(i\). Those lists have been written by hand.
 
 \subsection{Accuracy}
 Accuracy is assessed by comparing the outcome of the MCTS algorithm with the
@@ -664,11 +661,23 @@ table~\ref{tab:methods_compare}.
 
 The graph~\ref{fig:grouping} asserts the correct behaviour of both algorithms
 A\(^*\) and MCTS regarding grouping and degrouping. On the \(y\) axis is
-indicated the number of sectors. The two algorithms show, as expected, splits
-leading from 3 sectors to 5 for the MCTS to cope with the intense trafic at
-the beginning of the scenario. Both algorithm choose to merge as much as
-possible to go to 1 sector.
-
+indicated the number of sectors. The trafic activity is the following,
+\begin{enumerate}
+  \item\label{scen:busy}
+    The first part of the scenario shows a busy situation, all sectors are
+    overloaded;
+  \item\label{scen:quiet}
+    then follows a quiet moment with few aircraft, much of the sectors are
+    underloaded;
+  \item\label{scen:partial}
+    the end of the scenario has two overload modules and the rest under
+    normal or under load.
+\end{enumerate}
+The expected behaviour is a tendency to increase the number of sectors through
+splits to cope with part~\ref{scen:busy} followed by many merges to reduce the
+number of sectors in response to phase~\ref{scen:quiet}. The algorithms should
+end with a specific sector created, the one overloaded in~\ref{scen:partial} and
+the rest grouped. Seeing~\ref{fig:grouping}, both algorithm behave as expected.
 \begin{table}
   \centering
   \begin{tabulary}
