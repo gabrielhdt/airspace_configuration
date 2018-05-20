@@ -112,9 +112,10 @@ let () =
   let path = astar Support.init in
   let pathcost = List.fold_left (fun acc elt -> Printf.printf "adfk " ;
       acc +. Support.cost elt) 0. path in
-  let n = List.length path in
-  Printf.printf "path cost : %f path length %d \n" (pathcost) n;
+  Printf.printf "%f\n" pathcost;
   if !Options.verbose then
+    let n = List.length path in
+    Printf.printf "Path length: %d\n" n;
     Partitions.print_partitions (List.map (fun s ->
         Support.get_partitions s) (List.map (fun tree ->
         tree)
