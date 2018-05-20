@@ -10,6 +10,7 @@
 \usepackage{tabulary}
 
 \usetikzlibrary{intersections}
+\usetikzlibrary{decorations.pathmorphing}
 
 \usecolortheme{dolphin}
 
@@ -266,20 +267,94 @@
 \end{frame}
 
 \subsection{Phases}
-\begin{frame}[c]{Phases}
-  \begin{block}{Selection}
-    Choix d'un chemin dans l'arbre de recherche.
-  \end{block}
-  \begin{block}{Expansion}
-    Ajout d'un n\oe{}ud a l'arbre de recherche.
-  \end{block}
-  \begin{block}{Simulation}
-    Evaluation d'un n\oe{}ud ajoute.
-  \end{block}
-  \begin{block}{Sauvegarde}
-    Mise a jour de l'ensemble de l'arbre de recherche.
-  \end{block}
-  Super schema?
+\begin{frame}[t]{Selection et expansion}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{block}{Selection}
+        Choix d'un chemin dans l'arbre de recherche.
+        \begin{figure}
+          \begin{tikzpicture}[scale=0.6]
+            \node [circle, draw, blue] {}
+              child {node [circle, draw] {}}
+              child[->, blue] {%
+                node [circle, draw] {}
+                child[->] {node [circle, draw] {}}
+                child[-, black] {node [circle, draw] {}}
+              };
+          \end{tikzpicture}
+          \caption{Sélection d'un chemin}
+        \end{figure}
+      \end{block}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{block}{Expansion}
+        Ajout d'un n\oe{}ud a l'arbre de recherche.
+        \begin{figure}
+          \begin{tikzpicture}[scale=0.6]
+            \node [circle, draw] {}
+              child {node [circle, draw] {}}
+              child {%
+                node [circle, draw] {}
+                child {%
+                  node [circle, draw] {}
+                  child [circle, draw, blue] {node [circle, draw] {}}
+                }
+                child {node [circle, draw] {}}
+              };
+          \end{tikzpicture}
+          \caption{Expansion}
+        \end{figure}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+\begin{frame}[t]{Simulation et sauvegarde}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \begin{block}{Simulation}
+        Évaluation d'un n\oe{}ud ajoute.
+        \begin{figure}
+          \begin{tikzpicture}[scale=0.6]
+            \node [circle, draw] {}
+              child {node [circle, draw] {}}
+              child {%
+                node [circle, draw] {}
+                child {%
+                  node [circle, draw] {}
+                  child [circle, draw] {node (l) [circle, draw] {}}
+                }
+                child {node [circle, draw] {}}
+              };
+
+            \draw[blue] (l) ++(0, -2) node(s) [circle, draw] {};
+            \draw[->, blue, decorate, decoration={snake}] (l) -- (s);
+          \end{tikzpicture}
+        \caption{Simulation}
+        \end{figure}
+      \end{block}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{block}{Sauvegarde}
+        Mise a jour de l'ensemble de l'arbre de recherche.
+      \end{block}
+      \begin{figure}
+        \begin{tikzpicture}[scale=0.6]
+          \node [circle, draw, blue] {}
+            child {node [circle, draw] {}}
+            child[<-, blue] {%
+              node [circle, draw] {}
+              child {%
+                node [circle, draw] {}
+                child [circle, draw] {node [circle, draw] {}}
+              }
+              child[-, black] {node [circle, draw] {}}
+            };
+        \end{tikzpicture}
+        \caption{}
+      \end{figure}
+      
+    \end{column}
+  \end{columns}
 \end{frame}
 
 \subsection{Construction de la solution}
@@ -306,12 +381,12 @@
   \begin{block}{Heuristique}
     \begin{itemize}
       \item \(h(u)\): cout du chemin allant de \(u\) jusqu'a une feuille,
-      \item utilisations des partitions optimales, meme si non atteignables
+      \item utilisations des partitions optimales, même si non atteignables
     \end{itemize}
   \end{block}
 \end{frame}
 
-\section{Resultats}
+\section{Résultats}
 
 \section*{Conclusion}
 \end{document}
