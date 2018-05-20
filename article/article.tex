@@ -740,14 +740,27 @@ The figure~\ref{fig:timedepth} shows
 \end{figure}
 
 
-\subsection{Further work}
-Since all the tests has been run using Paris West area, the influence of the
-complexity of the airspace has not been assessed. It would be thus relevant to
-carry further tests on bigger areas. In~\cite{ferrari2017}, the time needed to
-compute the cost with A\(^*\) depends heavily on the traffic itself. Therefore
-the use, in this paper, of randomly generated scenarii of traffic may not be
-suitable in the context of ATM\@. One can even use a more realistic workload
-model such as a neural network as mentioned in~\cite{gianazza2010forecasting}.
+\section{Conclusion}
+The presented work provides the basis of a method able to create dynamic
+airspace overture schemes. The model is built around a quantification of the
+workload felt by a air trafic controller. This quantification is then used to
+create a cost function to be minimised. The highly combinatorial nature of the
+problem makes it prone to be solved with stochastic methods. The Monte Carlo
+tree search algorithm is then introduced since it has been used in some of the
+most combinatorial problem (game of Go). In this paper, the algorithm is
+modified to take into account not only a result but all the path leading to this
+leaf. It is also adapted to the one-player game nature of the problem.
+
+\paragraph{Further work}
+Since all the tests has been run using the same fictitious area with the same
+trafic, neither the influence of the complexity of the airspace nor of the
+trafic have been assessed. It would be thus relevant to carry further tests on
+bigger areas with differing trafic. This can be emphasised
+by~\cite{ferrari2017}, in which the time needed to compute the cost with A\(^*\)
+depends heavily on the trafic itself.
+
+More complex workload models can also be used such as neural networks
+in~\cite{gianazza2010forecasting}.
 
 \bibliography{article}
 \bibliographystyle{plain}
