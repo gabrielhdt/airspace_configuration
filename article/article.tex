@@ -669,10 +669,6 @@ leading from 3 sectors to 5 for the MCTS to cope with the intense trafic at
 the beginning of the scenario. Both algorithm choose to merge as much as
 possible to go to 1 sector.
 
-Considering paragraph~\ref{ssec:theoretical_performances}, the MCTS should
-eventually converge to the optimal value. This result reveals a flaw in the
-implementation.
-
 \begin{table}
   \centering
   \begin{tabulary}
@@ -705,19 +701,6 @@ implementation.
   \begin{tikzpicture}
     \begin{axis}
       [line width=0.05, mark size=0.1, xlabel=time(s), ylabel=cost]
-      \addplot+ table {data/longterm.data};
-      \addplot+[dashed, domain=0:10] {1268};
-    \end{axis}
-  \end{tikzpicture}
-  \caption{The continuous line shows the total cost of a path computed by the
-    MCTS algorithm. The x-axis shows the time allowed to the algorithm. The
-    dashed curve is 15\% of the optimal cost found with the \(A^*\)
-  algorithm.}\label{fig:longterm}
-\end{figure}
-\begin{figure}
-  \begin{tikzpicture}
-    \begin{axis}
-      [line width=0.05, mark size=0.1, xlabel=time(s), ylabel=cost]
       \addplot+ table {data/shortterm.data};
     \end{axis}
   \end{tikzpicture}
@@ -740,18 +723,21 @@ The resulting graphs are shown in figure~\ref{fig:longterm} in which it can be
 seen that the algorithm reaches its best cost when it runs for 2 seconds per
 step.
 
+The converging speed may also depend on the depth of the tree searched through.
+The figure~\ref{fig:timedepth} shows
+
 \begin{figure}
   \begin{tikzpicture}
     \begin{axis}
       [line width=0.05, mark size=0.1, xlabel=depth, ylabel=cost]
-      \addplot+[dashed, domain=100:800] {18};
+      \foreach \i in {1, 2} {%
+        \addplot+ table [ x index = 0, y index = \i ] {./data/cmpdepth.data};
+      }
     \end{axis}
   \end{tikzpicture}
-  \caption{The nice graph}\label{fig:timedepth}
+  \caption{Cost difference for varying depth with 0.5 seconds allowed to MCTS,
+  \(\theta=3\)}\caption{fig:cmpdepth}
 \end{figure}
-
-The converging speed may also depend on the depth of the tree searched through.
-The figure~\ref{fig:timedepth} shows
 
 
 \subsection{Further work}
