@@ -28,6 +28,3 @@ setup.log
 *.un~
 *.swp
 tags
-
-# generated data
-*.data
