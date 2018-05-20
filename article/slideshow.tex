@@ -14,6 +14,8 @@
 
 \usecolortheme{dolphin}
 
+\DeclareMathOperator{\first}{first}
+
 \title[Reconfiguration par Monte Carlo]{%
   Recherche arborescente Monte Carlo applique au probleme de reconfiguration
   dynamique de l'espace aerien
@@ -270,15 +272,15 @@
 \begin{frame}[t]{Selection et expansion}
   \begin{columns}
     \begin{column}{0.5\textwidth}
-      \begin{block}{Selection}
-        Choix d'un chemin dans l'arbre de recherche.
+      \begin{block}{Sélection}
+        Choix d'un chemin par méthode de bandits
         \begin{figure}
           \begin{tikzpicture}[scale=0.6]
             \node [circle, draw, blue] {}
               child {node [circle, draw] {}}
               child[->, blue] {%
                 node [circle, draw] {}
-                child[->] {node [circle, draw] {}}
+                child {node [circle, draw] {}}
                 child[-, black] {node [circle, draw] {}}
               };
           \end{tikzpicture}
@@ -286,9 +288,10 @@
         \end{figure}
       \end{block}
     \end{column}
+    \pause{}
     \begin{column}{0.5\textwidth}
       \begin{block}{Expansion}
-        Ajout d'un n\oe{}ud a l'arbre de recherche.
+        Ajout d'un n\oe{}ud
         \begin{figure}
           \begin{tikzpicture}[scale=0.6]
             \node [circle, draw] {}
@@ -312,7 +315,7 @@
   \begin{columns}
     \begin{column}{0.5\textwidth}
       \begin{block}{Simulation}
-        Évaluation d'un n\oe{}ud ajoute.
+        Choix d'un chemin aléatoire partant du n\oe{}ud jusqu'à une feuille
         \begin{figure}
           \begin{tikzpicture}[scale=0.6]
             \node [circle, draw] {}
@@ -333,9 +336,10 @@
         \end{figure}
       \end{block}
     \end{column}
+    \pause{}
     \begin{column}{0.5\textwidth}
       \begin{block}{Sauvegarde}
-        Mise a jour de l'ensemble de l'arbre de recherche.
+        Mise à jour de l'arbre de recherche
       \end{block}
       \begin{figure}
         \begin{tikzpicture}[scale=0.6]
@@ -350,23 +354,26 @@
               child[-, black] {node [circle, draw] {}}
             };
         \end{tikzpicture}
-        \caption{}
+        \caption{Sauvegarde}
       \end{figure}
-      
     \end{column}
   \end{columns}
 \end{frame}
 
 \subsection{Construction de la solution}
 \begin{frame}[c]{Construction de la solution}
-  \begin{block}{Selection v.\ choix final}
-  \end{block}
-  \begin{block}{Construction iterative de chemin}
-    \begin{itemize}
-      \item Une passe Monte Carlo permet de choisir un noeud,
-      \item appels recursifs pour construire un chemin.
-    \end{itemize}
-  \end{block}
+  \begin{algorithmic}
+    \Function{MctsSearch}{$u_0, n$}
+    \State{}\(u \gets u_0\)
+    \State{}\(\pi \gets \{u\}\)
+    \For{$i = 1$ to $n$}
+    \State{}\Call{MctsSearchTree}{$u$}
+    \State{}\(u \gets\) \Call{NextNode}{$u$}
+    \State{}\(\pi \gets \pi \cup \{u\}\)
+    \EndFor{}
+    \State{}\Return{$\pi$}
+    \EndFunction{}
+  \end{algorithmic}
 \end{frame}
 
 \subsection{A\(^*\)}
@@ -380,8 +387,9 @@
   \end{block}
   \begin{block}{Heuristique}
     \begin{itemize}
-      \item \(h(u)\): cout du chemin allant de \(u\) jusqu'a une feuille,
-      \item utilisations des partitions optimales, même si non atteignables
+      \item \(h(u)\): estimation du coût du chemin allant de \(u\)
+        jusqu'à une feuille,
+      \item utilisation des partitions optimales, même si non atteignables
     \end{itemize}
   \end{block}
 \end{frame}
