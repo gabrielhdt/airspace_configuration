@@ -653,12 +653,6 @@ associted list which, at index \(i\) has the number of aircraft in it at time
 step \(i\). Those lists have been written by hand.
 
 \subsection{Accuracy}
-Accuracy is assessed by comparing the outcome of the MCTS algorithm with the
-A\(^*\) cost and a greedy algorithm cost.
-The time allowed to the MCTS to run is considered long enough to allow the MCTS
-to converge to its best solution. The results are summarised in
-table~\ref{tab:methods_compare}.
-
 The graph~\ref{fig:grouping} asserts the correct behaviour of both algorithms
 A\(^*\) and MCTS regarding grouping and degrouping. On the \(y\) axis is
 indicated the number of sectors. The trafic activity is the following,
@@ -678,19 +672,6 @@ splits to cope with part~\ref{scen:busy} followed by many merges to reduce the
 number of sectors in response to phase~\ref{scen:quiet}. The algorithms should
 end with a specific sector created, the one overloaded in~\ref{scen:partial} and
 the rest grouped. Seeing~\ref{fig:grouping}, both algorithm behave as expected.
-\begin{table}
-  \centering
-  \begin{tabulary}
-    {\textwidth}{LRR}
-    Alg. & Cost & Err.\\\toprule
-    A\(^*\) & 77.31 & 0\%    \\
-    MCTS    & 82.48 & 6.7\%  \\
-    Greedy  & 90.50 & 17.1\% \\
-  \end{tabulary}
-  \caption{Comparison of several methods on the generated
-  scenario.}\label{tab:methods_compare}
-\end{table}
-
 \begin{figure}
   \begin{tikzpicture}
     \begin{axis}
@@ -706,17 +687,46 @@ the rest grouped. Seeing~\ref{fig:grouping}, both algorithm behave as expected.
   \end{tikzpicture}
   \caption{Grouping profile}\label{fig:grouping}
 \end{figure}
+
+
+Accuracy can be quantitatively assessed by comparing the outcome of the MCTS
+algorithm against the A\(^*\) cost and a greedy algorithm cost.
+The time allowed to the MCTS to run is considered long enough to allow the MCTS
+to converge to its best solution. The results are summarised in
+table~\ref{tab:methods_compare}.
+\begin{table}
+  \centering
+  \begin{tabulary}
+    {\textwidth}{LRR}
+    Alg.    & Cost  & Err.   \\
+    \toprule
+    A\(^*\) & 77.31 & 0\%    \\
+    MCTS    & 82.48 & 6.7\%  \\
+    Greedy  & 90.50 & 17.1\% \\
+  \end{tabulary}
+  \caption{Comparison of several methods on the generated
+  scenario.}\label{tab:methods_compare}
+\end{table}
+
+The graph~\ref{fig:cmpdepth} shows the evolution of the difference of costs with
+varying depth. The error rate is expected to grow as the depth increase since
+the MCTS might fail to explore the best nodes among the exponentially growing
+amount of them.
 \begin{figure}
   \begin{tikzpicture}
     \begin{axis}
-      [line width=0.05, mark size=0.1, xlabel=time(s), ylabel=cost]
-      \addplot+ table {data/shortterm.data};
+      [line width=0.05, mark size=0.1, xlabel=depth, ylabel=cost,
+      legend entries = {A\(^*\), MCTS}]
+      \foreach \i in {0, 1} {%
+        \addplot+ table [
+          x expr = {\lineno + 1}, y index = \i ] {./data/cmpdepth.data};
+      }
     \end{axis}
   \end{tikzpicture}
-  \caption{Monte Carlo tree search called with varying time allowed to compute
-  each step, with a depth of 40 and \(\theta = 11\). The cost seems to be
-  approximately stable from \(t=0.5\)s.}\label{fig:shortterm}
+  \caption{Cost difference for varying depth with 0.5 seconds allowed to
+    MCTS.}\label{fig:cmpdepth}
 \end{figure}
+
 
 
 \subsection{Converging speed}
@@ -734,19 +744,18 @@ step.
 
 The converging speed may also depend on the depth of the tree searched through.
 The figure~\ref{fig:timedepth} shows
-
 \begin{figure}
   \begin{tikzpicture}
     \begin{axis}
-      [line width=0.05, mark size=0.1, xlabel=depth, ylabel=cost]
-      \foreach \i in {1, 2} {%
-        \addplot+ table [ x index = 0, y index = \i ] {./data/cmpdepth.data};
-      }
+      [line width=0.05, mark size=0.1, xlabel=time(s), ylabel=cost]
+      \addplot+ table {data/shortterm.data};
     \end{axis}
   \end{tikzpicture}
-  \caption{Cost difference for varying depth with 0.5 seconds allowed to MCTS,
-  \(\theta=3\)}\caption{fig:cmpdepth}
+  \caption{Monte Carlo tree search called with varying time allowed to compute
+  each step, with a depth of 40 and \(\theta = 11\). The cost seems to be
+  approximately stable from \(t=0.5\)s.}\label{fig:shortterm}
 \end{figure}
+
 
 
 \section{Conclusion}
