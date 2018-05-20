@@ -3,10 +3,13 @@
 \usepackage{fontspec}
 \usepackage{stmaryrd,amsthm,amsmath,amssymb}
 \usepackage{unicode-math}
-\usepackage{color,graphicx}
+\usepackage{color,graphicx,subfig}
 \usepackage{tikz,pgfplots}
+\usepackage{aircraftshapes}
 \usepackage{algorithm,algpseudocode}
 \usepackage{tabulary}
+
+\usetikzlibrary{intersections}
 
 \usecolortheme{dolphin}
 
@@ -84,22 +87,52 @@
 
 \subsection{Espace aerien}
 \begin{frame}{Fragmentation de l'espace}
-  Super tikz elementary module, sectors
+  \begin{figure}
+    \centering
+    \begin{tikzpicture}[scale=0.5]
+      \fill [red!20] (3, 3) -- (8, 3) -- (8, 5) -- (4, 6) -- cycle;
+      \fill [green!20] (3, 0) -- (8, 1) -- (8, 3) -- (3, 3) -- cycle;
+      \fill [blue!20] (0, 1) -- (3, 0) -- (3, 3) -- (4, 6) -- (1, 6) -- cycle;
+
+      % Polygon
+      \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) -- cycle;
+      \draw (0.2, 2) -- (3, 3);
+      \draw (3, 0) -- (3, 3);
+      \draw (3, 3) -- (8, 3);
+      \draw (6, 5.5) -- (6, 3);
+      \draw (3, 3) -- (4, 6);
+    \end{tikzpicture}
+    \caption{Decoupage de l'espace aerien}
+  \end{figure}
 \end{frame}
 \begin{frame}{Contexte}
   lien avec workload (written?)
   tikz secteurs valides et non \(\rightarrow\) partition
   \begin{tikzpicture}[scale=0.5]
+    \fill [yellow!20] (0, 1) -- (0.2, 2) -- (3, 3) -- (3, 0) -- cycle;
+    \fill [yellow!20] (3, 3) -- (6, 3) -- (6, 5.5) -- (4, 6) -- cycle;
+
+    % Polygon
     \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) -- cycle;
     \draw (0.2, 2) -- (3, 3);
     \draw (3, 0) -- (3, 3);
     \draw (3, 3) -- (8, 3);
     \draw (6, 5.5) -- (6, 3);
     \draw (3, 3) -- (4, 6);
-
-    \fill [yellow!20] (0, 1) -- (0.2, 2) -- (3, 3) -- (3, 0) -- cycle;
-    \fill [yellow!20] (3, 3) -- (6, 3) -- (6, 5.5) -- (4, 6) -- cycle;
   \end{tikzpicture}
+  \pause{}
+  \begin{tikzpicture}[scale=0.5]
+    \fill [yellow!20] (0, 1) -- (3, 0) -- (3, 3) -- (4, 6) -- (1, 6) -- cycle;
+
+    % Polygon
+    \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) -- cycle;
+    \draw (0.2, 2) -- (3, 3);
+    \draw (3, 0) -- (3, 3);
+    \draw (3, 3) -- (8, 3);
+    \draw (6, 5.5) -- (6, 3);
+    \draw (3, 3) -- (4, 6);
+  \end{tikzpicture}
+  
 \end{frame}
 \begin{frame}{Transitions}
   \begin{block}{Notion de temps}
@@ -121,6 +154,34 @@
     {Modele de classification}
     Simple (\# d'avions \emph{par secteur}), determinant directement la
     classe (seuils fixes) klein tikz schema
+    \begin{figure}
+      \subfloat[Traffic complexe]{%
+        \begin{tikzpicture}[scale=0.3]
+          \node [aircraft top, fill=black, scale=4] at (2, 2) {};
+          % Polygon
+          \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) --
+            cycle;
+          \draw (0.2, 2) -- (3, 3);
+          \draw (3, 0) -- (3, 3);
+          \draw (3, 3) -- (8, 3);
+          \draw (6, 5.5) -- (6, 3);
+          \draw (3, 3) -- (4, 6);
+        \end{tikzpicture}
+      }\qquad
+      \subfloat[Traffic simple]{%
+        \begin{tikzpicture}[scale=0.3]
+
+          % Polygon
+          \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) --
+            cycle;
+          \draw (0.2, 2) -- (3, 3);
+          \draw (3, 0) -- (3, 3);
+          \draw (3, 3) -- (8, 3);
+          \draw (6, 5.5) -- (6, 3);
+          \draw (3, 3) -- (4, 6);
+        \end{tikzpicture}
+      }
+    \end{figure}
   \end{block}
 \end{frame}
 
