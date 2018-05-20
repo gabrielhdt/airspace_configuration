@@ -132,7 +132,7 @@
     \draw (6, 5.5) -- (6, 3);
     \draw (3, 3) -- (4, 6);
   \end{tikzpicture}
-  
+
 \end{frame}
 \begin{frame}{Transitions}
   \begin{block}{Notion de temps}
@@ -158,6 +158,7 @@
       \subfloat[Traffic complexe]{%
         \begin{tikzpicture}[scale=0.3]
           \node [aircraft top, fill=black, scale=4] at (2, 2) {};
+          \node [aircraft top, fill=black, scale=4, rotate=30] at (3, 2) {};
           % Polygon
           \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) --
             cycle;
@@ -222,12 +223,93 @@
 \end{frame}
 
 \section{Methode de resolution}
-
 \subsection{Principe}
-\subsection{Lien avec le modele}
+\begin{frame}[c]{Principe}
+  \begin{block}{Recherche arborescente de Monte Carlo}
+    \begin{itemize}
+      \item Structure arborescente
+      \item Parcours en profondeur
+      \item Evaluation des n\oe{}uds par simulations de Monte Carlo
+      \item Recherche d'un chemin
+    \end{itemize}
+  \end{block}
+  \begin{block}{Arbres}
+    \begin{itemize}
+      \item Arbre de recherche
+      \item Arbre de modele
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\subsection{Utilisation du modele}
+\begin{frame}[c]{Utilisation du modele}
+  \begin{block}{N\oe{}ud}
+    A chaque n\oe{}ud est associe une partition
+  \end{block}
+  \begin{block}{Production}
+    \begin{figure}
+    \begin{center}
+      \begin{tikzpicture}[scale=1]
+      \node [circle, draw] {\(P_0\)}
+        child {node [circle, draw] {\(P_0\)}}
+        child {node [circle, draw] {\(P_1\)}}
+        child {node [circle, draw] {\(P_2\)}}
+        child {node [circle, draw] {\(P_3\)}}
+    \end{tikzpicture}
+    \end{center}
+    \caption{Representation des transitions, \(P_1, P_2\) et \(P_3\)
+    atteignables depuis \(P_0\)}
+    \label{fig:}
+    \end{figure}
+
+  \end{block}
+\end{frame}
+
 \subsection{Phases}
+\begin{frame}[c]{Phases}
+  \begin{block}{Selection}
+    Choix d'un chemin dans l'arbre de recherche.
+  \end{block}
+  \begin{block}{Expansion}
+    Ajout d'un n\oe{}ud a l'arbre de recherche.
+  \end{block}
+  \begin{block}{Simulation}
+    Evaluation d'un n\oe{}ud ajoute.
+  \end{block}
+  \begin{block}{Sauvegarde}
+    Mise a jour de l'ensemble de l'arbre de recherche.
+  \end{block}
+  Super schema?
+\end{frame}
+
 \subsection{Construction de la solution}
+\begin{frame}[c]{Construction de la solution}
+  \begin{block}{Selection v.\ choix final}
+  \end{block}
+  \begin{block}{Construction iterative de chemin}
+    \begin{itemize}
+      \item Une passe Monte Carlo permet de choisir un noeud,
+      \item appels recursifs pour construire un chemin.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
 \subsection{A\(^*\)}
+\begin{frame}[c]{A\(^*\)}
+  \begin{block}{Principe}
+    \begin{itemize}
+      \item Methode exacte
+      \item Parcours en profondeur
+      \item Utilisation d'une heuristique
+    \end{itemize}
+  \end{block}
+  \begin{block}{Heuristique}
+    \begin{itemize}
+      \item \(h(u)\): cout du chemin allant de \(u\) jusqu'a une feuille,
+      \item utilisations des partitions optimales, meme si non atteignables
+    \end{itemize}
+  \end{block}
+\end{frame}
 
 \section{Resultats}
 
