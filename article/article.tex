@@ -663,7 +663,11 @@ to converge to its best solution. The results are summarised in
 table~\ref{tab:methods_compare}.
 
 The graph~\ref{fig:grouping} asserts the correct behaviour of both algorithms
-A\(^*\) and MCTS regarding grouping and degrouping.
+A\(^*\) and MCTS regarding grouping and degrouping. On the \(y\) axis is
+indicated the number of sectors. The two algorithms show, as expected, splits
+leading from 3 sectors to 5 for the MCTS to cope with the intense trafic at
+the beginning of the scenario. Both algorithm choose to merge as much as
+possible to go to 1 sector.
 
 Considering paragraph~\ref{ssec:theoretical_performances}, the MCTS should
 eventually converge to the optimal value. This result reveals a flaw in the
@@ -748,7 +752,6 @@ step.
 
 The converging speed may also depend on the depth of the tree searched through.
 The figure~\ref{fig:timedepth} shows
-
 
 
 \subsection{Further work}
