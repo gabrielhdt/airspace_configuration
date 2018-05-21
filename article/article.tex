@@ -711,13 +711,15 @@ table~\ref{tab:methods_compare}.
 The graph~\ref{fig:cmpdepth} shows the evolution of the difference of costs with
 varying depth. The error rate is expected to grow as the depth increase since
 the MCTS might fail to explore the best nodes among the exponentially growing
-amount of them.
+amount of them. The figure~\ref{fig:cmpdepth} does not show a constant growth of
+error rate between MCTS and A\(^*\). As hoped, the MCTS remains always better
+than the greedy algorithm.
 \begin{figure}
   \begin{tikzpicture}
     \begin{axis}
       [line width=0.05, mark size=0.1, xlabel=depth, ylabel=cost,
-      legend entries = {A\(^*\), MCTS}]
-      \foreach \i in {0, 1} {%
+      legend entries = {A\(^*\), MCTS, Greedy}, legend pos=south east]
+      \foreach \i in {0, 1, 2} {%
         \addplot+ table [
           x expr = {\lineno + 1}, y index = \i ] {./data/cmpdepth.data};
       }
@@ -738,12 +740,9 @@ get rid of the undesired varations due to the stochastic nature of the
 algorithm, the latter process is run several times; which allows one to compute
 the mean over all computed costs.
 
-The resulting graphs are shown in figure~\ref{fig:longterm} in which it can be
-seen that the algorithm reaches its best cost when it runs for 2 seconds per
-step.
-
-The converging speed may also depend on the depth of the tree searched through.
-The figure~\ref{fig:timedepth} shows
+The resulting graphs are shown in figure~\ref{fig:shortterm} in which it can be
+seen that the algorithm reaches its best cost when it runs for 1 second per
+step, but the cost is approximately stable from 0.5 seconds.
 \begin{figure}
   \begin{tikzpicture}
     \begin{axis}
@@ -773,7 +772,7 @@ leaf. It is also adapted to the one-player game nature of the problem.
 Since all the tests has been run using the same fictitious area with the same
 trafic, neither the influence of the complexity of the airspace nor of the
 trafic have been assessed. It would be thus relevant to carry further tests on
-bigger areas with differing trafic. This can be emphasised
+bigger areas with heavier and differing trafic. This can be emphasised
 by~\cite{ferrari2017}, in which the time needed to compute the cost with A\(^*\)
 depends heavily on the trafic itself.
 
