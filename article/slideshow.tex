@@ -19,8 +19,8 @@
 \DeclareMathOperator{\first}{first}
 
 \title[Reconfiguration par Monte Carlo]{%
-  Recherche arborescente Monte Carlo applique au probleme de reconfiguration
-  dynamique de l'espace aerien
+  Recherche arborescente Monte Carlo appliquée au problème de reconfiguration
+  dynamique de l'espace aérien
 }
 \author[Hondet, Viry]{G.~Hondet, B.~Viry}
 
@@ -91,6 +91,18 @@
         \begin{tikzpicture}[scale=0.3]
           \node [aircraft top, fill=black, scale=4] at (2, 2) {};
           \node [aircraft top, fill=black, scale=4, rotate=30] at (3, 2) {};
+          \node [aircraft top, fill=black, scale=4, rotate=230] at (4, 2) {};
+          \node [aircraft top, fill=black, scale=4, rotate=180] at (4, 3) {};
+          \node [aircraft top, fill=black, scale=4, rotate=300] at (5, 2) {};
+          \node [aircraft top, fill=black, scale=4, rotate=110] at (3, 1) {};
+          \node [aircraft top, fill=black, scale=4, rotate=147] at (2, 5) {};
+          \node [aircraft top, fill=black, scale=4, rotate=24] at (1, 4) {};
+          \node [aircraft top, fill=black, scale=4, rotate=54] at (7, 4) {};
+          \node [aircraft top, fill=black, scale=4, rotate=93] at (7, 2) {};
+          \node [aircraft top, fill=black, scale=4, rotate=211] at (3, 6) {};
+          \node [aircraft top, fill=black, scale=4, rotate=200] at (3, 5) {};
+          \node [aircraft top, fill=black, scale=4, rotate=100] at (4, 4) {};
+          \node [aircraft top, fill=black, scale=4, rotate=350] at (2, 4) {};
           % Polygon
           \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) --
             cycle;
@@ -103,6 +115,12 @@
       }\qquad
       \subfloat[Traffic simple]{%
         \begin{tikzpicture}[scale=0.3]
+          \node [aircraft top, fill=black, scale=4, rotate=45] at (2, 1) {};
+          \node [aircraft top, fill=black, scale=4] at (4, 2) {};
+          \node [aircraft top, fill=black, scale=4] at (5, 2) {};
+          \node [aircraft top, fill=black, scale=4] at (7, 2) {};
+          \node [aircraft top, fill=black, scale=4,rotate=270] at (2, 5) {};
+          \node [aircraft top, fill=black, scale=4,rotate=270] at (2, 3) {};
 
           % Polygon
           \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) --
