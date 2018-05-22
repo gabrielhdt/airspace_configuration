@@ -650,38 +650,28 @@ branching factor, a stochastic tree search method seems appropriate.
 
 The traffic is simulated the following way, each elementary module has an
 associted list which, at index \(i\) has the number of aircraft in it at time
-step \(i\). Those lists have been written by hand, the activity shows a traffic
-peak at the beginning of the scenario and much less activity after. The expected
-outcome of the algorithms is a massive degrouping reflecting the heavy workload
-followed by merges.
+step \(i\). Those lists have been written by hand.
 
 \subsection{Accuracy}
-Accuracy is assessed by comparing the outcome of the MCTS algorithm with the
-A\(^*\) cost and a greedy algorithm cost.
-The time allowed to the MCTS to run is considered long enough to allow the MCTS
-to converge to its best solution. The results are summarised in
-table~\ref{tab:methods_compare}.
-
 The graph~\ref{fig:grouping} asserts the correct behaviour of both algorithms
 A\(^*\) and MCTS regarding grouping and degrouping. On the \(y\) axis is
-indicated the number of sectors. The two algorithms show, as expected, splits
-leading from 3 sectors to 5 for the MCTS to cope with the intense trafic at
-the beginning of the scenario. Both algorithm choose to merge as much as
-possible to go to 1 sector.
-
-\begin{table}
-  \centering
-  \begin{tabulary}
-    {\textwidth}{LRR}
-    Alg. & Cost & Err.\\\toprule
-    A\(^*\) & 77.31 & 0\%    \\
-    MCTS    & 82.48 & 6.7\%  \\
-    Greedy  & 90.50 & 17.1\% \\
-  \end{tabulary}
-  \caption{Comparison of several methods on the generated
-  scenario.}\label{tab:methods_compare}
-\end{table}
-
+indicated the number of sectors. The trafic activity is the following,
+\begin{enumerate}
+  \item\label{scen:busy}
+    The first part of the scenario shows a busy situation, all sectors are
+    overloaded;
+  \item\label{scen:quiet}
+    then follows a quiet moment with few aircraft, much of the sectors are
+    underloaded;
+  \item\label{scen:partial}
+    the end of the scenario has two overload modules and the rest under
+    normal or under load.
+\end{enumerate}
+The expected behaviour is a tendency to increase the number of sectors through
+splits to cope with part~\ref{scen:busy} followed by many merges to reduce the
+number of sectors in response to phase~\ref{scen:quiet}. The algorithms should
+end with a specific sector created, the one overloaded in~\ref{scen:partial} and
+the rest grouped. Seeing~\ref{fig:grouping}, both algorithm behave as expected.
 \begin{figure}
   \begin{tikzpicture}
     \begin{axis}
@@ -697,6 +687,62 @@ possible to go to 1 sector.
   \end{tikzpicture}
   \caption{Grouping profile}\label{fig:grouping}
 \end{figure}
+
+
+Accuracy can be quantitatively assessed by comparing the outcome of the MCTS
+algorithm against the A\(^*\) cost and a greedy algorithm cost.
+The time allowed to the MCTS to run is considered long enough to allow the MCTS
+to converge to its best solution. The results are summarised in
+table~\ref{tab:methods_compare}.
+\begin{table}
+  \centering
+  \begin{tabulary}
+    {\textwidth}{LRR}
+    Alg.    & Cost  & Err.   \\
+    \toprule
+    A\(^*\) & 77.31 & 0\%    \\
+    MCTS    & 82.48 & 6.7\%  \\
+    Greedy  & 90.50 & 17.1\% \\
+  \end{tabulary}
+  \caption{Comparison of several methods on the generated
+  scenario (\(\theta = 3\)).}\label{tab:methods_compare}
+\end{table}
+
+The graph~\ref{fig:cmpdepth} shows the evolution of the difference of costs with
+varying depth. The error rate is expected to grow as the depth increase since
+the MCTS might fail to explore the best nodes among the exponentially growing
+amount of them. The figure~\ref{fig:cmpdepth} does not show a constant growth of
+error rate between MCTS and A\(^*\). As hoped, the MCTS remains always better
+than the greedy algorithm.
+\begin{figure}
+  \begin{tikzpicture}
+    \begin{axis}
+      [line width=0.05, mark size=0.1, xlabel=depth, ylabel=cost,
+      legend entries = {A\(^*\), MCTS, Greedy}, legend pos=south east]
+      \foreach \i in {0, 1, 2} {%
+        \addplot+ table [
+          x expr = {\lineno + 1}, y index = \i ] {./data/cmpdepth.data};
+      }
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Cost difference for varying depth with 0.5 seconds allowed to
+  MCTS and \(\theta = 3\).}\label{fig:cmpdepth}
+\end{figure}
+
+
+
+\subsection{Converging speed}
+Since the MCTS converges to a solution, one expects to know the time required to
+be close enough to the optimal solution. To have an idea of this lapse, several
+MCTS are run with different computing time. This results in a graph mapping the
+time allowed to compute each step of the MCTS to the cost of the final path. To
+get rid of the undesired varations due to the stochastic nature of the
+algorithm, the latter process is run several times; which allows one to compute
+the mean over all computed costs.
+
+The resulting graphs are shown in figure~\ref{fig:shortterm} in which it can be
+seen that the algorithm reaches its best cost when it runs for 1 second per
+step, but the cost is approximately stable from 0.5 seconds.
 \begin{figure}
   \begin{tikzpicture}
     \begin{axis}
@@ -709,35 +755,6 @@ possible to go to 1 sector.
   approximately stable from \(t=0.5\)s.}\label{fig:shortterm}
 \end{figure}
 
-
-\subsection{Converging speed}
-Since the MCTS converges to a solution, one expects to know the time required to
-be close enough to the optimal solution. To have an idea of this lapse, several
-MCTS are run with different computing time. This results in a graph mapping the
-time allowed to compute each step of the MCTS to the cost of the final path. To
-get rid of the undesired varations due to the stochastic nature of the
-algorithm, the latter process is run several times; which allows one to compute
-the mean over all computed costs.
-
-The resulting graphs are shown in figure~\ref{fig:longterm} in which it can be
-seen that the algorithm reaches its best cost when it runs for 2 seconds per
-step.
-
-The converging speed may also depend on the depth of the tree searched through.
-The figure~\ref{fig:timedepth} shows
-
-\begin{figure}
-  \begin{tikzpicture}
-    \begin{axis}
-      [line width=0.05, mark size=0.1, xlabel=depth, ylabel=cost]
-      \foreach \i in {1, 2} {%
-        \addplot+ table [ x index = 0, y index = \i ] {./data/cmpdepth.data};
-      }
-    \end{axis}
-  \end{tikzpicture}
-  \caption{Cost difference for varying depth with 0.5 seconds allowed to MCTS,
-  \(\theta=3\)}\caption{fig:cmpdepth}
-\end{figure}
 
 
 \section{Conclusion}
@@ -755,7 +772,7 @@ leaf. It is also adapted to the one-player game nature of the problem.
 Since all the tests has been run using the same fictitious area with the same
 trafic, neither the influence of the complexity of the airspace nor of the
 trafic have been assessed. It would be thus relevant to carry further tests on
-bigger areas with differing trafic. This can be emphasised
+bigger areas with heavier and differing trafic. This can be emphasised
 by~\cite{ferrari2017}, in which the time needed to compute the cost with A\(^*\)
 depends heavily on the trafic itself.
 

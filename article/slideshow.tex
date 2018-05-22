@@ -7,7 +7,9 @@
 \usepackage{tikz,pgfplots}
 \usepackage{aircraftshapes}
 \usepackage{algorithm,algpseudocode}
-\usepackage{tabulary}
+\usepackage{tabulary,multirow}
+\usepackage{alltt}
+\usepackage{booktabs}
 
 \usetikzlibrary{intersections}
 \usetikzlibrary{decorations.pathmorphing}
@@ -17,8 +19,8 @@
 \DeclareMathOperator{\first}{first}
 
 \title[Reconfiguration par Monte Carlo]{%
-  Recherche arborescente Monte Carlo applique au probleme de reconfiguration
-  dynamique de l'espace aerien
+  Recherche arborescente Monte Carlo appliquée au problème de reconfiguration
+  dynamique de l'espace aérien
 }
 \author[Hondet, Viry]{G.~Hondet, B.~Viry}
 
@@ -76,92 +78,31 @@
   \end{itemize}
 \end{frame}
 
-\section{Modele}
-\subsection{Definition de la charge de travail}
-\begin{frame}
+\section{Modèle}
+\subsection{Introduction à la charge de travail}
+\begin{frame}{Introduction à la charge de travail}
   \begin{block}{Facteurs humains}
-    Fatigue, stress, experience \(\longrightarrow\) difficulte a quantifier
+    Fatigue, stress, expérience, \dots
+    \note{difficulté a quantifier}
   \end{block}
   \begin{block}{Environnement}
-    schemas trafic, shape complexite (tikz)
-  \end{block}
-\end{frame}
-
-
-\subsection{Espace aerien}
-\begin{frame}{Fragmentation de l'espace}
-  \begin{figure}
-    \centering
-    \begin{tikzpicture}[scale=0.5]
-      \fill [red!20] (3, 3) -- (8, 3) -- (8, 5) -- (4, 6) -- cycle;
-      \fill [green!20] (3, 0) -- (8, 1) -- (8, 3) -- (3, 3) -- cycle;
-      \fill [blue!20] (0, 1) -- (3, 0) -- (3, 3) -- (4, 6) -- (1, 6) -- cycle;
-
-      % Polygon
-      \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) -- cycle;
-      \draw (0.2, 2) -- (3, 3);
-      \draw (3, 0) -- (3, 3);
-      \draw (3, 3) -- (8, 3);
-      \draw (6, 5.5) -- (6, 3);
-      \draw (3, 3) -- (4, 6);
-    \end{tikzpicture}
-    \caption{Decoupage de l'espace aerien}
-  \end{figure}
-\end{frame}
-\begin{frame}{Contexte}
-  lien avec workload (written?)
-  tikz secteurs valides et non \(\rightarrow\) partition
-  \begin{tikzpicture}[scale=0.5]
-    \fill [yellow!20] (0, 1) -- (0.2, 2) -- (3, 3) -- (3, 0) -- cycle;
-    \fill [yellow!20] (3, 3) -- (6, 3) -- (6, 5.5) -- (4, 6) -- cycle;
-
-    % Polygon
-    \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) -- cycle;
-    \draw (0.2, 2) -- (3, 3);
-    \draw (3, 0) -- (3, 3);
-    \draw (3, 3) -- (8, 3);
-    \draw (6, 5.5) -- (6, 3);
-    \draw (3, 3) -- (4, 6);
-  \end{tikzpicture}
-  \pause{}
-  \begin{tikzpicture}[scale=0.5]
-    \fill [yellow!20] (0, 1) -- (3, 0) -- (3, 3) -- (4, 6) -- (1, 6) -- cycle;
-
-    % Polygon
-    \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) -- cycle;
-    \draw (0.2, 2) -- (3, 3);
-    \draw (3, 0) -- (3, 3);
-    \draw (3, 3) -- (8, 3);
-    \draw (6, 5.5) -- (6, 3);
-    \draw (3, 3) -- (4, 6);
-  \end{tikzpicture}
-
-\end{frame}
-\begin{frame}{Transitions}
-  \begin{block}{Notion de temps}
-    succession de partitions
-  \end{block}
-  \begin{block}{Transitions}
-    contraintes, \dots
-  \end{block}
-\end{frame}
-
-\subsection{Modelisation de la charge de travail}
-\begin{frame}{Modelisation de la charge de travail}
-  \begin{block}
-    {Classes}
-    Quantification difficile \(\rightarrow\) classification: under, normal,
-    over load
-  \end{block}
-  \begin{block}
-    {Modele de classification}
-    Simple (\# d'avions \emph{par secteur}), determinant directement la
-    classe (seuils fixes) klein tikz schema
     \begin{figure}
       \subfloat[Traffic complexe]{%
         \begin{tikzpicture}[scale=0.3]
           \node [aircraft top, fill=black, scale=4] at (2, 2) {};
           \node [aircraft top, fill=black, scale=4, rotate=30] at (3, 2) {};
+          \node [aircraft top, fill=black, scale=4, rotate=230] at (4, 2) {};
+          \node [aircraft top, fill=black, scale=4, rotate=180] at (4, 3) {};
+          \node [aircraft top, fill=black, scale=4, rotate=300] at (5, 2) {};
+          \node [aircraft top, fill=black, scale=4, rotate=110] at (3, 1) {};
+          \node [aircraft top, fill=black, scale=4, rotate=147] at (2, 5) {};
+          \node [aircraft top, fill=black, scale=4, rotate=24] at (1, 4) {};
+          \node [aircraft top, fill=black, scale=4, rotate=54] at (7, 4) {};
+          \node [aircraft top, fill=black, scale=4, rotate=93] at (7, 2) {};
+          \node [aircraft top, fill=black, scale=4, rotate=211] at (3, 6) {};
+          \node [aircraft top, fill=black, scale=4, rotate=200] at (3, 5) {};
+          \node [aircraft top, fill=black, scale=4, rotate=100] at (4, 4) {};
+          \node [aircraft top, fill=black, scale=4, rotate=350] at (2, 4) {};
           % Polygon
           \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) --
             cycle;
@@ -174,6 +115,12 @@
       }\qquad
       \subfloat[Traffic simple]{%
         \begin{tikzpicture}[scale=0.3]
+          \node [aircraft top, fill=black, scale=4, rotate=45] at (2, 1) {};
+          \node [aircraft top, fill=black, scale=4] at (4, 2) {};
+          \node [aircraft top, fill=black, scale=4] at (5, 2) {};
+          \node [aircraft top, fill=black, scale=4] at (7, 2) {};
+          \node [aircraft top, fill=black, scale=4,rotate=270] at (2, 5) {};
+          \node [aircraft top, fill=black, scale=4,rotate=270] at (2, 3) {};
 
           % Polygon
           \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) --
@@ -190,23 +137,208 @@
 \end{frame}
 
 
+\subsection{Espace aérien}
+\begin{frame}{Fragmentation de l'espace}
+  \begin{figure}
+    \centering
+    \begin{tikzpicture}[scale=0.5]
+      \fill [red!20] (3, 3) -- (8, 3) -- (8, 5) -- (4, 6) -- cycle;
+      \fill [green!20] (3, 0) -- (8, 1) -- (8, 3) -- (3, 3) -- cycle;
+      \fill [blue!20] (0, 1) -- (3, 0) -- (3, 3) -- (4, 6) -- (1, 6) -- cycle;
+
+      % Polygon
+      \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) -- cycle;
+      \draw (0.2, 2) -- (3, 3);
+      \draw (3, 0) -- (3, 3);
+      \draw (3, 3) -- (8, 3);
+      \draw (6, 5.5) -- (6, 3);
+      \draw (3, 3) -- (4, 6);
+    \end{tikzpicture}
+    \caption{Découpage de l'espace aérien}
+  \end{figure}
+\end{frame}
+\begin{frame}{Contexte}
+  \begin{block}{Justification}
+    Seuls certains secteurs sont pertinents
+  \end{block}
+  \note{groupage degroupage permet d'ajuster la workload}
+  \begin{figure}
+    \subfloat[Secteur invalide] {%
+      \begin{tikzpicture}[scale=0.5]
+        \fill [yellow!20] (0, 1) -- (0.2, 2) -- (3, 3) -- (3, 0) -- cycle;
+        \fill [yellow!20] (3, 3) -- (6, 3) -- (6, 5.5) -- (4, 6) -- cycle;
+
+        % Polygon
+        \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) -- cycle;
+        \draw (0.2, 2) -- (3, 3);
+        \draw (3, 0) -- (3, 3);
+        \draw (3, 3) -- (8, 3);
+        \draw (6, 5.5) -- (6, 3);
+        \draw (3, 3) -- (4, 6);
+      \end{tikzpicture}
+    } \quad \pause{}
+    \subfloat[Secteur valide] {%
+      \begin{tikzpicture}[scale=0.5]
+        \fill [yellow!20] (0, 1) -- (3, 0) -- (3, 3) -- (4, 6) -- (1, 6) -- cycle;
+
+        % Polygon
+        \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) -- cycle;
+        \draw (0.2, 2) -- (3, 3);
+        \draw (3, 0) -- (3, 3);
+        \draw (3, 3) -- (8, 3);
+        \draw (6, 5.5) -- (6, 3);
+        \draw (3, 3) -- (4, 6);
+      \end{tikzpicture}
+    }
+  \end{figure}
+  \pause{}
+  \begin{block}{Contexte}
+    Restreint l'ensemble de secteurs utilisables
+  \end{block}
+\end{frame}
+\begin{frame}{Transitions}
+  \begin{block}{Notion de temps}
+    Sequencage d'une journée par pas de temps réguliers
+  \end{block}
+  \begin{block}{Transition}
+    \begin{itemize}
+      \item Une reconfiguration éventuelle par pas de temps
+      \item Trois types de reconfiguration: \emph{fusion}, \emph{séparation} ou
+        \emph{transfert}
+    \end{itemize}
+  \end{block}
+  \begin{block}{Contraintes}
+    Pas de reconfiguration trop lourde
+  \end{block}
+\end{frame}
+\begin{frame}[c]{Transitions}
+  \begin{block}{Fusion, séparation}
+    \begin{figure}
+      \subfloat[Fusionné]{%
+        \begin{tikzpicture}[scale=0.3]
+          \fill [yellow!20] (3, 0) -- (8, 1) -- (8, 3) -- (3, 3) -- (0.2, 2) --
+            (0, 1) -- cycle;
+          \fill [blue!20] (0.2, 2) -- (3, 3) -- (8, 3) -- (8, 5) -- (4, 6) --
+            (1, 6) -- cycle;
+
+          % Polygon
+          \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) --
+            cycle;
+          \draw (0.2, 2) -- (3, 3);
+          \draw (3, 0) -- (3, 3);
+          \draw (3, 3) -- (8, 3);
+          \draw (6, 5.5) -- (6, 3);
+          \draw (3, 3) -- (4, 6);
+        \end{tikzpicture}
+      }\quad \(\leftrightarrow\) \quad
+      \subfloat[Séparé]{%
+        \begin{tikzpicture}[scale=0.3]
+          \fill [yellow!20] (3, 0) -- (8, 1) -- (8, 3) -- (3, 3) -- (0.2, 2) --
+            (0, 1) -- cycle;
+          \fill [blue!20] (3, 3) -- (8, 3) -- (8, 5) -- (4, 6) -- cycle;
+          \fill [green!20] (0.2, 2) -- (3, 3) -- (4, 6) -- (1, 6) -- cycle;
+
+          % Polygon
+          \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) --
+            cycle;
+          \draw (0.2, 2) -- (3, 3);
+          \draw (3, 0) -- (3, 3);
+          \draw (3, 3) -- (8, 3);
+          \draw (6, 5.5) -- (6, 3);
+          \draw (3, 3) -- (4, 6);
+        \end{tikzpicture}
+      }
+    \end{figure}
+  \end{block}
+  \pause{}
+  \begin{block}{Transfert}
+    \begin{figure}
+      \subfloat[Avant transfert]{%
+        \begin{tikzpicture}[scale=0.3]
+          \fill [yellow!20] (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (3, 3) --
+            (0.2, 2) -- (0, 1) -- cycle;
+          \fill [blue!20] (0.2, 2) -- (3, 3) -- (4, 6) -- (1, 6) -- cycle;
+
+          % Polygon
+          \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) -- cycle;
+          \draw (0.2, 2) -- (3, 3);
+          \draw (3, 0) -- (3, 3);
+          \draw (3, 3) -- (8, 3);
+          \draw (6, 5.5) -- (6, 3);
+          \draw (3, 3) -- (4, 6);
+        \end{tikzpicture}
+      }\quad\phantom{\(\leftrightarrow\)}\quad
+      \subfloat[Après transfert]{%
+        \begin{tikzpicture}[scale=0.3]
+          \fill [yellow!20] (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (3, 3) --
+            cycle;
+          \fill [blue!20] (0.2, 2) -- (0, 1) -- (3, 0) -- (3, 3) -- (4, 6) --
+            (1, 6) -- cycle;
+
+          % Polygon
+          \draw (3, 0) -- (8, 1) -- (8, 5) -- (4, 6) -- (1, 6) -- (0, 1) -- cycle;
+          \draw (0.2, 2) -- (3, 3);
+          \draw (3, 0) -- (3, 3);
+          \draw (3, 3) -- (8, 3);
+          \draw (6, 5.5) -- (6, 3);
+          \draw (3, 3) -- (4, 6);
+        \end{tikzpicture}
+      }
+    \end{figure}
+  \end{block}
+\end{frame}
+
+\subsection{Modélisation de la charge de travail}
+\begin{frame}{Modélisation de la charge de travail}
+  \begin{block}{Classes}
+    \note{Quantification difficile, donc}
+    Trois classes de charge de travail:
+    \begin{itemize}
+      \item underload,
+      \item overload,
+      \item normal load.
+    \end{itemize}
+  \end{block}
+  \begin{block}{Modèle de classification d'un secteur}
+    Dépend du nombre d'avions
+    \begin{figure}
+      \begin{tikzpicture}
+        \draw[->] (0, 0) -- (4, 0);
+
+        \draw (0, 0) node[left] {0};
+        \draw (4.5, 0) node[above] {\(n_\text{avions}\)};
+        \draw (1, 0) node {\([\)};
+        \draw (3, 0) node {\(]\)};
+        \draw (0.5, 0) node[below] {under};
+        \draw (2, 0) node[below] {normal};
+        \draw (3.5, 0) node[below] {over};
+      \end{tikzpicture}
+    \end{figure}
+  \end{block}
+\end{frame}
+
+
 \subsection{Construction de la fonction objectif}
 \begin{frame}{Cout de partition}
-  \begin{block}{Agglomeration des classifications}
-    Secteur \(\to\) partition\\
-    En trois couts intermediaires de sous, sur ou normale charge (\(c_+, c_-,
-    c_=\))
+  \begin{block}{Agglomération des classifications}
+    \note{Secteur \(\to\) partition}
+    Trois coûts intermédiaires
+    \begin{itemize}
+      \item sous charge \(c_-\),
+      \item sur charge \(c_+\),
+      \item charge normal \(c_=\).
+    \end{itemize}
   \end{block}
-  \begin{block}{Cout resultant}
-    cout d'une partition \(P\) a un temps \(t\):
+  \begin{block}{Coût résultant}
+    Coût d'une partition \(P\) à un temps \(t\):
     \begin{equation}
       C(P,t) = \alpha c_+ + \beta c_= + \gamma c_- + \lambda \vert P \vert
     \end{equation}
   \end{block}
 \end{frame}
-\begin{frame}[c]{Cout de transition}
+\begin{frame}[c]{Coût de transition}
   \begin{block}{Signification}
-  Coordination entre controleurs
+  Coordination entre contrôleurs
   \end{block}
   \begin{equation}
     C_\text{tr}(P_1, P_2) =
@@ -217,7 +349,7 @@
   \end{equation}
 \end{frame}
 \begin{frame}[c]{Fonction objectif}
-  Cout d'une sequence de partitions \(\pi = [P_0, \dots, P_n]\),
+  Coût d'une séquence de partitions \(\pi = [P_0, \dots, P_n]\),
   \begin{equation}
     f(\pi) = C(P_0, t_0) + \sum_{i=1}^n \left[
       C(P_i, t_i) + C_\text{tr}(P_{i-1}, P_i)
@@ -225,55 +357,57 @@
   \end{equation}
 \end{frame}
 
-\section{Methode de resolution}
+\section{Méthode de résolution}
 \subsection{Principe}
 \begin{frame}[c]{Principe}
   \begin{block}{Recherche arborescente de Monte Carlo}
     \begin{itemize}
-      \item Structure arborescente
       \item Parcours en profondeur
-      \item Evaluation des n\oe{}uds par simulations de Monte Carlo
-      \item Recherche d'un chemin
+      \item Recherche d'un chemin par maximisation
+      \item Evaluation des chemins par simulations de Monte Carlo
     \end{itemize}
   \end{block}
   \begin{block}{Arbres}
     \begin{itemize}
       \item Arbre de recherche
-      \item Arbre de modele
+      \item Arbre de modèle
     \end{itemize}
   \end{block}
 \end{frame}
 
-\subsection{Utilisation du modele}
-\begin{frame}[c]{Utilisation du modele}
+\subsection{Utilisation du modèle}
+\begin{frame}[c]{Utilisation du modèle}
   \begin{block}{N\oe{}ud}
-    A chaque n\oe{}ud est associe une partition
+    A chaque n\oe{}ud est associé une partition
   \end{block}
   \begin{block}{Production}
     \begin{figure}
     \begin{center}
       \begin{tikzpicture}[scale=1]
-      \node [circle, draw] {\(P_0\)}
-        child {node [circle, draw] {\(P_0\)}}
+      \node [circle, draw] {\(P\)}
+        child {node [circle, draw] {\(P\)}}
         child {node [circle, draw] {\(P_1\)}}
         child {node [circle, draw] {\(P_2\)}}
         child {node [circle, draw] {\(P_3\)}};
     \end{tikzpicture}
     \end{center}
-    \caption{Representation des transitions, \(P_1, P_2\) et \(P_3\)
-    atteignables depuis \(P_0\)}
-    \label{fig:}
+    \caption{Représentation des transitions, \(P_1, P_2\) et \(P_3\)
+    atteignables depuis \(P\)}
     \end{figure}
+    \note{Cas pas de transition, reexpliquer les contraintes de transition}
+    \note{Detail de l'etat dans l'arbre (esperance)}
 
   \end{block}
 \end{frame}
 
 \subsection{Phases}
-\begin{frame}[t]{Selection et expansion}
+\begin{frame}[t]{Sélection et expansion}
   \begin{columns}
     \begin{column}{0.5\textwidth}
       \begin{block}{Sélection}
         Choix d'un chemin par méthode de bandits
+        \note{expvexp, choix par l'esperance, garder les noeuds peu visites
+        comme prometteurs}
         \begin{figure}
           \begin{tikzpicture}[scale=0.6]
             \node [circle, draw, blue] {}
@@ -316,6 +450,7 @@
     \begin{column}{0.5\textwidth}
       \begin{block}{Simulation}
         Choix d'un chemin aléatoire partant du n\oe{}ud jusqu'à une feuille
+        \note{heuristique?, calcul du cout du chemin}
         \begin{figure}
           \begin{tikzpicture}[scale=0.6]
             \node [circle, draw] {}
@@ -340,6 +475,7 @@
     \begin{column}{0.5\textwidth}
       \begin{block}{Sauvegarde}
         Mise à jour de l'arbre de recherche
+        \note{Complète les données nécessaires à la sélection}
       \end{block}
       \begin{figure}
         \begin{tikzpicture}[scale=0.6]
@@ -359,7 +495,20 @@
     \end{column}
   \end{columns}
 \end{frame}
-
+\begin{frame}[c]{Algorithme MCTS}
+  \note{Critère d'arrêt: temps ou mémoire}
+  \begin{algorithmic}
+    \Procedure{MctsSearchTree}{$u$}
+    \While{critère d'arrêt non atteint}
+      \State{}\(\pi \gets\)\Call{Sélection}{$u$}
+      \State{}\(v \gets\)\Call{Expansion}{$\pi$}
+      \State{}\(\Delta \gets\)\Call{Simulation}{$v$}
+      \State{}\Call{Sauvegarde}{$\pi$, $\Delta$}
+    \EndWhile{}
+    \EndProcedure{}
+  \end{algorithmic}
+  \note{Opère en place}
+\end{frame}
 \subsection{Construction de la solution}
 \begin{frame}[c]{Construction de la solution}
   \begin{algorithmic}
@@ -374,14 +523,15 @@
     \State{}\Return{$\pi$}
     \EndFunction{}
   \end{algorithmic}
+  \note{NextNode ici \(\mathup{argmax}\{\mu_v | v \text{\,enfants de\,} u\}\)}
 \end{frame}
 
 \subsection{A\(^*\)}
 \begin{frame}[c]{A\(^*\)}
   \begin{block}{Principe}
     \begin{itemize}
-      \item Methode exacte
-      \item Parcours en profondeur
+      \item Méthode exacte
+      \item Meilleur en premier
       \item Utilisation d'une heuristique
     \end{itemize}
   \end{block}
@@ -395,6 +545,79 @@
 \end{frame}
 
 \section{Résultats}
+\subsection{Résultats qualitatifs}
+\begin{frame}[c]{Profil}
+    \begin{figure}
+      \begin{tikzpicture}
+        \begin{axis}
+          [line width=0.05, mark size=0.1, xlabel=pas de temps,
+          ylabel=nbre de secteurs,
+          legend entries={A\(^*\), MCTS}]
+          \foreach \i in {0,1}{%
+            \addplot+ table [
+              x expr={\lineno}, y index=\i
+              ]
+              {./data/grouping.data};
+          }
+        \end{axis}
+      \end{tikzpicture}
+    \end{figure}
+\end{frame}
+\begin{frame}[c]{Comportement détaille}
+  \begin{scriptsize}
+    \begin{alltt}
+      \begin{tabular}{lr}
+        (1 5, d) (2 3, a) (4, s4) & \multirow{5}{20mm}{\textsf{Tout surchargé}}\\
+        (3, s3) (2, s2) (1 5, d) (4, s4) & \\
+        (5, s5) (1, s1) (3, s3) (2, s2) (4, s4) & \\
+        (5, s5) (1, s1) (3, s3) (2, s2) (4, s4) & \\
+        (5, s5) (1, s1) (3, s3) (2, s2) (4, s4) & \\
+        \midrule
+        (1 2, g) (5, s5) (3, s3) (4, s4) & \multirow{6}{20mm}{\textsf{Tout sous
+        chargé}}\\
+        (4 5, c) (1 2, g) (3, s3) & \\
+        (1 2 3, e) (4 5, c) & \\
+        (1 2 3 4 5, f) & \\
+        (1 2 3 4 5, f) & \\
+        (4 5, c) (1 2 3, e) & \\
+        \midrule
+        (5, s5) (4, s4) (1 2 3, e) & \multirow{3}{20mm}{\textsf{5 et 4
+        chargés, 1, 2 et 3 sous chargés}}\\
+        (5, s5) (4, s4) (1 2 3, e) & \\
+        (5, s5) (4, s4) (1 2 3, e) & \\
+      \end{tabular}
+    \end{alltt}
+  \end{scriptsize}
+\end{frame}
 
+\subsection{Résultats quantitatifs}
+\begin{frame}[c]{Résultats quantitatifs}
+\begin{table}
+  \centering
+  \begin{tabulary}
+    {\textwidth}{LRR}
+    Alg.    & Cost  & Err.   \\
+    \toprule
+    A\(^*\) & 77.31 & 0\%    \\
+    MCTS    & 82.48 & 6.7\%  \\
+    Greedy  & 90.50 & 17.1\% \\
+  \end{tabulary}
+  \caption{Comparaison des différentes méthodes}\label{tab:methods_compare}
+\end{table}
+\end{frame}
 \section*{Conclusion}
+\begin{frame}[c]{Conclusion}
+  \begin{block}{Resultats}
+    Résultats encourageants mais pas vraiment concrets
+  \end{block}
+  \begin{block}{Perspectives}
+    Beaucoup de tests à faire
+    \begin{itemize}
+      \item plus de trafic
+      \item plus gros centres
+      \item vrai trafic
+      \item modèle de charge de travail plus fin
+    \end{itemize}
+  \end{block}
+\end{frame}
 \end{document}
