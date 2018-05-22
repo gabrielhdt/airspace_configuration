@@ -80,6 +80,14 @@
     \item Comment? Algorithme stochastique de recherche arborescente
   \end{itemize}
 \end{frame}
+\begin{frame}[c]{Travaux actuels}
+  \begin{itemize}
+    \item Bloem \& Gupta, 2010, contraintes dures sur la modélisation
+    \item Sergeeva \textit{et.\ al.}, 2017, coûts
+    \item Gianazza, 2010, modélisation de la charge de travail
+    \item Gaudel \& Sebag, 2010, Monte Carlo un joueur
+  \end{itemize}
+\end{frame}
 
 \section{Modèle}
 \subsection{Introduction à la charge de travail}
@@ -371,6 +379,7 @@
   \begin{block}{Recherche arborescente de Monte Carlo}
     \begin{itemize}
       \item Parcours meilleur en premier
+      \item Recherche stochastique
       \item Recherche d'un chemin par maximisation
       \item Évaluation des chemins par simulations de Monte Carlo
     \end{itemize}
@@ -385,15 +394,7 @@
 
 \subsection{Utilisation du modèle}
 \begin{frame}[c]{Utilisation du modèle}
-  \begin{block}{N\oe{}ud}
-    \begin{itemize}
-      \item Partition
-      \item Espérance de gain
-      \item Nombre de simulations
-    \end{itemize}
-    \note{Espérance de gain \(\sim 1/f\)}
-  \end{block}
-  \begin{block}{Production}
+  \begin{block}{Production (arbre de modèle)}
     \begin{figure}
     \begin{center}
       \begin{tikzpicture}[scale=1]
@@ -408,6 +409,13 @@
     atteignables depuis \(P\)}
     \end{figure}
   \end{block}
+  \begin{block}{N\oe{}ud (arbre de recherche)}
+    \begin{itemize}
+      \item Partition
+      \item Espérance de gain
+    \end{itemize}
+    \note{Espérance de gain \(\sim 1/f\)}
+  \end{block}
 \end{frame}
 
 \subsection{Phases}
@@ -416,7 +424,8 @@
     \begin{column}{0.5\textwidth}
       \begin{block}{Sélection}
         Choix d'un chemin par méthode de bandits
-        \note[item]{expvexp, choix des nœuds prometteurs, \emph{bandit} methods}
+        \note[item]{choix des nœuds prometteurs \(\rightarrow\) exploitation v.\
+        exploration \(\rightarrow\) \emph{bandit} methods}
         \begin{figure}
           \begin{tikzpicture}[scale=0.6]
             \node [circle, draw, blue] {}
@@ -459,7 +468,7 @@
     \begin{column}{0.5\textwidth}
       \begin{block}{Simulation}
         Choix d'un chemin aléatoire partant du n\oe{}ud jusqu'à une feuille
-        \note[item]{heuristique?, calcul du cout du chemin}
+        \note[item]{Évaluer le cout d'un chemin passant par le nœud ajouté}
         \begin{figure}
           \begin{tikzpicture}[scale=0.6]
             \node [circle, draw] {}
@@ -484,7 +493,7 @@
     \begin{column}{0.5\textwidth}
       \begin{block}{Sauvegarde}
         Mise à jour de l'arbre de recherche
-        \note[item]{Complète les statistiques nécessaires à la sélection}
+        \note[item]{Complète les statistiques}
       \end{block}
       \begin{figure}
         \begin{tikzpicture}[scale=0.6]
@@ -539,9 +548,12 @@
   u\}\)}
 \end{frame}
 
-\subsection{A\(^*\)}
-\begin{frame}[c]{A\(^*\)}
-  \begin{block}{Principe}
+\subsection{A\(^*\) et glouton}
+\begin{frame}[c]{A\(^*\) et glouton}
+  \begin{block}{Glouton}
+    Nœud de cout le plus faible sélectionné.
+  \end{block}
+  \begin{block}{A\(^*\) principe}
     \begin{itemize}
       \item Méthode exacte
       \item Meilleur en premier
@@ -550,12 +562,12 @@
   \end{block}
   \begin{block}{Heuristique}
     \begin{itemize}
+      \item utilisation des partitions optimales, même si non atteignables
       \item \(h(u) = \sum_{i=k+1}^f C(P^*_i, t_i)\)
         \note{%
           \(h(u)\): estimation du coût du chemin allant de \(u\)
           jusqu'à une feuille
         }
-      \item utilisation des partitions optimales, même si non atteignables
     \end{itemize}
   \end{block}
 \end{frame}
@@ -580,7 +592,7 @@
       \end{tikzpicture}
     \end{figure}
 \end{frame}
-\begin{frame}[c]{Comportement détaille}
+\begin{frame}[c]{Comportement détaillé MCTS}
   \begin{scriptsize}
     \begin{alltt}
       \begin{tabular}{lr}
