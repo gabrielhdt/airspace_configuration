@@ -7,7 +7,7 @@
 \usepackage{tikz,pgfplots}
 \usepackage{aircraftshapes}
 \usepackage{algorithm,algpseudocode}
-\usepackage{tabulary}
+\usepackage{tabulary,multirow}
 \usepackage{alltt}
 \usepackage{booktabs}
 
@@ -472,20 +472,26 @@
 \begin{frame}[c]{Comportement détaille}
   \begin{scriptsize}
     \begin{alltt}
-      (1 5, d) (2 3, a) (4, s4)\\
-      (3, s3) (2, s2) (1 5, d) (4, s4)\\
-      (5, s5) (1, s1) (3, s3) (2, s2) (4, s4)\\
-      (5, s5) (1, s1) (3, s3) (2, s2) (4, s4)\\
-      (5, s5) (1, s1) (3, s3) (2, s2) (4, s4)\\
-      (1 2, g) (5, s5) (3, s3) (4, s4)\\
-      (4 5, c) (1 2, g) (3, s3)\\
-      (1 2 3, e) (4 5, c)\\
-      (1 2 3 4 5, f)\\
-      (1 2 3 4 5, f)\\
-      (4 5, c) (1 2 3, e)\\
-      (5, s5) (4, s4) (1 2 3, e)\\
-      (5, s5) (4, s4) (1 2 3, e)\\
-      (5, s5) (4, s4) (1 2 3, e)\\
+      \begin{tabular}{lr}
+        (1 5, d) (2 3, a) (4, s4) & \multirow{5}{20mm}{\textsf{Tout surchargé}}\\
+        (3, s3) (2, s2) (1 5, d) (4, s4) & \\
+        (5, s5) (1, s1) (3, s3) (2, s2) (4, s4) & \\
+        (5, s5) (1, s1) (3, s3) (2, s2) (4, s4) & \\
+        (5, s5) (1, s1) (3, s3) (2, s2) (4, s4) & \\
+        \midrule
+        (1 2, g) (5, s5) (3, s3) (4, s4) & \multirow{6}{20mm}{\textsf{Tout sous
+        chargé}}\\
+        (4 5, c) (1 2, g) (3, s3) & \\
+        (1 2 3, e) (4 5, c) & \\
+        (1 2 3 4 5, f) & \\
+        (1 2 3 4 5, f) & \\
+        (4 5, c) (1 2 3, e) & \\
+        \midrule
+        (5, s5) (4, s4) (1 2 3, e) & \multirow{3}{20mm}{\textsf{2, 3 et 4
+        chargés}}\\
+        (5, s5) (4, s4) (1 2 3, e) & \\
+        (5, s5) (4, s4) (1 2 3, e) & \\
+      \end{tabular}
     \end{alltt}
   \end{scriptsize}
 \end{frame}
