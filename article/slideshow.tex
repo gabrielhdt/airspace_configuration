@@ -87,6 +87,12 @@
     \item Gianazza, 2010, modélisation de la charge de travail
     \item Gaudel \& Sebag, 2010, Monte Carlo un joueur
   \end{itemize}
+  \begin{block}{Travail présenté}
+    \begin{itemize}
+      \item Coût de transition en contrainte
+      \item Utilisation d'une méthode stochastique
+    \end{itemize}
+  \end{block}
 \end{frame}
 
 \section{Modèle}
@@ -528,24 +534,39 @@
   \note[item]{Opère en place sur l'arbre}
 \end{frame}
 \subsection{Construction de la solution}
-\begin{frame}[c]{Construction de la solution}
-  \note{Pas d'utilisation de sélection car pas d'exploration}
-  \begin{algorithmic}
-    \Function{MctsSearch}{$u_0, n$}
-    \State{}\(u \gets u_0\)
-    \State{}\(\pi \gets \{u\}\)
-    \For{$i = 1$ to $n$}
-    \State{}\Call{MctsSearchTree}{$u$}
-    \State{}\(u \gets\) \Call{NextNode}{$u$}
-    \State{}\(\pi \gets \pi \cup \{u\}\)
-    \EndFor{}
-    \State{}\Return{$\pi$}
-    \EndFunction{}
-  \end{algorithmic}
+\begin{frame}[c]{Construction de la solution, 1}
   \note[item]{Un appel de MctsSearchTree donne un nœud, à la jeux: un mcts pour
   un coup joué}
-  \note[item]{NextNode ici \(\mathup{argmax}\{\mu_v | v \text{\,enfants de\,}
-  u\}\)}
+  \note[item]{Choix nouvelle racine
+    \(\mathup{argmax}\{\mu_v | v \text{\,enfants de\,} u\}\)}
+  \begin{figure}
+    \begin{tikzpicture}
+      \node [circle, draw, red] {}
+        child[blue] {node [circle, draw] {}}
+        child[blue] {node [circle, draw] {}}
+        child[blue] {node [circle, draw] {}
+          child {node [circle, draw] {}}
+          child {node [circle, draw] {}}
+          child {node [circle, draw] {}}
+        }
+      \end{tikzpicture}
+      \caption{Première itération}
+    \end{figure}
+\end{frame}
+\begin{frame}[c]{Construction de la solution, 2}
+  \begin{figure}
+    \begin{tikzpicture}
+      \node [circle, draw, red] {}
+        child[gray] {node [circle, draw] {}}
+        child[gray] {node [circle, draw] {}}
+        child {node [circle, draw, red] {}
+          child[blue] {node [circle, draw] {}}
+          child[blue] {node [circle, draw] {}}
+          child[blue] {node [circle, draw] {}}
+        }
+      \end{tikzpicture}
+      \caption{Deuxième itération}
+    \end{figure}
 \end{frame}
 
 \subsection{A\(^*\) et glouton}
